@@ -1,0 +1,25 @@
+.custom-tr {
+    font-size: 12px; 
+}
+
+.custom-td {
+    font-size: 12px; 
+}
+
+.custom-button {
+    font-size: 12px; /* Ajusta este valor según tus necesidades */
+}
+
+.separated-content {
+    margin-top: 20px; /* Ajusta este valor según sea necesario */
+  }
+
+  .custom-container {
+    max-width: 90%; /* Cambia este valor para ajustar el ancho a tu preferencia */
+    margin: 0 auto; /* Centra el contenido */
+}
+
+.content-wrapper {
+    padding: 20px; /* Ajusta el padding del contenedor principal */
+    overflow: hidden; /* Para asegurarte de que no haya desbordes */
+}

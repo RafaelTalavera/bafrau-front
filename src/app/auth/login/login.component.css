@@ -1,0 +1,80 @@
+.login-container {
+  margin-top: 1rem;
+  background-color: rgba(129, 106, 106, 0.8); /* fondo blanco semitransparente */
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 400px; /* Define el ancho máximo del contenedor */
+  width: 100%; /* Se adapta al 100% del espacio disponible en dispositivos pequeños */
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Sombra para destacar el contenedor */
+}
+
+.login-container .col-sm-4 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+  body {
+    background-image: url('/assets/dist/img/fondo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .form-group {
+    display: flex;
+    align-items: center; /* Alinea verticalmente el label y el input */
+    justify-content: space-between; /* Asegura que haya espacio uniforme */
+    gap: 1rem; /* Espacio entre el label y el input */
+  }
+  
+  .form-group label {
+    width: 100px; /* Define un ancho fijo para todos los labels */
+    text-align: right; /* Alinea el texto del label a la derecha */
+    margin-bottom: 0; /* Elimina el margen inferior del label */
+    font-weight: bold; /* Opcional: hace que el texto sea más llamativo */
+    color:  #05182c; /* Cambia el color del texto a blanco */
+  }
+  
+  .form-group input {
+    width: 200px; /* Ancho fijo para permitir 8 caracteres cómodamente */
+    max-width: 100%; /* Evita que el input sea más ancho que su contenedor */
+    padding: 10px; /* Espaciado interno */
+    font-size: 16px; /* Ajusta el tamaño del texto */
+    border: 1px solid #ccc; /* Borde para inputs */
+    border-radius: 5px; /* Bordes redondeados */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra interna opcional */
+  }
+  
+  
+  
+  .login-container img {
+    margin-bottom: 1.5rem; /* Ajusta el tamaño del margen según prefieras */
+  }
+  
+  .login-container .btn-ingresar {
+    display: block; /* Asegura que ocupe todo el ancho si es necesario */
+    width: 100%; /* Por defecto, ocupa el 100% del contenedor */
+    max-width: 300px; /* Define un ancho máximo para evitar que sea demasiado ancho */
+    padding: 10px 15px; /* Ajusta el espacio interno del botón */
+    font-size: 16px; /* Tamaño de fuente */
+    margin-top: 10px; /* Espacio superior */
+    text-align: center; /* Centra el texto */
+    background-color: #0b3c6f; /* Color de fondo */
+    border: none; /* Elimina el borde */
+    border-radius: 10px; /* Bordes redondeados */
+    color: white; /* Color del texto */
+    cursor: pointer; /* Cambia el cursor al pasar por encima */
+    transition: all 0.3s ease; /* Animación suave para hover */
+  }
+  
+  .login-container .btn-ingresar:hover {
+    background-color: #0056b3; /* Color de fondo en hover */
+    transform: scale(1.02); /* Pequeño efecto de zoom al pasar por encima */
+  }
+  

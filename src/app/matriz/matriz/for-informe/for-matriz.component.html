@@ -1,0 +1,130 @@
+
+<body class="hold-transition sidebar-mini layout-fixed">
+  <!-- Site wrapper -->
+  <div class="wrapper">
+
+          <app-nav></app-nav>
+  
+      <!-- Content Wrapper. Contains page content -->
+      <div class="content-wrapper" style="overflow-y: auto; height: 100vh;">
+          <!-- Content Header (Page header) -->
+           <div class="content">
+            <form (ngSubmit)="onSubmit(informeForm)" #informeForm="ngForm">
+              <!-- Datos generales -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-2">
+                  <label for="fecha">Fecha:</label>
+                  <input type="date" id="fecha" required [(ngModel)]="informe.fecha" name="fecha" class="form-control">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="organizacion">Organización:</label>
+                  <input type="text" id="organizacion" required [(ngModel)]="informe.organizacion" name="organizacion" class="form-control">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="direccion">Dirección:</label>
+                  <input type="text" id="direccion" required [(ngModel)]="informe.direccion" name="direccion" class="form-control">
+                </div>
+                <div class="form-group col-md-3">
+                  <label for="rubro">Rubro:</label>
+                  <input type="text" id="rubro" required [(ngModel)]="informe.rubro" name="rubro" class="form-control">
+                </div>
+              </div>
+            
+              <!-- Detalles de los items -->
+              <div *ngFor="let item of informe.items; let i = index" >
+                <!-- Clasificación del Factor y Factor -->
+
+                <div class="form-row mb-4">
+                <div class="form-group col-md-3">
+                  <label for="clasificacionFactor-{{i}}">Clasificación del Factor:</label>
+                  <select id="clasificacionFactor-{{i}}" required [(ngModel)]="item.clasificacionFactor" name="clasificacionFactor-{{i}}" (change)="onClasificacionFactorChange(i)" class="form-control">
+                    <option value="Tierra">Tierra</option>
+                    <option value="Agua">Agua</option>
+                    <option value="Atmósfera">Atmósfera</option>
+                    <option value="Procesos">Procesos</option>
+                    <option value="Flora">Flora</option>
+                    <option value="Fauna">Fauna</option>
+                    <option value="Uso de la tierra">Uso de la tierra</option>
+                    <option value="Recreación">Recreación</option>
+                    <option value="Interés estético y humano">Interés estético y humano</option>
+                    <option value="Aspectos culturales">Aspectos culturales</option>
+                    <option value="Facilidades y actividades humanas">Facilidades y actividades humanas</option>
+                    <option value="Relaciones ecológicas">Relaciones ecológicas</option>
+                    <option value="Otros">Otros</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-5">
+                  <label for="factorId-{{i}}">Factor:</label>
+                  <select id="factorId-{{i}}" required [(ngModel)]="item.factorId" name="factorId-{{i}}" class="form-control">
+                    <option *ngFor="let factor of factores[i]" [value]="factor.id">{{ factor.tipo }}</option>
+                  </select>
+                </div>
+              </div>
+            
+                <!-- Clasificación de la Acción y Acción -->
+                <div class="form-row mb-4">
+                <div class="form-group col-md-4">
+                  <label for="clasificacionAccion-{{i}}">Clasificación de la Acción:</label>
+                  <select id="clasificacionAccion-{{i}}" required [(ngModel)]="item.clasificacionAccion" name="clasificacionAccion-{{i}}" (change)="onClasificacionAccionChange(i)" class="form-control">
+                    <option value="Modificación del régimen">Modificación del régimen</option>
+                    <option value="Transformación del terreno y construcción">Transformación del terreno y construcción</option>
+                    <option value="Explotación de recursos">Explotación de recursos</option>
+                    <option value="Procesamiento">Procesamiento</option>
+                    <option value="Modificación del terreno">Modificación del terreno</option>
+                    <option value="Renovación de recursos">Renovación de recursos</option>
+                    <option value="Cambios en el tráfico">Cambios en el tráfico</option>
+                    <option value="Emplazamiento y tratamiento de residuos">Emplazamiento y tratamiento de residuos</option>
+                    <option value="Tratamientos químicos">Tratamientos químicos</option>
+                    <option value="Accidentes">Accidentes</option>
+                    <option value="Otros">Otros</option>
+                  </select>
+                </div>
+                <div class="form-group col-md-5">
+                  <label for="accionId-{{i}}">Acción:</label>
+                  <select id="accionId-{{i}}" required [(ngModel)]="item.accionId" name="accionId-{{i}}" class="form-control">
+                    <option *ngFor="let accion of acciones[i]" [value]="accion.id">{{ accion.tipo }}</option>
+                  </select>
+                </div>
+              </div>
+            
+                <!-- Magnitud e Importancia -->
+                <div class="form-row mb-2">
+                <div class="form-group col-md-2">
+                  <label for="magnitude-{{i}}">Magnitud:</label>
+                  <input type="number" id="magnitude-{{i}}" required [(ngModel)]="item.magnitude" name="magnitude-{{i}}" class="form-control">
+                </div>
+                <div class="form-group col-md-2">
+                  <label for="importance-{{i}}">Importancia:</label>
+                  <input type="number" id="importance-{{i}}" required [(ngModel)]="item.importance" name="importance-{{i}}" class="form-control">
+                </div>
+              </div>
+            
+                <!-- Botón para eliminar el item -->
+                <div class="form-group col-md-12">
+                  <button type="button" (click)="removeItem(i)" class="btn btn-danger">Eliminar</button>
+                </div>
+              </div>
+            
+              <!-- Botones de acción -->
+              <div class="form-row mt-3">
+                <div class="col-md-12">
+                  <button type="button" (click)="addItem()" class="btn btn-primary mr-2">Agregar Item</button>
+                  <button type="submit" (clik)="onSubmit(informeForm)" class="btn btn-success">Enviar</button>
+                </div>
+              </div>
+            </form>
+            
+            
+            
+            
+          
+          
+        </div>
+          <!-- /.content -->
+      </div>
+      <app-footer></app-footer>
+  </div>
+</body>
+
+
+

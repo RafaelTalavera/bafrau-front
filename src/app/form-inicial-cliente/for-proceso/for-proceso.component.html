@@ -1,0 +1,194 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <!-- Formulario de Procesos -->
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="form-wrapper">
+            <form [formGroup]="procesoForm" (ngSubmit)="agregarProceso()">
+              <!-- Botón para volver -->
+              <div class="container-fluid my-4 d-flex justify-content-start">
+                <button (click)="volver()" class="btn btn-secondary">
+                  <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+              </div>
+
+              <!-- Inputs para agregar proceso -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-4">
+                  <label for="nombre" class="label-custom">Nombre del Proceso</label>
+                  <input id="nombre" formControlName="nombre" class="form-control input-custom" />
+                  <div *ngIf="procesoForm.get('nombre')?.invalid && procesoForm.get('nombre')?.touched"
+                    class="text-danger">
+                    El nombre del proceso es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="producto" class="label-custom">Producto</label>
+                  <input id="producto" formControlName="producto" class="form-control input-custom" />
+                  <div *ngIf="procesoForm.get('producto')?.invalid && procesoForm.get('producto')?.touched"
+                    class="text-danger">
+                    El producto es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="subProducto" class="label-custom">SubProducto</label>
+                  <input id="subProducto" formControlName="subProducto" class="form-control input-custom" />
+                  <div *ngIf="procesoForm.get('subProducto')?.invalid && procesoForm.get('subProducto')?.touched"
+                    class="text-danger">
+                    El subproducto es requerido
+                  </div>
+                </div>
+              </div>
+
+              <!-- Otros campos del proceso -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-4">
+                  <label for="acopioResiduos" class="label-custom">Acopio de Residuos</label>
+                  <input id="acopioResiduos" formControlName="acopioResiduos" class="form-control input-custom" />
+                  <div *ngIf="procesoForm.get('acopioResiduos')?.invalid && procesoForm.get('acopioResiduos')?.touched"
+                    class="text-danger">
+                    El acopio de residuos es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="sitioResiduos" class="label-custom">Sitio de Residuos</label>
+                  <input id="sitioResiduos" formControlName="sitioResiduos" class="form-control input-custom" />
+                  <div *ngIf="procesoForm.get('sitioResiduos')?.invalid && procesoForm.get('sitioResiduos')?.touched"
+                    class="text-danger">
+                    El sitio de residuos es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="recipienteResiduos" class="label-custom">Recipiente de Residuos</label>
+                  <input id="recipienteResiduos" formControlName="recipienteResiduos"
+                    class="form-control input-custom" />
+                  <div
+                    *ngIf="procesoForm.get('recipienteResiduos')?.invalid && procesoForm.get('recipienteResiduos')?.touched"
+                    class="text-danger">
+                    El recipiente de residuos es requerido
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row mb-2">
+                <div class="form-group col-md-4">
+                  <label for="residuosLiquidos" class="label-custom">Residuos Líquidos</label>
+                  <input id="residuosLiquidos" formControlName="residuosLiquidos" class="form-control input-custom" />
+                  <div
+                    *ngIf="procesoForm.get('residuosLiquidos')?.invalid && procesoForm.get('residuosLiquidos')?.touched"
+                    class="text-danger">
+                    Los residuos líquidos son requeridos
+                  </div>
+                </div>
+              </div>
+
+
+
+              <!-- Residuos (manejado con FormArray) -->
+              <div class="form-group" formArrayName="residuos">
+                <label for="residuos" class="label-custom d-block">Residuos</label>
+                <div *ngFor="let residuo of residuos.controls; let i = index" class="input-group mb-2">
+                  <!-- Cambiamos formControlName -->
+                  <input [formControlName]="i" class="form-control input-custom" placeholder="Residuo" />
+                  <div class="input-group-append">
+                   
+                    <button type="button" class="btn btn-danger" (click)="eliminarResiduo(i)">Eliminar</button>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-primary mt-3" (click)="agregarResiduo()">  <i class="fa-solid fa-trash-can-arrow-up"></i>     Añadir Residuo</button>
+                <!-- Mostrar mensaje de error si el array está vacío y es requerido -->
+                <div *ngIf="procesoForm.get('residuos')?.invalid && procesoForm.get('residuos')?.touched"
+                  class="text-danger">
+                  Debe agregar al menos un residuo.
+                </div>
+              </div>
+
+
+
+
+              <!-- Botón para agregar el proceso -->
+              <div class="form-row mt-3">
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary" [disabled]="procesoForm.invalid">   <i class="fa-solid fa-industry"></i> Agregar
+                    Proceso</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla de Procesos dentro de un card -->
+          <div class="card mt-4">
+            <div class="card-header text-center">
+              <h4 class="card-title">Lista de Procesos</h4>
+            </div>
+            <div class="card-body">
+              <!-- Mostrar tabla solo si hay procesos -->
+              <div *ngIf="procesos.length > 0">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th class="custom-th">Proceso</th>
+                      <th class="custom-th">Producto</th>
+                      <th class="custom-th">Sub-producto</th>
+                      <th class="custom-th">residuos</th>
+                      <th class="custom-th">Acopio de residuos</th>
+                      <th class="custom-th">sitio de residuos</th>
+                      <th class="custom-th">Recipientes</th>
+                      <th class="custom-th">Residuos Líquidos</th>
+                      <th class="custom-th">Agregar Insumos</th>
+                      <th class="custom-th">Editar</th>
+                      <th class="custom-th">Eliminar</th>
+                      
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let proceso of procesos">
+                      <td class="custom-td">{{ proceso.nombre }}</td>
+                      <td class="custom-td">{{ proceso.producto }}</td>
+                      <td class="custom-td">{{ proceso.subProducto }}</td>
+                      <td class="custom-td">{{ proceso.residuos }}</td>
+                      <td class="custom-td">{{ proceso.acopioResiduos }}</td>
+                      <td class="custom-td">{{ proceso.sitioResiduos }}</td>
+                      <td class="custom-td">{{ proceso.recipienteResiduos }}</td>
+                      <td class="custom-td">{{ proceso.residuosLiquidos }}</td>
+
+                      <td class="custom-td text-center">
+                        <button (click)="irAInsumos(proceso.id)" class="btn btn-sm btn-info">
+                          <i class="fa-solid fa-boxes"></i> Insumos
+                        </button>
+                      </td>
+
+                      <td class="custom-td text-center">
+                        <button (click)="editarProceso(proceso)" class="btn btn-sm btn-secondary">
+                          <i class="fa-solid fa-square-pen"></i> Editar
+                        </button>
+                      </td>
+                      <td class="custom-td text-center">
+                        <button (click)="eliminarProceso(proceso.id)" class="btn btn-sm btn-danger">
+                          <i class="fa-solid fa-trash-can"></i> Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mensaje cuando no hay procesos -->
+              <div *ngIf="procesos.length === 0" class="alert alert-info text-center">
+                No hay procesos registrados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

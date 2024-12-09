@@ -1,0 +1,34 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <!-- Nav -->
+    <app-nav></app-nav>
+
+    <!-- Contenido principal con el mensaje animado y el botón central -->
+    <div class="content-wrapper d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+      <div class="text-center">
+        <h2 class="animated-text" style="font-weight: bold; color: #0b3c6f;">
+          Bienvenido al sistema de gestión de BAFRAU
+        </h2>
+    
+        <!-- Contenedor que alinea los botones verticalmente -->
+        <div class="d-flex flex-column align-items-center mt-4">
+          <button class="btn-custom mb-3" (click)="navegarAFormulario()">
+            <i class="fa fa-square-plus"></i> Formulario inicial
+          </button>
+    
+          <button class="btn-custom mb-3" (click)="navegarAFormulario()">
+            <i class="fa fa-solid fa-seedling"></i> Crear Auditoria
+          </button>
+
+
+        </div>
+      </div>
+    
+    </div>
+ 
+  </div>
+
+ 
+</body>
+
+<app-footer></app-footer>

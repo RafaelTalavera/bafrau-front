@@ -1,0 +1,82 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+      <app-nav></app-nav>
+  
+      <div class="content-wrapper">
+        <!-- Formulario de Teléfonos -->
+        <div class="container-fluid my-4 d-flex justify-content-center">
+          <div class="separated-content w-100">
+            <div class="form-wrapper">
+              <form [formGroup]="servicioForm" (ngSubmit)="agregarServicioDisponible()">
+                <!-- Botón para volver -->
+                <div class="container-fluid my-4 d-flex justify-content-start">
+                  <button (click)="volver()" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                  </button>
+                </div>
+  
+                <!-- Inputs para agregar teléfono -->
+                <div class="form-row mb-2">
+                  <div class="form-group col-md-4">
+                    <label for="servicio" class="label-custom">Tipo de servicio</label>
+                    <input id="servicio" formControlName="servicio" class="form-control input-custom" />
+                    <div *ngIf="servicioForm.get('servicio')?.invalid && servicioForm.get('servicio')?.touched" class="text-danger">
+                      El servicio es requerido
+                    </div>
+                  </div>
+
+                </div> <!-- Cierre correcto del div -->
+  
+                <!-- Botón para agregar teléfono -->
+                <div class="form-row mt-3">
+                  <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary" [disabled]="servicioForm.invalid">Agregar Servicio</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+  
+            <!-- Lista de Servicios dentro de un card -->
+            <div class="card mt-4">
+              <div class="card-header text-center">
+                <h4 class="card-title">Lista de Servicios Disponibles</h4>
+              </div>
+              <div class="card-body">
+                <!-- Mostrar tabla solo si hay servicios -->
+                <div *ngIf="serviciosDisponibles.length > 0">
+                  <table class="table table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="custom-th">Servicio</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let servicio of serviciosDisponibles">
+                            <td class="custom-td">{{ servicio.servicio }}</td>
+                            <td class="custom-td text-center">
+                              <button (click)="editarServicio(servicio)" class="btn btn-sm btn-secondary">
+                                <i class="fa-solid fa-square-pen"></i> Editar
+                              </button>
+                              <button (click)="eliminarServicio(servicio.id)" class="btn btn-sm btn-danger">
+                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                              </button>
+                            </td>
+                          </tr>
+                
+                    </tbody>
+                  </table>
+                </div>
+  
+                <!-- Mensaje cuando no hay teléfonos -->
+                <div *ngIf="serviciosDisponibles.length === 0" class="alert alert-info text-center">
+                  No hay teléfonos registrados.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <app-footer></app-footer>
+    </div>
+  </body>
+  

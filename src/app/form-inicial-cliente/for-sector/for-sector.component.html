@@ -1,0 +1,91 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+      <app-nav></app-nav>
+  
+      <div class="content-wrapper">
+        <!-- Formulario de Sectores -->
+        <div class="container-fluid my-4 d-flex justify-content-center">
+          <div class="separated-content w-100">
+            <div class="form-wrapper">
+              <form [formGroup]="sectorForm" (ngSubmit)="agregarSector()">
+                <!-- Botón para volver -->
+                <div class="container-fluid my-4 d-flex justify-content-start">
+                  <button (click)="volver()" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                  </button>
+                </div>
+  
+                <!-- Inputs para agregar sector -->
+                <div class="form-row mb-2">
+                  <div class="form-group col-md-6">
+                    <label for="sector" class="label-custom">Nombre del sector</label>
+                    <input id="sector" formControlName="sector" class="form-control input-custom" />
+                    <div *ngIf="sectorForm.get('sector')?.invalid && sectorForm.get('sector')?.touched" class="text-danger">
+                      El nombre del sector es requerido
+                    </div>
+                  </div>
+  
+                  <div class="form-group col-md-6">
+                    <label for="m2" class="label-custom">Área del sector (m²)</label>
+                    <input id="m2" type="number" formControlName="m2" class="form-control input-custom" />
+                    <div *ngIf="sectorForm.get('m2')?.invalid && sectorForm.get('m2')?.touched" class="text-danger">
+                      El área en m² es requerida
+                    </div>
+                  </div>
+                </div>
+  
+                <!-- Botón para agregar sector -->
+                <div class="form-row mt-3">
+                  <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary" [disabled]="sectorForm.invalid">Agregar Sector</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+  
+            <!-- Tabla de Sectores dentro de un card -->
+            <div class="card mt-4">
+              <div class="card-header text-center">
+                <h4 class="card-title">Lista de Sectores</h4>
+              </div>
+              <div class="card-body">
+                <!-- Mostrar tabla solo si hay sectores -->
+                <div *ngIf="sectores.length > 0">
+                  <table class="table table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="custom-th">Sector</th>
+                        <th class="custom-th">Área (m²)</th>
+                        <th class="custom-th">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let sector of sectores">
+                        <td class="custom-td">{{ sector.sector }}</td>
+                        <td class="custom-td">{{ sector.m2 }}</td>
+                        <td class="custom-td text-center">
+                          <button (click)="editarSector(sector)" class="btn btn-sm btn-secondary">
+                            <i class="fa-solid fa-square-pen"></i> Editar
+                          </button>
+                          <button (click)="eliminarSector(sector.id)" class="btn btn-sm btn-danger">
+                            <i class="fa-solid fa-trash-can"></i> Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+  
+                <!-- Mensaje cuando no hay sectores -->
+                <div *ngIf="sectores.length === 0" class="alert alert-info text-center">
+                  No hay sectores registrados.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <app-footer></app-footer>
+    </div>
+  </body>
+  

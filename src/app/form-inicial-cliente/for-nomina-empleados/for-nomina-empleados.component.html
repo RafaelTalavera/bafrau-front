@@ -1,0 +1,106 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <!-- Formulario de Nómina de Empleados -->
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="form-wrapper">
+            <form [formGroup]="nominaForm" (ngSubmit)="agregarEmpleado()">
+              <!-- Botón para volver -->
+              <div class="container-fluid my-4 d-flex justify-content-start">
+                <button (click)="volver()" class="btn btn-secondary">
+                  <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+              </div>
+
+              <!-- Inputs para agregar empleado -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-4">
+                  <label for="puesto" class="label-custom">Puesto de trabajo</label>
+                  <input id="puesto" formControlName="puesto" class="form-control input-custom" />
+                  <div *ngIf="nominaForm.get('puesto')?.invalid && nominaForm.get('puesto')?.touched" class="text-danger">
+                    El puesto es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="contrato" class="label-custom">Tipo de Contrato</label>
+                  <input id="contrato" formControlName="contrato" class="form-control input-custom" />
+                  <div *ngIf="nominaForm.get('contrato')?.invalid && nominaForm.get('contrato')?.touched" class="text-danger">
+                    El tipo de contrato es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="cantidad" class="label-custom">Cantidad de Empleados</label>
+                  <input id="cantidad" type="number" formControlName="cantidad" class="form-control input-custom" />
+                  <div *ngIf="nominaForm.get('cantidad')?.invalid && nominaForm.get('cantidad')?.touched" class="text-danger">
+                    La cantidad de empleados es requerida
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón para agregar empleado -->
+              <div class="form-row mt-3">
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary" [disabled]="nominaForm.invalid">Agregar Empleado</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla de Empleados dentro de un card -->
+          <div class="card mt-4">
+            <div class="card-header text-center">
+              <h4 class="card-title">Nómina de Empleados</h4>
+            </div>
+            <div class="card-body">
+              <!-- Mostrar tabla solo si hay empleados -->
+              <div *ngIf="empleados.length > 0">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th class="custom-th">Puesto</th>
+                      <th class="custom-th">Contrato</th>
+                      <th class="custom-th">Cantidad</th>
+                      <th class="custom-th">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let empleado of empleados">
+                      <td class="custom-td">{{ empleado.puesto }}</td>
+                      <td class="custom-td">{{ empleado.contrato }}</td>
+                      <td class="custom-td">{{ empleado.cantidad }}</td>
+                      <td class="custom-td text-center">
+                        <button (click)="editarEmpleado(empleado)" class="btn btn-sm btn-secondary">
+                          <i class="fa-solid fa-square-pen"></i> Editar
+                        </button>
+                        <button (click)="eliminarEmpleado(empleado.id)" class="btn btn-sm btn-danger">
+                          <i class="fa-solid fa-trash-can"></i> Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td class="custom-td" colspan="2"><strong>Total</strong></td>
+                      <td class="custom-td" colspan="2"><strong>{{ getTotalCantidad() }}</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <!-- Mensaje cuando no hay empleados -->
+              <div *ngIf="empleados.length === 0" class="alert alert-info text-center">
+                No hay empleados registrados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

@@ -1,0 +1,33 @@
+.navbar-nav {
+    margin: 0 auto;
+  }
+
+  .custom-navbar {
+    background-color: white !important; /* Cambia a un tono de negro más claro */
+  }
+  
+  .navbar-nav .nav-link {
+    color: black !important; 
+  }
+  
+  
+  .navbar-toggler-icon {
+    filter: invert(0);
+  }
+  
+  .nav-link:hover {
+    color: #ddd !important;
+  }
+  
+  button.nav-link {
+    color: white !important;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  button.nav-link:hover {
+    color: #ddd !important;
+  }
+  
+  

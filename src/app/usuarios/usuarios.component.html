@@ -1,0 +1,98 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <div *ngIf="!showError" class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="col">
+            <!-- Formulario para crear o editar un usuario -->
+            <app-form-usuario 
+              (newUsuarioEvent)="addUsuario($event)" 
+              [usuario]="usuarioSelected">
+            </app-form-usuario>
+          </div>
+          
+          <!-- Card para la tabla de usuarios -->
+          <div class="card mt-4" style="width: 100%;">
+            <div class="col mt-3">
+              <!-- Encabezado de la lista de usuarios -->
+              <h5 class="text-center">Lista de Usuarios</h5>
+
+              <!-- Campo de búsqueda por DNI -->
+              <div class="mb-3">
+                <input 
+                  type="text" 
+                  class="custom-tr form-control" 
+                  placeholder="Buscar por DNI" 
+                  [(ngModel)]="dniBusqueda" 
+                  (input)="buscarPorDNI()" 
+                  style="max-width: 200px; margin: 0 auto;">
+              </div>
+
+              <!-- Tabla con lista de usuarios -->
+              <div *ngIf="usuariosFiltrados.length > 0" style="max-height: 600px; overflow-y: auto;">
+                <table class="table table-hover table-striped">
+                  <thead>
+                    <tr>
+                      <th class="custom-tr">Nombre</th>
+                      <th class="custom-tr">Apellido</th>
+                      <th class="custom-tr">DNI</th>
+                      <th class="custom-tr">Email</th>
+                      <th class="custom-tr">Organización</th>
+                      <th class="custom-tr">Titulo</th>
+                      <th class="custom-tr">Matricula Provincial</th>
+                      <th class="custom-tr">Matricula Colegio Neuquen</th>
+                      <th class="custom-tr">Matricula Municipal</th>
+                      <th class="custom-tr">Dirección</th>
+                      <th class="custom-tr">Teléfono</th>
+                      <th class="custom-tr">ROL</th>
+                      <th class="custom-tr">Editar</th>
+                      <th class="custom-tr">Eliminar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let usuario of usuariosFiltrados; trackBy: trackByFn">
+                      <td class="custom-td">{{ usuario.nombre }}</td>
+                      <td class="custom-td">{{ usuario.lastname }}</td>
+                      <td class="custom-td">{{ usuario.dni }}</td>
+                      <td class="custom-td">{{ usuario.username }}</td>
+                      <td class="custom-td">{{ usuario.organizacion }}</td>
+                      <td class="custom-td">{{ usuario.titulo }}</td>
+                      <td class="custom-td">{{ usuario.matriculaProvincia }}</td>
+                      <td class="custom-td">{{ usuario.matriculaColegioNeuquen }}</td>
+                      <td class="custom-td">{{ usuario.matriculaMunicipal }}</td>
+                      <td class="custom-td">{{ usuario.address }}</td>
+                      <td class="custom-td">{{ usuario.phone }}</td>
+                      <td class="custom-td">{{ usuario.role }}</td>
+                      <td class="custom-td">
+                        <button 
+                          (click)="onUpdateUsuario(usuario)" 
+                          class="btn btn-sm btn-secondary custom-button">
+                          Editar
+                        </button>
+                      </td>
+                      <td>
+                        <button 
+                          (click)="onRemoveUsuario(usuario.id)" 
+                          class="btn btn-sm btn-danger custom-button">
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mensaje si no se encuentran usuarios -->
+              <div *ngIf="usuariosFiltrados.length === 0" class="alert alert-info text-center">
+                Lo sentimos, no hay información para mostrar
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

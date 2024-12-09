@@ -1,0 +1,99 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <!-- Formulario de Insumos -->
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="form-wrapper">
+            <form [formGroup]="insumoForm" (ngSubmit)="agregarInsumo()">
+              <!-- Botón para volver -->
+              <div class="container-fluid my-4 d-flex justify-content-start">
+                <button (click)="volver()" class="btn btn-secondary">
+                  <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+              </div>
+            
+              <!-- Inputs para agregar insumo -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-6">
+                  <label for="nombre" class="label-custom">Nombre del Insumo</label>
+                  <input id="nombre" formControlName="nombre" class="form-control input-custom" />
+                  <div *ngIf="insumoForm.get('nombre')?.invalid && insumoForm.get('nombre')?.touched" class="text-danger">
+                    El nombre del insumo es requerido
+                  </div>
+                </div>
+            
+                <!-- Campo para subir la ficha técnica -->
+                <div class="form-group col-md-6">
+                  <label for="fichaTecnica" class="label-custom">Ficha Técnica</label>
+                  <input id="fichaTecnica" type="file" (change)="onFileSelected($event)" class="form-control input-custom" />
+                  <div *ngIf="selectedFile === null && fileTouched" class="text-danger">
+                    La ficha técnica es requerida
+                  </div>
+                </div>
+              </div>
+            
+              <!-- Botón para agregar insumo -->
+              <div class="form-row mt-3">
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary" [disabled]="insumoForm.invalid || selectedFile === null">
+                    Agregar Insumo
+                  </button>
+                </div>
+              </div>
+            </form>
+            
+          </div>
+
+          <!-- Tabla de Insumos dentro de un card -->
+          <div class="card mt-4">
+            <div class="card-header text-center">
+              <h4 class="card-title">Lista de Insumos</h4>
+            </div>
+            <div class="card-body">
+              <!-- Mostrar tabla solo si hay insumos -->
+              <div *ngIf="insumos.length > 0">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th class="custom-th">Insumo</th>
+                      <th class="custom-th">Ficha Técnica</th>
+                      <th class="custom-th">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let insumo of insumos">
+                      <td class="custom-td">{{ insumo.nombre }}</td>
+                      <td class="custom-td">
+                        <button class="btn btn-info btn-sm" (click)="verFichaTecnica(insumo.fichaTecnica)">
+                          Ver
+                        </button>
+                      </td>
+                      
+                      <td class="custom-td text-center">
+                        <button (click)="editarInsumo(insumo)" class="btn btn-sm btn-secondary">
+                          <i class="fa-solid fa-square-pen"></i> Editar
+                        </button>
+                        <button (click)="eliminarInsumo(insumo.id)" class="btn btn-sm btn-danger">
+                          <i class="fa-solid fa-trash-can"></i> Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mensaje cuando no hay insumos -->
+              <div *ngIf="insumos.length === 0" class="alert alert-info text-center">
+                No hay insumos registrados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

@@ -1,0 +1,178 @@
+/* estilos personalizados para el formulario */
+.form-wrapper {
+    margin-top: 10px; /* Margen superior */
+    margin-left: 5%; /* Margen izquierdo */
+    margin-right: 5%; /* Margen derecho */
+    /* Puedes ajustar los valores de margen según lo necesites */
+  }
+
+  .content-wrapper {
+    padding: 20px; /* Ajusta el padding del contenedor principal */
+    overflow: hidden; /* Para asegurarte de que no haya desbordes */
+}
+
+
+  .label-custom, .input-custom {
+    font-size: 12px;
+
+  }
+
+  .custom-th, .custom-td {
+    font-size: 12px;
+    padding: 0.3rem;
+    max-width: 100px; /* Limita el ancho máximo de cada celda */
+    text-align: center;
+  
+  
+  }
+
+  .separated-content {
+    margin-top: 20px; /* Ajusta este valor según sea necesario */
+  }
+
+  .separated-content {
+    max-width: 80%;
+  }
+
+  .card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .card-title {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .card-text {
+    font-size: 14px;
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+  
+  button {
+    margin-right: 5px;
+   
+  }
+
+  /* Estilo general para todos los botones */
+.btn-custom {
+  
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  text-align: center;
+  width: 100%;
+  max-width: 270px; /* O el valor adecuado según el diseño */
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover para darle interacción */
+.btn-custom:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tamaño específico para los iconos dentro de los botones */
+.btn-custom i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+  .wrapper {
+    min-height: 100vh;
+  }
+
+  .progress-container {
+    position: relative;
+  }
+  
+  .progress-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #000;
+    font-weight: bold;
+    margin-top: 4px;
+  }
+
+  .header-style {
+    border: 1px solid #dee2e6; /* Borde similar a la tabla */
+    border-radius: 4px; /* Bordes redondeados */
+    background-color: #f8f9fa; /* Fondo claro */
+    padding: 10px; /* Espaciado interno */
+    margin-bottom: 10px; /* Espaciado inferior */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+  }
+  .card {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra elegante */
+    border-radius: 8px; /* Bordes redondeados */
+    border: 1px solid #dee2e6; /* Borde sutil */
+    margin-top: 100px; 
+  }
+  
+  .card-header {
+    padding: 15px; /* Asegura suficiente espacio interno */
+    background-color: #0b0f12; /* Color de fondo claro */
+    border-bottom: 1px solid #dee2e6; /* Separador */
+    border-radius: 8px 8px 0 0; /* Bordes redondeados superiores */
+    min-height: 60px; /* Asegura que haya suficiente espacio vertical */
+    display: flex; /* Flexbox para alinear contenido */
+    align-items: center; /* Alinea verticalmente el contenido */
+    justify-content: center; /* Alinea horizontalmente el contenido */
+  }
+  
+  .card-title {
+    font-size: 18px; /* Tamaño de fuente suficiente */
+    font-weight: bold; /* Resalta el texto */
+    margin: 0; /* Evita márgenes adicionales */
+    color: #343a40; /* Color oscuro elegante */
+  }
+  
+  
+  .card-body {
+    padding: 20px;
+    background-color: #ffffff; /* Fondo blanco */
+  }
+  
+  .form-wrapper {
+    padding: 15px; /* Espaciado interno */
+  }
+  
+  .btn-custom {
+    width: 100%; /* Botón ancho */
+    background-color: #007bff; /* Azul Bootstrap */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-custom:hover {
+    background-color: #0056b3; /* Azul más oscuro */
+  }
+  
+  .card.form-card {
+    margin-top: 100px; /* Separación específica para esta tarjeta */
+  }
+
+  .input-error {
+    border: 1px solid red !important;
+    background-color: #ffe6e6;
+  }
+  
+  .alert-danger {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 0.5em;
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: #f8d7da;
+  }
+  

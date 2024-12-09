@@ -1,0 +1,90 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <!-- Formulario de Teléfonos -->
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="form-wrapper">
+            <form [formGroup]="telefonoForm" (ngSubmit)="agregarTelefono()">
+              <!-- Botón para volver -->
+              <div class="container-fluid my-4 d-flex justify-content-start">
+                <button (click)="volver()" class="btn btn-secondary">
+                  <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+              </div>
+
+              <!-- Inputs para agregar teléfono -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-4">
+                  <label for="nombre" class="label-custom">Nombre del Contacto</label>
+                  <input id="nombre" formControlName="nombre" class="form-control input-custom" />
+                  <div *ngIf="telefonoForm.get('nombre')?.invalid && telefonoForm.get('nombre')?.touched" class="text-danger">
+                    El nombre es requerido
+                  </div>
+                </div>
+
+                <div class="form-group col-md-4">
+                  <label for="telefono" class="label-custom">Teléfono</label>
+                  <input id="telefono" formControlName="telefono" class="form-control input-custom" />
+                  <div *ngIf="telefonoForm.get('telefono')?.invalid && telefonoForm.get('telefono')?.touched" class="text-danger">
+                    El teléfono es requerido
+                  </div>
+                </div>
+              </div> <!-- Cierre correcto del div -->
+
+              <!-- Botón para agregar teléfono -->
+              <div class="form-row mt-3">
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary" [disabled]="telefonoForm.invalid">Agregar Teléfono</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Lista de Teléfonos dentro de un card -->
+          <div class="card mt-4">
+            <div class="card-header text-center">
+              <h4 class="card-title">Lista de Teléfonos</h4>
+            </div>
+            <div class="card-body">
+              <!-- Mostrar tabla solo si hay teléfonos -->
+              <div *ngIf="telefonos.length > 0">
+                <table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th class="custom-th">Nombre</th>
+                      <th class="custom-th">Teléfono</th>
+                      <th class="custom-th">Acciones</th> <!-- Agregué columna para acciones -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let telefono of telefonos">
+                      <td class="custom-td">{{ telefono.nombre }}</td>
+                      <td class="custom-td">{{ telefono.telefono }}</td>
+                      <td class="custom-td text-center">
+                        <button (click)="editarTelefono(telefono)" class="btn btn-sm btn-secondary">
+                          <i class="fa-solid fa-square-pen"></i> Editar
+                        </button>
+                        <button (click)="eliminarTelefono(telefono.id)" class="btn btn-sm btn-danger">
+                          <i class="fa-solid fa-trash-can"></i> Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mensaje cuando no hay teléfonos -->
+              <div *ngIf="telefonos.length === 0" class="alert alert-info text-center">
+                No hay teléfonos registrados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

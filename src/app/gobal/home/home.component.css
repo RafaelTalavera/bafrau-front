@@ -1,0 +1,32 @@
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100vh; /* 100% de la altura de la ventana del navegador */
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Espacio entre los elementos */
+    max-width: 600px;
+}
+
+h1, p {
+    margin: 0;
+}
+
+.navbar-logo img {
+    width: 80%; /* Ajusta el tamaño según necesites */
+    height: auto;
+    display: block;
+    margin-left: 0; /* Alinea al borde izquierdo */
+  }
+
+  /* nombre-componente.component.css */
+
+
+  
+  

@@ -1,0 +1,64 @@
+<form #accionForm="ngForm" (ngSubmit)="onSubmit(accionForm)" class="container mt-2">
+    <div class="card" style="width: 100%;">
+      <div class="card-header">
+        <h5 class="custom-h5">Crear Acciones</h5>
+      </div>
+      <div class="card-body">
+        <!-- Fila de inputs en una línea -->
+        <div class="form-row d-flex align-items-center">
+          <div class="col-md-6 form-group">
+            <select id="clasificacion" 
+                    name="clasificacion" 
+                    [(ngModel)]="accion.clasificacion" 
+                    #clasificacion="ngModel" 
+                    required
+                    class="form-control"
+                    style="font-size: 12px;">
+                    <option value="" disabled selected>Selecciona una acción</option>
+                    <option value="Modificación del régimen">Modificación del régimen</option>
+                    <option value="Transformación del terreno y construcción">Transformación del terreno y construcción</option>
+                    <option value="Explotación de recursos">Explotación de recursos</option>
+                    <option value="Procesamiento">Procesamiento</option>
+                    <option value="Modificación del terreno">Modificación del terreno</option>
+                    <option value="Renovación de recursos">Renovación de recursos</option>
+                    <option value="Cambios en el tráfico">Cambios en el tráfico</option>
+                    <option value="Emplazamiento y tratamiento de residuos">Emplazamiento y tratamiento de residuos</option>
+                    <option value="Tratamientos químicos">Tratamientos químicos</option>
+                    <option value="Accidentes">Accidentes</option>
+                    <option value="Otros">Otros</option>
+            </select>
+            <div *ngIf="clasificacion.invalid && (clasificacion.dirty || clasificacion.touched)" class="text alert-danger">
+              <div *ngIf="clasificacion.errors?.['required']"> 
+                La clasificación es requerida
+              </div>
+            </div>
+          </div>
+  
+          <div class="col-md-6 form-group">
+            <input type="text" 
+                   id="tipo" 
+                   placeholder="Tipo" 
+                   name="tipo" 
+                   [(ngModel)]="accion.tipo" 
+                   #tipo="ngModel" 
+                   required
+                   class="form-control"
+                   style="font-size: 12px;">
+            <div *ngIf="tipo.invalid && (tipo.dirty || tipo.touched)" class="text alert-danger">
+              <div *ngIf="tipo.errors?.['required']"> 
+                El tipo es requerido
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Botones -->
+        <div class="text-center">
+          <div class="form-group">
+            <button [disabled]="!accionForm.form.valid" type="submit" class="btn btn-primary my-2 mx-3" style="font-size: 12px;">Guardar</button>
+            <button type="button" class="btn btn-success my-2 mx-3" (click)="clean()" style="font-size: 12px;">Limpiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>

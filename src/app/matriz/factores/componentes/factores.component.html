@@ -1,0 +1,54 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+    <!-- Site wrapper -->
+    <div class="wrapper">
+            <app-nav></app-nav>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper" style="overflow-y: auto; height: 100vh;">
+            <!-- Content Header (Page header) -->
+            <div *ngIf="!showError" class="container my-4 d-flex justify-content-center">
+                <div class="separated-content">
+                    <div class="col">
+                        <app-form-factor (newFactorEvent)="addFactor($event)" [factor]="factorSelected"></app-form-factor>
+                    </div>
+                    <div class="card" style="width: 100%;">
+                        <div class="col mt-3">
+                            <div>
+                                <h5 class="text-center">Lista de Factores</h5>
+                                <div>
+                                    <input type="text" class="custom-tr" placeholder="Buscar por tipo" [(ngModel)]="tipoBusqueda" (input)="buscarPorTipo()" style="width: 120px;">
+                                </div>
+                                <div *ngIf="factoresFiltrados.length > 0" style="max-height: 600px; overflow-y: auto;">
+                                    <table class="table table-hover table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th class="custom-tr">Clasificación</th>
+                                                <th class="custom-tr">Tipo</th>
+                                                <th class="custom-tr">Editar</th>
+                                                <th class="custom-tr">Eliminar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let factor of factoresFiltrados; trackBy: trackByFn">
+                                                <td class="custom-td">{{factor.clasificacion}}</td>
+                                                <td class="custom-td">{{factor.tipo}}</td>
+                                                <td class="custom-td">
+                                                    <button (click)="onUpdateFactor(factor)" class="btn btn-sm btn-secondary custom-button">Editar</button>
+                                                </td>
+                                                <td>
+                                                    <button (click)="onRemoveFactor(factor.id)" class="btn btn-sm btn-danger custom-button">Eliminar</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div *ngIf="factoresFiltrados.length === 0" class="alert alert-info">Lo sentimos, no hay información para mostrar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.content -->
+        </div>
+        <app-footer></app-footer>
+    </div>
+</body>

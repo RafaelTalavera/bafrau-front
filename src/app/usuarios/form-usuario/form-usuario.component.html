@@ -1,0 +1,212 @@
+<form #usuarioForm="ngForm" (ngSubmit)="onSubmit(usuarioForm)" class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white text-center">
+      <h4 class="mb-0 custom-header">Crear Usuario</h4>
+    </div>
+    <div class="card-body p-4">
+      <!-- Primera fila de inputs -->
+      <div class="row mb-3">
+        <!-- Nombre -->
+        <div class="col-md-2 mb-3">
+          <label for="nombre" class="form-label custom-label">Nombre</label>
+          <input type="text" 
+                 id="nombre" 
+                 name="nombre" 
+                 placeholder="Nombre" 
+                 [(ngModel)]="usuario.nombre" 
+                 #nombre="ngModel" 
+                 required
+                 class="form-control custom-form-input"
+                 [class.is-invalid]="nombre.invalid && nombre.touched">
+          <div *ngIf="nombre.invalid && nombre.touched" class="invalid-feedback">
+            El nombre es requerido.
+          </div>
+        </div>
+
+        <!-- Apellido -->
+        <div class="col-md-2 mb-3">
+          <label for="apellido" class="form-label custom-label">Apellido</label>
+          <input type="text" 
+                 id="apellido" 
+                 name="apellido" 
+                 placeholder="Apellido" 
+                 [(ngModel)]="usuario.lastname" 
+                 #apellido="ngModel" 
+                 required
+                 class="form-control custom-form-input"
+                 [class.is-invalid]="apellido.invalid && apellido.touched">
+          <div *ngIf="apellido.invalid && apellido.touched" class="invalid-feedback">
+            El apellido es requerido.
+          </div>
+        </div>
+
+        <!-- DNI -->
+        <div class="col-md-2 mb-3">
+          <label for="dni" class="form-label custom-label">DNI</label>
+          <input type="text" 
+                 id="dni" 
+                 name="dni" 
+                 placeholder="DNI" 
+                 [(ngModel)]="usuario.dni" 
+                 #dni="ngModel" 
+                 required
+                 class="form-control custom-form-input"
+                 [class.is-invalid]="dni.invalid && dni.touched">
+          <div *ngIf="dni.invalid && dni.touched" class="invalid-feedback">
+            El DNI es requerido.
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-2 mb-3">
+          <label for="username" class="form-label custom-label">Email</label>
+          <input type="email" 
+                 id="username" 
+                 name="username" 
+                 placeholder="Email" 
+                 [(ngModel)]="usuario.username" 
+                 #username="ngModel" 
+                 required
+                 class="form-control custom-form-input"
+                 [class.is-invalid]="username.invalid && username.touched">
+          <div *ngIf="username.invalid && username.touched" class="invalid-feedback">
+            El email es requerido y debe ser válido.
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="col-md-2 mb-3">
+          <label for="password" class="form-label custom-label">Contraseña</label>
+          <input type="password" 
+                 id="password" 
+                 name="password" 
+                 placeholder="Contraseña" 
+                 [(ngModel)]="usuario.password" 
+                 #password="ngModel" 
+                 required
+                 minlength="6"
+                 class="form-control custom-form-input"
+                 [class.is-invalid]="password.invalid && password.touched">
+          <div *ngIf="password.invalid && password.touched" class="invalid-feedback">
+            La contraseña es requerida y debe tener al menos 6 caracteres.
+          </div>
+        </div>
+
+        <!-- Organización -->
+        <div class="col-md-2 mb-3">
+          <label for="organizacion" class="form-label custom-label">Organización</label>
+          <input type="text" 
+                 id="organizacion" 
+                 name="organizacion" 
+                 placeholder="Organización" 
+                 [(ngModel)]="usuario.organizacion" 
+                 #organizacion="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+      </div>
+
+      <!-- Segunda fila de inputs -->
+      <div class="row mb-3">
+        <!-- Título -->
+        <div class="col-md-2 mb-3">
+          <label for="titulo" class="form-label custom-label">Título</label>
+          <input type="text" 
+                 id="titulo" 
+                 name="titulo" 
+                 placeholder="Título" 
+                 [(ngModel)]="usuario.titulo" 
+                 #titulo="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+
+        <!-- Matrícula Provincia -->
+        <div class="col-md-2 mb-3">
+          <label for="matriculaProvincia" class="form-label custom-label">Matrícula Provincia</label>
+          <input type="text" 
+                 id="matriculaProvincia" 
+                 name="matriculaProvincia" 
+                 placeholder="Matrícula Provincia" 
+                 [(ngModel)]="usuario.matriculaProvincia" 
+                 #matriculaProvincia="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+
+        <!-- Matrícula Colegio Neuquén -->
+        <div class="col-md-2 mb-3">
+          <label for="matriculaColegioNeuquen" class="form-label custom-label">Matrícula Colegio Neuquén</label>
+          <input type="text" 
+                 id="matriculaColegioNeuquen" 
+                 name="matriculaColegioNeuquen" 
+                 placeholder="Matrícula Colegio Neuquén" 
+                 [(ngModel)]="usuario.matriculaColegioNeuquen" 
+                 #matriculaColegioNeuquen="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+
+        <!-- Matrícula Municipal -->
+        <div class="col-md-2 mb-3">
+          <label for="matriculaMunicipal" class="form-label custom-label">Matrícula Municipal</label>
+          <input type="text" 
+                 id="matriculaMunicipal" 
+                 name="matriculaMunicipal" 
+                 placeholder="Matrícula Municipal" 
+                 [(ngModel)]="usuario.matriculaMunicipal" 
+                 #matriculaMunicipal="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+
+        <!-- Dirección -->
+        <div class="col-md-2 mb-3">
+          <label for="address" class="form-label custom-label">Dirección</label>
+          <input type="text" 
+                 id="address" 
+                 name="address" 
+                 placeholder="Dirección" 
+                 [(ngModel)]="usuario.address" 
+                 #address="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+
+        <!-- Teléfono -->
+        <div class="col-md-2 mb-3">
+          <label for="phone" class="form-label custom-label">Teléfono</label>
+          <input type="text" 
+                 id="phone" 
+                 name="phone" 
+                 placeholder="Teléfono" 
+                 [(ngModel)]="usuario.phone" 
+                 #phone="ngModel"
+                 class="form-control custom-form-input">
+        </div>
+      </div>
+
+      <!-- Tercera fila de inputs -->
+      <div class="row mb-3">
+        <!-- Rol -->
+        <div class="col-md-2 mb-3">
+          <label for="role" class="form-label custom-label">Rol</label>
+          <select id="role" 
+                  name="role" 
+                  [(ngModel)]="usuario.role" 
+                  #role="ngModel" 
+                  required
+                  class="form-control custom-form-input"
+                  [class.is-invalid]="role.invalid && role.touched">
+            <option value="" disabled selected>Selecciona un rol</option>
+            <option value="CUSTOMER">CUSTOMER</option>
+            <option value="ADMINISTRATOR">ADMINISTRATOR</option>
+          </select>
+          <div *ngIf="role.invalid && role.touched" class="invalid-feedback">
+            El rol es requerido.
+          </div>
+        </div>
+      </div>
+      
+      <!-- Botones -->
+      <div class="text-center">
+        <button [disabled]="!usuarioForm.form.valid" type="submit" class="btn custom-btn custom-btn-primary">Guardar</button>
+        <button type="button" class="btn custom-btn custom-btn-success" (click)="clean()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+</form>

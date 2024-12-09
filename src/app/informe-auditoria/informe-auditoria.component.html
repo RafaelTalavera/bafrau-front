@@ -1,0 +1,61 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="form-wrapper">
+            <form>
+              <div class="form-row mb-2">
+                <div class="form-group col-md-4">
+                  <label for="razonSocial" class="label-custom">Buscar por Razón Social</label>
+                  <input
+                    id="razonSocial"
+                    [(ngModel)]="razonSocial"
+                    name="razonSocial"
+                    (input)="onSearchChange(razonSocial || '')"
+                    class="form-control input-custom"
+                    placeholder="Ingrese razón social"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla para mostrar los informes encontrados -->
+          <div class="card mt-4" style="width: 100%;">
+            <div class="col mt-3">
+              <h5 class="text-center">Razones Sociales Encontradas</h5>
+              <table class="table table-bordered table-hover mt-3">
+                <thead>
+                  <tr>
+                    <th class="text-center">Razón Social</th>
+                    <th class="text-center">acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let informe of filteredInformes">
+                    <td class="text-center">{{ informe.razonSocial }}</td>
+                    <td class="text-center">
+                      <!-- Botón que redirige a 'capitulos' con el ID del informe y la razón social -->
+                      <button class="btn btn-primary" (click)="irACapitulos(informe.id, informe.razonSocial)">
+                        Crear informe
+                      </button>
+                    </td>
+                    
+                  </tr>
+                </tbody>
+              </table>
+              <!-- Mensaje cuando no hay resultados -->
+              <div *ngIf="filteredInformes?.length === 0" class="text-center mt-4">
+                <p class="text-muted">No se encontraron informes para la razón social proporcionada.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

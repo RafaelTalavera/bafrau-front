@@ -1,0 +1,66 @@
+<form #factorForm="ngForm" (ngSubmit)="onSubmit(factorForm)" class="container mt-2">
+    <div class="card" style="width: 100%;">
+      <div class="card-header">
+        <h5 class="custom-h5">Crear Factores</h5>
+      </div>
+      <div class="card-body">
+        <!-- Fila de inputs en una línea -->
+        <div class="form-row d-flex align-items-center">
+          <div class="col-md-6 form-group">
+            <select id="clasificacion" 
+                    name="clasificacion" 
+                    [(ngModel)]="factor.clasificacion" 
+                    #clasificacion="ngModel" 
+                    required
+                    class="form-control"
+                    style="font-size: 12px;">
+                    <option value="" disabled selected>Selecciona un Factor</option>
+                    <option value="Tierra">Tierra</option>
+                    <option value="Agua">Agua</option>
+                    <option value="Atmósfera">Atmósfera</option>
+                    <option value="Procesos">Procesos</option>
+                    <option value="Flora">Flora</option>
+                    <option value="Fauna">Fauna</option>
+                    <option value="Uso de la tierra">Uso de la tierra</option>
+                    <option value="Recreación">Recreación</option>
+                    <option value="Interés estético y humano">Interés estético y humano</option>
+                    <option value="Aspectos culturales">Aspectos culturales</option>
+                    <option value="Facilidades y actividades humanas">Facilidades y actividades humanas</option>
+                    <option value="Relaciones ecológicas">Relaciones ecológicas</option>
+                    <option value="Otros">Otros</option>
+            </select>
+            <div *ngIf="clasificacion.invalid && (clasificacion.dirty || clasificacion.touched)" class="text alert-danger">
+              <div *ngIf="clasificacion.errors?.['required']"> 
+                La clasificación es requerida
+              </div>
+            </div>
+          </div>
+  
+          <div class="col-md-6 form-group">
+            <input type="text" 
+                   id="tipo" 
+                   placeholder="Tipo" 
+                   name="tipo" 
+                   [(ngModel)]="factor.tipo" 
+                   #tipo="ngModel" 
+                   required
+                   class="form-control"
+                   style="font-size: 12px;">
+            <div *ngIf="tipo.invalid && (tipo.dirty || tipo.touched)" class="text alert-danger">
+              <div *ngIf="tipo.errors?.['required']"> 
+                El tipo es requerido
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Botones -->
+        <div class="text-center">
+          <div class="form-group">
+            <button [disabled]="!factorForm.form.valid" type="submit" class="btn btn-primary my-2 mx-3" style="font-size: 12px;">Guardar</button>
+            <button type="button" class="btn btn-success my-2 mx-3" (click)="clean()" style="font-size: 12px;">Limpiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>

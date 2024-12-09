@@ -1,0 +1,89 @@
+/* Estilos personalizados para el formulario */
+.form-wrapper {
+  margin: 30px 5% 0; /* Margen superior de 30px, márgenes laterales de 5% */
+}
+
+/* Ajustes del contenedor principal */
+.content-wrapper {
+  padding: 20px;
+  overflow: hidden; /* Evita desbordes */
+}
+
+/* Ajustes generales para etiquetas y entradas */
+.label-custom, .input-custom, .custom-th, .custom-td {
+  font-size: 13px;
+}
+
+/* Estilos para celdas de tablas */
+.custom-th, .custom-td {
+  padding: 0.3rem;
+  max-width: 100px; /* Ancho máximo de celdas */
+  text-align: center;
+}
+
+/* Contenido separado */
+.separated-content {
+  margin-top: 20px;
+  max-width: 80%;
+}
+
+/* Estilos de tarjeta */
+.card {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Título y texto de la tarjeta */
+.card-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.card-text {
+  font-size: 14px;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+/* Espacio entre botones */
+button {
+  margin-right: 10px;
+}
+
+/* Altura mínima del wrapper para ocupar toda la pantalla */
+.wrapper {
+  min-height: 100vh;
+}
+
+button {
+  margin-right: 5px;
+ 
+}
+
+/* Estilo general para todos los botones */
+.btn-custom {
+
+padding: 10px 20px;
+font-size: 14px;
+border-radius: 5px;
+border: 1px solid #ccc;
+text-align: center;
+width: 100%;
+max-width: 270px; /* O el valor adecuado según el diseño */
+box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
+transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover para darle interacción */
+.btn-custom:hover {
+background-color: #f0f0f0;
+box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tamaño específico para los iconos dentro de los botones */
+.btn-custom i {
+margin-right: 8px;
+font-size: 16px;
+}

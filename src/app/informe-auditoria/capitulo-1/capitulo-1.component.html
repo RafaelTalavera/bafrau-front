@@ -1,0 +1,23 @@
+<div class="container mt-4">
+  <div class="card shadow p-4">
+    <h3 class="text-center">Capítulo 1: Información del Informe</h3>
+    <form [formGroup]="capitulo1Form">
+      <div class="form-group mb-3">
+        <label for="razonSocial" class="label-custom">Razón Social:</label>
+        <input id="razonSocial" type="text" class="form-control" formControlName="razonSocial" />
+      </div>
+      <div class="form-group mb-3">
+        <label for="nombreDelProponente" class="label-custom">Responsable del Proyecto:</label>
+        <input id="nombreDelProponente" type="text" class="form-control" formControlName="nombreDelProponente" />
+      </div>
+      <div class="form-group mb-3">
+        <label for="apoderadoLegal" class="label-custom">Apoderado Legal:</label>
+        <input id="apoderadoLegal" type="text" class="form-control" formControlName="apoderadoLegal" />
+      </div>
+      <div class="form-group mb-3">
+        <label for="cuit" class="label-custom">CUIT:</label>
+        <input id="cuit" type="text" class="form-control" formControlName="cuit" />
+      </div>
+    </form>
+  </div>
+</div>

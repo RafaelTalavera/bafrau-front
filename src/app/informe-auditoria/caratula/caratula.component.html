@@ -1,0 +1,36 @@
+<div class="container mt-4 d-flex justify-content-center">
+  <div class="card shadow p-4 a4-paper">
+    <h3 class="text-center">Carátula</h3>
+    <form [formGroup]="caratulaForm">
+      <!-- Campo Razón Social -->
+      <div class="form-group mb-3">
+        <label for="razonSocial" class="label-custom">Razón Social:</label>
+        <input
+          id="razonSocial"
+          type="text"
+          class="form-control text-center"
+          formControlName="razonSocial"
+          placeholder="Razón Social"
+        />
+      </div>
+
+      <!-- Campo Año -->
+      <div class="form-group mb-3">
+        <label for="anio" class="label-custom">Año:</label>
+        <input
+          id="anio"
+          type="number"
+          class="form-control text-center"
+          formControlName="anio"
+          placeholder="Año"
+        />
+      </div>
+    </form>
+
+    <!-- Botones -->
+    <div class="d-flex justify-content-center">
+      <button class="btn btn-secondary m-2" (click)="limpiarCampos()">Limpiar</button>
+      <button class="btn btn-primary m-2" (click)="confirmar()">Confirmar</button>
+    </div>
+  </div>
+</div>

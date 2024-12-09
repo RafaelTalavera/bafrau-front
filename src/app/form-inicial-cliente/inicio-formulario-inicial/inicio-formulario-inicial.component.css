@@ -1,0 +1,73 @@
+/* Animación para el texto */
+.animated-text {
+  animation: fadeInText 1s ease-in-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInText {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botones personalizados */
+.btn-custom {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  text-align: center;
+  width: 100%;
+  max-width: 270px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover para los botones */
+.btn-custom:hover {
+  background-color: #f0f0f0;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para los iconos dentro de los botones */
+.btn-custom i {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* Fondo y contenido */
+body {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/assets/dist/img/fondo.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(80%) opacity(0.3);
+}
+
+.content-wrapper {
+  background: transparent !important;
+  box-shadow: none;
+  z-index: 1;
+}

@@ -1,0 +1,102 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <!-- Formulario de Correos -->
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <div class="form-wrapper">
+
+            <form [formGroup]="adjuntoInformeForm" (ngSubmit)="agregarAdjuntoInforme()">
+              <!-- Botón para volver -->
+              <div class="container-fluid my-4 d-flex justify-content-start">
+                <button (click)="volver()" class="btn btn-secondary">
+                  <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+              </div>
+
+              <!-- Inputs para agregar adjunto -->
+              <div class="form-row mb-2">
+                <div class="form-group col-md-6">
+                  <label for="descripcion" class="label-custom">Descripción del Adjunto</label>
+                  <input id="descripcion" formControlName="descripcion" class="form-control input-custom" />
+                  <div
+                    *ngIf="adjuntoInformeForm.get('descripcion')?.invalid && adjuntoInformeForm.get('descripcion')?.touched"
+                    class="text-danger">
+                    La descripción es requerida
+                  </div>
+                </div>
+
+                <!-- Campo para subir el archivo adjunto -->
+                <div class="form-group col-md-6">
+                  <label for="adjunto" class="label-custom">Adjunto</label>
+                  <input id="adjunto" type="file" (change)="onFileSelected($event)" class="form-control input-custom" />
+                  <div *ngIf="selectedFile === null && fileTouched" class="text-danger">
+                    El archivo adjunto es requerido
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botón para agregar adjunto -->
+              <div class="form-row mt-3">
+                <div class="col-md-12">
+                  <button type="submit" class="btn btn-primary"
+                    [disabled]="adjuntoInformeForm.invalid || selectedFile === null">
+                    Agregar Adjunto
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <!-- Lista de adjuntos dentro de un card -->
+            <div class="card mt-4">
+              <div class="card-header text-center">
+                <h4 class="card-title">Lista documentos Adjuntos</h4>
+              </div>
+              <div class="card-body">
+                <!-- Mostrar tabla solo si hay correos -->
+                <div *ngIf="adjuntoInforme.length > 0">
+                  <table class="table table-bordered table-hover">
+                    <thead>
+                      <tr>
+                        <th class="custom-th">Descipcion</th>
+                        <th class="custom-th">Documento</th>
+
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let adjunto of adjuntoInforme">
+
+                        <td class="custom-td">{{ adjunto.descripcion }}</td>
+
+                        <td class="custom-td">
+                          <button class="btn btn-info btn-sm" (click)="verAdjunto(adjunto.urlAdjunto)">
+                            Ver
+                          </button>
+                        </td>
+                        <td class="custom-td text-center">
+                          <button (click)="editarAdjuntoInforme(adjunto)" class="btn btn-sm btn-secondary">
+                            <i class="fa-solid fa-square-pen"></i> Editar
+                          </button>
+                          <button (click)="eliminarAdjuntoInforme(adjunto.id)" class="btn btn-sm btn-danger">
+                            <i class="fa-solid fa-trash-can"></i> Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- Mensaje cuando no hay correos -->
+              <div *ngIf="adjuntoInforme.length === 0" class="alert alert-info text-center">
+                No hay correos registrados.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

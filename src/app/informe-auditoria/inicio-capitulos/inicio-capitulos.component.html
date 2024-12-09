@@ -1,0 +1,64 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <div class="container-fluid my-4 d-flex justify-content-center">
+        <div class="separated-content w-100">
+          <h2 class="text-center mb-4" style="font-weight: bold; color: #2c3e50;">
+            Auditoría Ambiental
+          </h2>
+
+          <!-- Mostrar la Razón Social -->
+          <div class="form-wrapper mt-2">
+            <div class="form-row mb-4">
+              <div class="form-group col-md-12 text-center">
+                <label for="razonSocial" class="label-custom" style="font-size: 18px; font-weight: bold;">
+                  Razón Social:
+                </label>
+                <span id="razonSocial" style="font-size: 16px;"> {{ razonSocial }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de Navegación -->
+          <div class="form-wrapper mt-2">
+            <div class="d-flex flex-wrap justify-content-center">
+              <button class="btn btn-success btn-custom m-2" (click)="navegarACaratula()">Carátula</button>
+              <button *ngFor="let capitulo of capitulos" class="btn btn-primary btn-custom m-2"
+                (click)="navegarACapitulo(capitulo)">
+                {{ capitulo }}
+              </button>
+              <button class="btn btn-secondary btn-custom m-2" (click)="navegarABibliografia()">Bibliografía</button>
+              <button class="btn btn-secondary btn-custom m-2" (click)="navegarAAnexos()">Anexos</button>
+            </div>
+          </div>
+
+          <!-- Área para mostrar el contenido seleccionado -->
+          <div class="mt-4">
+            <!-- Muestra el componente Carátula si está seleccionado -->
+            <app-caratula *ngIf="mostrarCaratula" [razonSocial]="razonSocial"></app-caratula>
+
+            <!-- Muestra el componente Capítulo 1 solo cuando se ha seleccionado el capítulo 1 Y ya se cargaron los datos del informe -->
+            <app-capitulo-1 *ngIf="mostrarCapitulo === 1 && informeData" [informeData]="informeData"></app-capitulo-1>
+
+            <!-- Sección para Bibliografía -->
+            <div *ngIf="mostrarBibliografia">
+              <h3 class="text-center">Bibliografía</h3>
+              <p>Contenido de la bibliografía...</p>
+            </div>
+
+            <!-- Sección para Anexos -->
+            <div *ngIf="mostrarAnexos">
+              <h3 class="text-center">Anexos</h3>
+              <p>Contenido de los anexos...</p>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+
+      <app-footer></app-footer>
+    </div>
+</body>
