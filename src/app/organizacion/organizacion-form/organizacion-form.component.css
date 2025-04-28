@@ -167,7 +167,7 @@
   }
   
   .alert-danger {
-    color: red;
+    color: rgb(165, 22, 22);
     font-size: 0.9em;
     margin-top: 0.5em;
     padding: 5px;
@@ -175,4 +175,23 @@
     border-radius: 5px;
     background-color: #f8d7da;
   }
+
+  .alert-danger {
+    font-size: 0.75rem; /* o el valor que prefieras: 12px, 0.8em, etc. */
+  }
   
+  /* Control de fuente y estilo para th */
+.custom-th2 {
+  font-size: 13px;       /* tamaño de letra */
+  font-weight: bold;     /* negrita */
+  color: #333;           /* color de texto */
+  padding: 0.5rem;       /* padding interno */
+}
+
+/* Control de fuente y estilo para td */
+.custom-td2 {
+  font-size: 12px;       /* tamaño de letra ligeramente menor */
+  color: #555;           /* color secundario */
+  padding: 0.5rem;       /* padding interno */
+}
+

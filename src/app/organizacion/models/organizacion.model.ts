@@ -1,15 +1,11 @@
-import { AdjuntoInforme } from "./adjuntoInforme";
-import { Capitulo } from "./capitulo";
-import { Correo } from "./correo";
-import { Procedimiento } from "./procedimiento";
-import { Proceso } from "./proceso";
-import { Sector } from "./sector";
-import { ServicioDisponible } from "./servicio.disponible";
-import { Telefono } from "./telefono";
+import { Capitulo } from "../../models/capitulo";
 
-export interface Informe {
+
+export interface Organizacion {
     id?: number;
+    fechaAlta:string;
     nombreDelProponente: string;
+    tipoDeContrato: string;
     razonSocial: string;
     apoderadoLegal: string;
     apoderadoCargo: string;
@@ -38,17 +34,3 @@ export interface Informe {
     insumos:any[];
   }
   
-
-
-
-  
-
-
-
-
-
-
-
-
-
-

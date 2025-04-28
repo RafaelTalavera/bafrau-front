@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Informe } from '../../models/informe.model';
+import { Organizacion } from '../../organizacion/models/organizacion.model';
 
 @Component({
   selector: 'app-capitulo-1',
@@ -11,7 +11,7 @@ import { Informe } from '../../models/informe.model';
   imports: [CommonModule, ReactiveFormsModule],
 })
 export class Capitulo1Component implements OnInit {
-  @Input() informeData!: Informe;
+  @Input() informeData!: Organizacion;
 
   capitulo1Form!: FormGroup;
 

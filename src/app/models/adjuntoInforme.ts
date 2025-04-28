@@ -1,4 +1,4 @@
-import { Informe } from "./informe.model";
+import { Informe } from "../organizacion/models/organizacion.model";
 
 export interface AdjuntoInforme {
     id?: number;

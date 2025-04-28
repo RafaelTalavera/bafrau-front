@@ -29,8 +29,8 @@
                                         </thead>
                                         <tbody>
                                             <tr *ngFor="let factor of factoresFiltrados; trackBy: trackByFn">
-                                                <td class="custom-td">{{factor.clasificacion}}</td>
-                                                <td class="custom-td">{{factor.tipo}}</td>
+                                                <td class="custom-td">{{factor.medio}}</td>
+                                                <td class="custom-td">{{factor.factor}}</td>
                                                 <td class="custom-td">
                                                     <button (click)="onUpdateFactor(factor)" class="btn btn-sm btn-secondary custom-button">Editar</button>
                                                 </td>

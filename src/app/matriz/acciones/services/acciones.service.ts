@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Accion } from '../../../models/accion';
+import { Accion } from '../../models/accion';
 
 
 

@@ -6,8 +6,8 @@ import { FooterComponent } from '../../gobal/footer/footer.component';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { CaratulaComponent } from '../caratula/caratula.component';
 import { Capitulo1Component } from '../capitulo-1/capitulo-1.component';
-import { InformeService } from '../../form-inicial-cliente/service/informe-service';
-import { Informe } from '../../models/informe.model';
+import {  OrganizacionService } from '../../organizacion/service/organizacion-service';
+import { Organizacion } from '../../organizacion/models/organizacion.model';
 
 @Component({
   selector: 'app-inicio-capitulos',
@@ -17,31 +17,31 @@ import { Informe } from '../../models/informe.model';
   imports: [CommonModule, ReactiveFormsModule, NavComponent, CaratulaComponent, Capitulo1Component, FooterComponent],
 })
 export class InicioCapitulosComponent implements OnInit {
-  informeId!: number;
+  organizacionId!: number;
   razonSocial: string = 'Razón Social no especificada';
   capitulos = ['Capítulo 1', 'Capítulo 2', 'Capítulo 3'];
-  informeData: Informe | null = null;
+  organizacionData: Organizacion | null = null;
 
   mostrarCaratula = false;
   mostrarCapitulo: number | null = null;
   mostrarBibliografia = false;
   mostrarAnexos = false;
 
-  constructor(private route: ActivatedRoute, private router: Router, private informeService: InformeService) {}
+  constructor(private route: ActivatedRoute, private router: Router, private organizacionService: OrganizacionService) {}
 
   ngOnInit(): void {
-    this.informeId = Number(this.route.snapshot.paramMap.get('informeId'));
+    this.organizacionId = Number(this.route.snapshot.paramMap.get('organizacionId'));
     this.route.queryParams.subscribe(params => {
       this.razonSocial = params['razonSocial'] || this.razonSocial;
     });
 
-    // Carga del Informe completo
-    this.informeService.getInformeById(this.informeId).subscribe(
-      (data: Informe) => {
-        this.informeData = data;
+ 
+    this.organizacionService.getOrganizacionById(this.organizacionId).subscribe(
+      (data: Organizacion) => {
+        this.organizacionData = data;
       },
       error => {
-        console.error('Error al cargar el informe:', error);
+        console.error('Error al cargar la organizacion:', error);
       }
     );
   }

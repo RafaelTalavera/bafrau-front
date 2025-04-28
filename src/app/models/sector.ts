@@ -1,4 +1,4 @@
-import { Informe } from "./informe.model";
+import { Informe } from "../organizacion/models/organizacion.model";
 
 export interface Sector {
     id?: number; // Lo hacemos opcional para nuevas instancias

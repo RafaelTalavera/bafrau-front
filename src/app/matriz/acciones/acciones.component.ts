@@ -9,7 +9,7 @@ import { FormAccionComponent } from './form-accion.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { AccionService } from './services/acciones.service';
-import { Accion } from '../../models/accion';
+import { Accion } from '../models/accion';
 
 
 

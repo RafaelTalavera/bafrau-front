@@ -16,6 +16,6 @@ export class InicioFormularioInicialComponent {
   constructor(private router: Router) {}
 
   navegarAFormulario(): void {
-    this.router.navigate(['/form-informe']);
+    this.router.navigate(['/organizacion-form']);
   }
 }

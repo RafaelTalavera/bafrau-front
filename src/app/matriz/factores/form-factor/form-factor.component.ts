@@ -1,5 +1,5 @@
 import { AfterContentInit, Component, EventEmitter, Input, Output } from '@angular/core';
-import { Factor } from '../../../models/factor';
+import { Factor } from '../../models/factor';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -17,8 +17,9 @@ export class FormFactorComponent implements AfterContentInit {
 
   @Input() factor: Factor = {
     id: 0,
-    clasificacion: '',
-    tipo: ''
+    medio: '',
+    factor:'',
+    componente: ''
   };
 
 @Output() newFactorEvent = new EventEmitter();
@@ -34,8 +35,9 @@ onSubmit(factorForm: NgForm): void {
 clean(): void {
   this.factor = {
     id: 0,
-    clasificacion: '',
-    tipo: ''
+    medio: '',
+    factor:'',
+    componente: ''
   }
 }
 

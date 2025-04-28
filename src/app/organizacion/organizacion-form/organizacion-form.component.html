@@ -1,0 +1,150 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <!-- Formulario Inicial -->
+      <div class="card form-card shadow-sm my-4 border-0" #formularioInicial>
+        <div class="card-header my-3 text-center bg-light">
+          <h5 class="card-title mb-0">Formulario inicial carga de organizaciones</h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="organizacionForm" (ngSubmit)="onSubmit()">
+            <!-- Fila 1 -->
+            <div class="form-row mb-2">
+              <div class="form-group col-md-2">
+                <label for="fechaAlta" class="label-custom">Fecha de alta</label>
+                <input id="fechaAlta" type="date" formControlName="fechaAlta" class="form-control input-custom" />
+                <div *ngIf="organizacionForm.get('fechaAlta')?.invalid && organizacionForm.get('fechaAlta')?.touched"
+                  class="text alert-danger">
+                  Debes colocar una fecha de alta
+                </div>
+              </div>
+              <div class="form-group col-md-3">
+                <label for="tipoDeContrato" class="label-custom">Tipo de contrato</label>
+                <select id="tipoDeContrato" formControlName="tipoDeContrato" class="form-control input-custom">
+                  <option value="" disabled selected>Seleccione una opción</option>
+                  <option value="Auditoría Ambiental">Auditoría Ambiental</option>
+                  <option value="Representación Técnica">Representación Técnica</option>
+                </select>
+                <div
+                  *ngIf="organizacionForm.get('tipoDeContrato')?.invalid && organizacionForm.get('tipoDeContrato')?.touched"
+                  class="text alert-danger">
+                  Debes colocar que tipo de contrato tiene la organizacion con Bafrau
+                </div>
+              </div>
+              <div class="form-group col-md-3">
+                <label for="nombreDelProponente" class="label-custom">Nombre del proponente</label>
+                <input id="nombreDelProponente" formControlName="nombreDelProponente"
+                  class="form-control input-custom" />
+                <div
+                  *ngIf="organizacionForm.get('nombreDelProponente')?.invalid && organizacionForm.get('nombreDelProponente')?.touched"
+                  class="text alert-danger">
+                  Debes colocar el nombre del proponente del contrato con Bafrau
+                </div>
+              </div>
+              <div class="form-group col-md-3">
+                <label for="razonSocial" class="label-custom">Razón social</label>
+                <input id="razonSocial" formControlName="razonSocial" class="form-control input-custom" />
+                <div
+                  *ngIf="organizacionForm.get('razonSocial')?.invalid && organizacionForm.get('razonSocial')?.touched"
+                  class="text alert-danger">
+                  Debes colocar la razón social
+                </div>
+              </div>
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="form-row mb-2">
+              <div class="form-group col-md-2">
+                <label for="cuit" class="label-custom">CUIT</label>
+                <input id="cuit" type="number" maxlength="11" formControlName="cuit"
+                  class="form-control input-custom" />
+                <div
+                  *ngIf="organizacionForm.get('cuit')?.errors?.['maxlength'] && organizacionForm.get('cuit')?.touched"
+                  class="text alert-danger">
+                  Máx. 11 dígitos
+                </div>
+                <div *ngIf="organizacionForm.get('cuit')?.errors?.['pattern'] && organizacionForm.get('cuit')?.touched"
+                  class="text alert-danger">
+                  Solo números
+                </div>
+              </div>
+
+              <div class="form-group col-md-5">
+                <label for="domicilioRealProyecto" class="label-custom">Domicilio real del proyecto</label>
+                <input id="domicilioRealProyecto" formControlName="domicilioRealProyecto"
+                  class="form-control input-custom" />
+                <div
+                  *ngIf="organizacionForm.get('domicilioRealProyecto')?.invalid && organizacionForm.get('domicilioRealProyecto')?.touched"
+                  class="text alert-danger">
+                  Requerido
+                </div>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="domicilioLegalProyecto" class="label-custom">Domicilio legal del proyecto</label>
+                <input id="domicilioLegalProyecto" formControlName="domicilioLegalProyecto"
+                  class="form-control input-custom" />
+                <div
+                  *ngIf="organizacionForm.get('domicilioLegalProyecto')?.invalid && organizacionForm.get('domicilioLegalProyecto')?.touched"
+                  class="text alert-danger">
+                  Requerido
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón crear/actualizar -->
+            <div class="form-row mt-3">
+              <div class="col-md-12 text-center">
+                <button type="submit" class="btn btn-primary btn-custom" [disabled]="organizacionForm.invalid">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  {{ organizacionIdEnEdicion ? 'Actualizar Informe' : 'Crear Organización' }}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Lista de Organizaciones Cargadas -->
+          <div class="mt-5">
+            <h5 class="custom-h5" style="font-size:16px;color:#555;padding:0.5rem;">Organizaciones Cargadas</h5>
+            <table class="table table-striped" *ngIf="organizacion.length; else noData">
+              <thead>
+                <tr>
+                  <th class="custom-th2">Fecha Alta</th>
+                  <th class="custom-th2">Tipo Contrato</th>
+                  <th class="custom-th2">Proponente</th>
+                  <th class="custom-th2">Razón Social</th>
+                  <th class="custom-th2">CUIT</th>
+                  <th class="custom-th2">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let org of organizacion">
+                  <td class="custom-td2">{{ org.fechaAlta || '—' }}</td>
+                  <td class="custom-td2">{{ org.tipoDeContrato || '—' }}</td>
+                  <td class="custom-td2">{{ org.nombreDelProponente }}</td>
+                  <td class="custom-td2">{{ org.razonSocial }}</td>
+                  <td class="custom-td2">{{ org.cuit }}</td>
+                  <td class="custom-td2">
+                    <button class="btn btn-sm btn-primary" (click)="editarInforme(org)">
+                      <i class="fa-solid fa-pen-to-square"></i> Editar
+                    </button>
+                    <button class="btn btn-sm btn-danger" (click)="eliminarInforme(org)">
+                      <i class="fa-solid fa-trash"></i> Eliminar
+                    </button>
+                  </td>
+                  
+                </tr>
+              </tbody>
+            </table>
+            <ng-template #noData>
+              <p class="text-muted">No hay organizaciones cargadas.</p>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <app-footer></app-footer>
+  </div>
+</body>

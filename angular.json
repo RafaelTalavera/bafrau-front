@@ -6,15 +6,9 @@
     "bafrau": {
       "projectType": "application",
       "schematics": {
-        "@schematics/angular:component": {
-          "standalone": true
-        },
-        "@schematics/angular:directive": {
-          "standalone": true
-        },
-        "@schematics/angular:pipe": {
-          "standalone": true
-        }
+        "@schematics/angular:component": { "standalone": true },
+        "@schematics/angular:directive": { "standalone": true },
+        "@schematics/angular:pipe": { "standalone": true }
       },
       "root": "",
       "sourceRoot": "src",
@@ -44,17 +38,15 @@
           },
           "configurations": {
             "production": {
-              "budgets": [
+              "fileReplacements": [
                 {
-                  "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "replace": "src/environments/environment.ts",
+                  "with":    "src/environments/environment.prod.ts"
                 }
+              ],
+              "budgets": [
+                { "type": "initial", "maximumWarning": "500kb", "maximumError": "1mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "2kb", "maximumError": "4kb" }
               ],
               "outputHashing": "all"
             },
@@ -64,25 +56,19 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": {
-              "buildTarget": "bafrau:build:production"
-            },
-            "development": {
-              "buildTarget": "bafrau:build:development"
-            }
+            "production": { "buildTarget": "bafrau:build:production" },
+            "development": { "buildTarget": "bafrau:build:development" }
           },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "bafrau:build"
-          }
+          "options": { "buildTarget": "bafrau:build" }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",

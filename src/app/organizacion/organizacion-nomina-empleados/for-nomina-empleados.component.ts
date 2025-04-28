@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router'; // Importa Router para volver
-import { NominaService } from '../service/nomina.service';
+
 import { CommonModule } from '@angular/common';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import Swal from 'sweetalert2';
+import { OrganizacionNominaEmpleadosService } from '../service/organizacion-nomina-empleados.service';
 
 @Component({
   selector: 'app-for-nomina-empleados',
@@ -23,7 +24,7 @@ export class ForNominaEmpleadosComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private nominaService: NominaService,
+    private nominaService: OrganizacionNominaEmpleadosService,
     private router: Router // Inyecta el router
   ) {}
 

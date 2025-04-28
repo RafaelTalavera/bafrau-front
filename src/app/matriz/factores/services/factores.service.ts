@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Factor } from '../../../models/factor';
+import { Factor } from '../../models/factor';
 
 @Injectable({
   providedIn: 'root'

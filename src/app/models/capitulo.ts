@@ -1,4 +1,4 @@
-import { Informe } from "./informe.model";
+import { Organizacion } from "../organizacion/models/organizacion.model";
 
 
 export interface Capitulo {
@@ -6,7 +6,7 @@ export interface Capitulo {
     titulo: string;
     descripcion: string;
     orden: number;
-    informe?: Informe; // Relación con Informe, opcional
+    organizacion?: Organizacion; // Relación con Informe, opcional
    // secciones?: Seccion[]; // Relación con Secciones, opcional
   }
   

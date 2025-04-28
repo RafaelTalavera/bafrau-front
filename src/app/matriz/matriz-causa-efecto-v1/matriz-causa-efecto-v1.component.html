@@ -1,0 +1,203 @@
+<body class="layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+    <div class="content-wrapper">
+      <div class="content">
+
+        <form (ngSubmit)="onSubmit()" #informeForm="ngForm">
+          <h1 class="matriz-title">
+            Matriz Causa-Efecto
+            <i class="fa fa-question-circle text-info" data-toggle="tooltip" data-placement="top"
+              title="Construye la matriz de causa y efecto para la Matriz de Leopold."></i>
+          </h1>
+
+          <!-- Fecha y Organización -->
+          <div class="input-row">
+            <div class="input-group">
+              <label for="fecha" class="small-text">Fecha:
+                <i class="fa fa-question-circle text-info" data-toggle="tooltip" data-placement="top"
+                  title="Fecha de realización de la matriz."></i>
+              </label>
+              <input type="date" id="fecha" required [(ngModel)]="informe.fecha" name="fecha"
+                class="custom-input small-text date-input" />
+            </div>
+            <div class="input-group">
+              <label for="organizacion" class="small-text">Organización:
+                <i class="fa fa-question-circle text-info" data-toggle="tooltip" data-placement="top"
+                  title="Selecciona la organización correspondiente."></i>
+              </label>
+              <select id="organizacion" required [(ngModel)]="informe.organizacionId"
+                (ngModelChange)="setRazonSocial($event)" name="organizacionId"
+                class="custom-input small-text small-select">
+                <option [ngValue]="null" disabled>-- Seleccione una organización --</option>
+                <option *ngFor="let org of organizaciones" [ngValue]="org.id">
+                  {{ org.razonSocial }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Card: Selección de Subsistema / Factor / Componente -->
+          <div class="card-container">
+            <div class="row align-items-center">
+              <div class="col-auto">
+                <label class="small-text">Medio:</label>
+                <select [(ngModel)]="nuevoMedio" name="nuevoMedio" class="form-control custom-input small-text">
+                  <option value="" disabled>-- Seleccione un Subsistema --</option>
+                  <option *ngFor="let sub of getUniqueSubsistemas()" [value]="sub">
+                    {{ sub }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <label class="small-text">Factor:</label>
+                <select [(ngModel)]="nuevoFactor" name="nuevoFactor" class="form-control custom-input small-text">
+                  <option value="" disabled>-- Seleccione un Factor --</option>
+                  <option *ngFor="let fac of getFilteredFactorsBySubsistema(nuevoMedio)" [value]="fac">
+                    {{ fac }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <label class="small-text">Componente:</label>
+                <select [(ngModel)]="nuevoComponente" name="nuevoComponente"
+                  class="form-control custom-input small-text">
+                  <option value="" disabled>-- Seleccione un Componente --</option>
+                  <option *ngFor="let comp of getFilteredComponentesByFactor(nuevoMedio, nuevoFactor)" [value]="comp">
+                    {{ comp }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <button type="button" class="btn btn-primary small-text btn-spacing" (click)="addFactor()">
+                  <i class="nav-icon fa-solid fa-leaf"></i> Agregar componente
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: Componentes elegidos -->
+          <div class="card-container" *ngIf="factors.length > 0">
+            <div class="input-group wider-group" style="width: 100%;">
+              <strong class="small-text">Componentes elegidos:</strong>
+              <ul class="selected-list">
+                <li *ngFor="let f of factors" class="small-text">
+                  <strong>Medio:</strong> {{ f.medio }} –
+                  <strong>Factor:</strong> {{ f.factor }} –
+                  <strong>Componente:</strong> {{ f.componente }}
+                  <button type="button" (click)="eliminarFactor(f)"
+                    class="btn-danger btn-sm small-text2 selected-button">X</button>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+
+          <!-- Card: Seleccione Etapa -->
+          <div class="card-container">
+            <div class="input-group etapa-accion-group">
+              <label class="small-text">Seleccione Etapa:</label>
+              <select [(ngModel)]="nuevaEtapa" name="nuevaEtapa" class="custom-input small-text select-etapa">
+                <option value="" disabled>-- Seleccione una etapa --</option>
+                <option *ngFor="let s of defaultStages" [value]="s">{{ s }}</option>
+              </select>
+              <button type="button" class="btn-primary small-text btn-spacing select-accion" (click)="addStage()">
+                <i class="nav-icon fa-solid fa-snowplow"></i> Agregar Etapa
+              </button>
+            </div>
+          </div>
+
+          <!-- Card: Nuevas etapas agregadas -->
+          <div class="card-container" *ngIf="stages.length > 0">
+            <div class="input-group wider-group" style="width: 100%;">
+              <strong class="small-text">Nuevas etapas agregadas:</strong>
+              <ul class="selected-list">
+                <li *ngFor="let st of stages" class="small-text">
+                  {{ st.name }}
+                  <button type="button" (click)="eliminarEtapa(st)"
+                    class="btn-danger btn-sm small-text2 selected-button">X</button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Opciones por etapa -->
+          <div *ngFor="let stage of stages" class="options-row">
+            <div class="card-container">
+              <div class="input-group">
+                <label class="small-text">Nueva Acción para {{ stage.name }}:</label>
+                <select [(ngModel)]="stage.nuevaAccion" name="nuevaAccion-{{stage.name}}"
+                  class="custom-input small-text">
+                  <option value="" disabled>-- Seleccione una acción --</option>
+                  <option *ngFor="let act of getFilteredActions(stage)" [value]="act">{{ act }}</option>
+                </select>
+                <button type="button" class="btn-primary small-text btn-spacing" (click)="addAction(stage)">
+                  <i class="nav-icon fa-solid fa-screwdriver-wrench"></i> Agregar Acción
+                </button>
+              </div>
+              <div class="input-group wider-group" style="width:100%;">
+                <p class="small-text">Acciones actuales:</p>
+                <ul class="selected-list">
+                  <li *ngFor="let act of stage.actions" class="small-text">
+                    {{ act }}
+                    <button type="button" (click)="eliminarAccion(stage, act)"
+                      class="btn-danger btn-sm small-text2 selected-button">X</button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla Final -->
+          <div class="table-container" *ngIf="factors.length > 0 && stages.length > 0">
+            <table>
+              <thead>
+                <tr>
+                  <th rowspan="2">Subsistema</th>
+                  <th rowspan="2">Factor</th>
+                  <th rowspan="2">Componente</th>
+                  <th *ngFor="let st of stages" [attr.colspan]="st.actions.length" [ngClass]="getStageClass(st.name)">
+                    {{ st.name }}
+                  </th>
+                </tr>
+                <tr>
+                  <ng-container *ngFor="let st of stages">
+                    <th *ngFor="let act of st.actions">{{ act }}</th>
+                  </ng-container>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let group of groupedFactors">
+                  <tr *ngFor="let fi of group.factors; let i = index">
+                    <td *ngIf="i === 0" [attr.rowspan]="group.factors.length">
+                      {{ group.subsistema }}
+                    </td>
+                    <td>{{ fi.factor }}</td>
+                    <td>{{ fi.componente }}</td>
+                    <ng-container *ngFor="let st of stages">
+                      <td *ngFor="let act of st.actions">
+                        <select [(ngModel)]="fi.valuations[st.name][act]" name="{{fi.key}}-{{st.name}}-{{act}}">
+                          <option value="">-- Seleccionar --</option>
+                          <option *ngFor="let val of valoraciones" [value]="val">{{ val }}</option>
+                        </select>
+                      </td>
+                    </ng-container>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Botón Guardar -->
+          <div class="input-row" *ngIf="factors.length > 0 && stages.length > 0">
+            <button type="submit" class="btn-secondary small-text btn-spacing">
+              <i class="nav-icon fa-solid fa-floppy-disk"></i> Guardar Matriz
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

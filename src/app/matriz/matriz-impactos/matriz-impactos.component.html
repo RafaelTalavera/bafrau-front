@@ -1,0 +1,182 @@
+<body class="layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+    <div class="content-wrapper">
+      <div class="matrices-container">
+        <h1 class="matriz-title">Matriz de Impactos</h1>
+
+        <!-- Campo de búsqueda por Organización -->
+        <div class="filter-wrapper">
+          <div class="input-row filter-container">
+            <div class="input-group">
+              <label class="small-text">Filtrar por Organización:</label>
+              <input
+                type="text"
+                [(ngModel)]="organizationFilter"
+                placeholder="Escriba para filtrar..."
+                class="custom-input small-text"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista de lista, si NO hay selectedMatrix -->
+        <div *ngIf="!selectedMatrix">
+          <div *ngIf="filteredMatrices.length === 0">
+            <p class="small-text">No hay matrices registradas.</p>
+          </div>
+          <div *ngIf="filteredMatrices.length > 0" class="table-container">
+            <div class="table-wrapper">
+              <table>
+                <colgroup>
+                  <col class="col-id" />
+                  <col class="col-fecha" />
+                  <col class="col-organizacion" />
+                  <col class="col-accion" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="small-text">ID</th>
+                    <th class="small-text">Fecha</th>
+                    <th class="small-text">Organización</th>
+                    <th class="small-text">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let matriz of filteredMatrices" class="small-text">
+                    <td class="small-text" style="text-align: center;">
+                      {{ matriz.id }}
+                    </td>
+                    <td class="small-text" style="text-align: center;">
+                      {{ matriz.fecha | date }}
+                    </td>
+                    <td class="small-text" style="text-align: center;">
+                      {{ matriz.razonSocial }}
+                    </td>
+                    <td class="small-text" style="text-align: center;">
+                      <button
+                        type="button"
+                        class="btn-success btn-sm"
+                        (click)="viewDetails(matriz)"
+                      >
+                        <i class="nav-icon fa-solid fa-bars-staggered"></i> Matriz impacto
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalle de la matriz seleccionada -->
+        <div *ngIf="selectedMatrix">
+          <p class="small-text">
+            <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
+          </p>
+          <p class="small-text">
+            <strong>Organización:</strong> {{ selectedMatrix.razonSocial }}
+          </p>
+
+          <!-- Tabla principal de Factores/Etapas/Acciones -->
+          <div *ngIf="factors.length > 0 && stages.length > 0" class="table-container">
+            <style>
+              table thead th.stage-construccion {
+                background-color: #add8e6 !important;
+              }
+              table thead th.stage-funcionamiento {
+                background-color: #ffa500 !important;
+              }
+              table thead th.stage-abandono {
+                background-color: #ff0000 !important;
+              }
+              table thead th.stage-comunes {
+                background-color: #ee82ee !important;
+              }
+            </style>
+
+            <table>
+              <thead>
+                <tr>
+                  <th rowspan="2" class="small-text">Medio</th>
+                  <th rowspan="2" class="small-text">Factor</th>
+                  <th rowspan="2" class="small-text">Componente</th>
+                  <th rowspan="2" class="small-text">UIP</th>
+                  <th *ngFor="let st of stages" [attr.colspan]="st.actions.length" class="small-text" [ngClass]="getStageClass(st.name)">
+                    {{ st.name }}
+                  </th>
+                  <th rowspan="2" class="small-text">Importancia Absoluta Total</th>
+                  <th rowspan="2" class="small-text">Importancia Relativa Total</th>
+                </tr>
+                <tr>
+                  <ng-container *ngFor="let st of stages">
+                    <th *ngFor="let action of st.actions" class="small-text">
+                      {{ action }}
+                    </th>
+                  </ng-container>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngFor="let factor of factors; let i = index">
+                  <tr class="small-text">
+                    <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
+                      {{ factor.clasificacion }}
+                    </td>
+                    <td class="small-text">
+                      <button type="button" (click)="toggleFactor(factor.key)">
+                        {{ expandedFactors[factor.key] ? '-' : '+' }}
+                      </button>
+                      {{ factor.factor }}
+                    </td>
+                    <td class="small-text">
+                      {{ factor.factorComponente }}
+                    </td>
+                    <td class="small-text">
+                      {{ getUIPValue(factor.key) }}
+                    </td>
+                    <ng-container *ngFor="let st of stages">
+                      <td *ngFor="let action of st.actions" class="small-text" [ngClass]="{
+                          'cell-positive': valuationsMap[factor.key]?.[st.name]?.[action] === 'positivo',
+                          'cell-negative': valuationsMap[factor.key]?.[st.name]?.[action] === 'negativo',
+                          'cell-neutral': valuationsMap[factor.key]?.[st.name]?.[action] === 'neutro'
+                        }">
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td class="small-text2">Naturaleza:</td>
+                              <td class="small-text2">
+                                {{ valuationsMap[factor.key]?.[st.name]?.[action] || '--' }}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </ng-container>
+                    <td class="small-text" style="text-align: center;">
+                      {{ calculateImportanciaAbsolutaTotal(factor.key) }}
+                    </td>
+                    <td class="small-text" style="text-align: center;">
+                      {{ calculateImportanciaRelativaTotalFactor(factor.key) | number:'1.0-2' }}
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Botones de acción en la vista de detalle -->
+        <button type="button" class="btn-primary small-text btn-spacing" (click)="updateAdditionalValues()">
+          <i class="fas fa-save"></i> Guardar Valores Adicionales
+        </button>
+        <button type="button" class="btn-secondary small-text btn-spacing" (click)="backToList()">
+          <i class="fas fa-arrow-left"></i> Volver a la lista
+        </button>
+        <button type="button" class="btn-info small-text btn-spacing" (click)="toggleValoracionMatrix()">
+          <i class="fa fa-eye"></i> Visualizar Matriz de Valoración
+        </button>
+      </div>
+    </div>
+    <app-footer></app-footer>
+  </div>
+</body>

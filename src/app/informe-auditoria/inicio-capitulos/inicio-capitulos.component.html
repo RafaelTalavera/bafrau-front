@@ -40,7 +40,7 @@
             <app-caratula *ngIf="mostrarCaratula" [razonSocial]="razonSocial"></app-caratula>
 
             <!-- Muestra el componente Capítulo 1 solo cuando se ha seleccionado el capítulo 1 Y ya se cargaron los datos del informe -->
-            <app-capitulo-1 *ngIf="mostrarCapitulo === 1 && informeData" [informeData]="informeData"></app-capitulo-1>
+            <app-capitulo-1 *ngIf="mostrarCapitulo === 1 && organizacionData" [informeData]="organizacionData"></app-capitulo-1>
 
             <!-- Sección para Bibliografía -->
             <div *ngIf="mostrarBibliografia">

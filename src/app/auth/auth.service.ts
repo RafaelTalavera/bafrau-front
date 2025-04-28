@@ -3,23 +3,27 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LocalStorageService } from './service/local-Storage-Service';
+import { environment } from '../../enviroments/enviroment';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://appbafrau-production.up.railway.app/api/auth/authenticate';
+  private apiUrl = `${environment.apiUrl}/auth/authenticate`;
   private tokenKey = 'jwt_token';
 
-  constructor(private http: HttpClient, private localStorageService: LocalStorageService) { }
+  constructor(
+    private http: HttpClient,
+    private localStorageService: LocalStorageService
+  ) {}
 
   login(username: string, password: string): Observable<any> {
     const loginData = { username, password };
-
     return this.http.post<any>(this.apiUrl, loginData).pipe(
       tap(response => {
         console.log('Respuesta del login:', response);
-        if (response && response.token) {
+        if (response?.token) {
           this.setToken(response.token);
         } else {
           console.error('Token no encontrado en la respuesta:', response);
@@ -31,7 +35,7 @@ export class AuthService {
   private setToken(token: string): void {
     console.log('Setting token:', token);
     this.localStorageService.setItem(this.tokenKey, token);
-    console.log('Token saved in localStorage:', this.localStorageService.getItem(this.tokenKey));
+    console.log('Token saved in localStorage:', this.getToken());
   }
 
   getToken(): string | null {

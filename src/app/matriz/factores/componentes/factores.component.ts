@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 
 import { FooterComponent } from '../../../gobal/footer/footer.component';
 import { NavComponent } from '../../../gobal/nav/nav.component';
-import { Factor } from '../../../models/factor';
+import { Factor } from '../../models/factor';
 import { FactorService } from '../services/factores.service';
 import { FormFactorComponent } from '../form-factor/form-factor.component';
 
@@ -110,7 +110,7 @@ export class FactoresComponent implements OnInit {
       this.factoresFiltrados = this.factores;
     } else {
       this.factoresFiltrados = this.factores.filter(factor =>
-        factor.tipo.toLowerCase().includes(this.tipoBusqueda.toLowerCase())
+        factor.componente.toLowerCase().includes(this.tipoBusqueda.toLowerCase())
       );
     }
   }
