@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 import { MatrizService } from '../service/matriz-service';
 import { FactorService } from '../factores/services/factores.service';
 import { AccionService } from '../acciones/services/acciones.service';
-import { OrganizacionService } from '../../organizacion/service/organizacion-service';
+
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import { Accion, Factor, ItemMatriz, Matriz } from '../models/matriz';
@@ -74,7 +74,7 @@ export class MatrizCausaEfectoV1Component implements OnInit {
     private factorService: FactorService,
     private accionService: AccionService,
     private router: Router,
-    private organizacionService: OrganizacionService
+ 
   ) {}
 
   ngOnInit() {
@@ -90,9 +90,9 @@ export class MatrizCausaEfectoV1Component implements OnInit {
   }
 
   obtenerOrganizaciones() {
-    this.organizacionService.getAllOrganizaciones().subscribe(
+    this.matrizService.getOrganizacionesAuditoriaAmbiental().subscribe(
       o => this.organizaciones = o,
-      err => console.error('Error al obtener organizaciones:', err)
+      err => console.error('Error al obtener organizaciones (Auditoría Ambiental):', err)
     );
   }
 
@@ -285,7 +285,7 @@ export class MatrizCausaEfectoV1Component implements OnInit {
             efecto: 0,
             periodicidad: 0,
             recuperacion: 0,
-            uIP: 0,
+            uip: 0,
             accionId: this.getAccionId(a),
             factorId: this.getFactorId(fi.factor),
             matrizId: 0,

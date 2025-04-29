@@ -4,6 +4,17 @@
 
     <h1 class="matriz-title">Cálculo de Ponderación</h1>
 
+    <!-- Filtro por Organización -->
+    <div class="filter-wrapper">
+      <div class="input-row filter-container">
+        <div class="input-group">
+          <label class="small-text">Filtrar por Organización:</label>
+          <input type="text" [(ngModel)]="organizationFilter" placeholder="Escriba para filtrar..."
+            class="custom-input small-text">
+        </div>
+      </div>
+    </div>
+
     <!-- Lista de matrices -->
     <div *ngIf="!selectedMatrix">
       <p *ngIf="filteredMatrices.length === 0" class="small-text">
@@ -13,17 +24,21 @@
         <table>
           <thead>
             <tr>
-              <th class="small-text">ID</th>
+
               <th class="small-text">Fecha</th>
               <th class="small-text">Organización</th>
-              <th class="small-text">Ingresar UIP</th>
+              <th class="small-text">Actualizar UIP</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let matriz of filteredMatrices" class="small-text">
-              <td class="text-center">{{ matriz.id }}</td>
+
               <td class="text-center">{{ matriz.fecha | date:'dd/MM/yyyy' }}</td>
-              <td class="text-center">{{ matriz.razonSocial }}</td>
+              <td style="text-align: center;">
+                <ng-container *ngFor="let item of matriz.items">
+                  {{ item.razonSocial }}<br>
+                </ng-container>
+              </td>
               <td class="text-center">
                 <button class="btn-success btn-sm" (click)="viewDetails(matriz)">
                   Ingresar UIP
@@ -73,32 +88,18 @@
           <tbody>
             <ng-container *ngFor="let factor of factors; let i = index">
               <tr class="small-text">
-                <td
-                  *ngIf="shouldShowClasificacion(i)"
-                  [attr.rowspan]="getRowSpan(i)"
-                  class="small-text text-center"
-                >
+                <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)" class="small-text text-center">
                   {{ factor.clasificacion }}
                 </td>
                 <td class="small-text">{{ factor.factor }}</td>
                 <td class="small-text">{{ factor.factorComponente }}</td>
                 <td class="small-text">
-                  <input
-                    type="number"
-                    name="uip-{{ i }}"
-                    step="any"
-                    [(ngModel)]="factor.uIP"
-                    (ngModelChange)="onFactorUIPChange(factor, $event)"
-                    class="custom-input small-text"
-                    style="width: 100px;"
-                  />
+                  <input type="number" name="uip-{{ i }}" step="any" [(ngModel)]="factor.uIP"
+                    (ngModelChange)="onFactorUIPChange(factor, $event)" class="custom-input small-text"
+                    style="width: 100px;" />
                 </td>
               </tr>
-              <tr
-                *ngIf="isLastFactor(i)"
-                class="small-text"
-                style="background-color: #e0e0e0;"
-              >
+              <tr *ngIf="isLastFactor(i)" class="small-text" style="background-color: #e0e0e0;">
                 <td colspan="3" class="text-right font-weight-bold">
                   Total {{ factor.clasificacion }}
                 </td>
@@ -112,18 +113,12 @@
       </div>
 
       <div class="button-group">
-        <button
-          class="btn-primary small-text btn-spacing"
-          (click)="updateUIP()"
-          [disabled]="totalUIP !== TOTAL_DISTRIBUCION"
-        >
+        <button class="btn-primary small-text btn-spacing" (click)="updateUIP()"
+          [disabled]="totalUIP !== TOTAL_DISTRIBUCION">
           <i class="fa-solid fa-floppy-disk"></i>
           Guardar Valor UIP
         </button>
-        <button
-          class="btn-secondary small-text btn-spacing"
-          (click)="backToList()"
-        >
+        <button class="btn-secondary small-text btn-spacing" (click)="backToList()">
           <i class="fa-solid fa-arrow-left"></i>
           Volver al listado
         </button>

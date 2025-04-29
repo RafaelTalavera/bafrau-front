@@ -33,7 +33,7 @@ export class OrganizacionFormComponent implements OnInit {
       nombreDelProponente:    ['', Validators.required],
       razonSocial:            ['', Validators.required],
       cuit:                   ['', [Validators.required, Validators.maxLength(11), Validators.pattern('^[0-9]*$')]],
-      licenciaComercial:      ['', Validators.required],
+      
       domicilioRealProyecto:  ['', Validators.required],
       domicilioLegalProyecto: ['', Validators.required]
     });

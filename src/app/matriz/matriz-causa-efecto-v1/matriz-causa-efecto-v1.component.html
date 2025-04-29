@@ -6,25 +6,19 @@
 
         <form (ngSubmit)="onSubmit()" #informeForm="ngForm">
           <h1 class="matriz-title">
-            Matriz Causa-Efecto
-            <i class="fa fa-question-circle text-info" data-toggle="tooltip" data-placement="top"
-              title="Construye la matriz de causa y efecto para la Matriz de Leopold."></i>
+            Matriz Causa-Efecto        
           </h1>
 
           <!-- Fecha y Organización -->
           <div class="input-row">
             <div class="input-group">
               <label for="fecha" class="small-text">Fecha:
-                <i class="fa fa-question-circle text-info" data-toggle="tooltip" data-placement="top"
-                  title="Fecha de realización de la matriz."></i>
               </label>
               <input type="date" id="fecha" required [(ngModel)]="informe.fecha" name="fecha"
                 class="custom-input small-text date-input" />
             </div>
             <div class="input-group">
               <label for="organizacion" class="small-text">Organización:
-                <i class="fa fa-question-circle text-info" data-toggle="tooltip" data-placement="top"
-                  title="Selecciona la organización correspondiente."></i>
               </label>
               <select id="organizacion" required [(ngModel)]="informe.organizacionId"
                 (ngModelChange)="setRazonSocial($event)" name="organizacionId"

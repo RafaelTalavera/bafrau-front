@@ -3,3 +3,22 @@
     text-align: center; 
 }
 
+
+  .text.alert-danger {
+    font-size: 10px;
+    background-color: #f8d7da; /* Color rojo claro típico de error */
+    color: #721c24;            /* Texto rojo oscuro */
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+  
+  .small-text {
+    font-size: 12px;
+  }
+  
+  .content-wrapper {
+    margin-top: 30px; /* Aumenta la separación */
+    overflow-y: auto;
+    height: 100vh;
+  }

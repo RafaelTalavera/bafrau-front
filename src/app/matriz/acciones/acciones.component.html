@@ -2,29 +2,34 @@
     <!-- Site wrapper -->
     <div class="wrapper">
 
-            <app-nav></app-nav>
-    
+        <app-nav></app-nav>
+
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper" style="overflow-y: auto; height: 100vh;">
             <!-- Content Header (Page header) -->
             <div *ngIf="!showError" class="container my-4 d-flex justify-content-center">
                 <div class="separated-content">
                     <div class="col">
-                        <app-form-accion (newAccionEvent)="addAccion($event)" [accion]="accionSelected"></app-form-accion>
+                        <app-form-accion (newAccionEvent)="addAccion($event)"
+                            [accion]="accionSelected"></app-form-accion>
                     </div>
                     <div class="card" style="width: 100%;">
                         <div class="col mt-3">
                             <div>
                                 <h5 class="text-center">Lista de Acciones</h5>
-                                <div>
-                                    <input type="text" class="custom-tr" placeholder="Buscar por tipo" [(ngModel)]="tipoBusqueda" (input)="buscarPorTipo()" style="width: 120px;">
-                                </div>
+                                <div class="search-container">
+                                    <input type="text"
+                                           class="search-input"
+                                           placeholder="Buscar por Acciones"
+                                           [(ngModel)]="tipoBusqueda"
+                                           (input)="buscarPorTipo()">
+                                  </div>
                                 <div *ngIf="accionesFiltrados.length > 0" style="max-height: 600px; overflow-y: auto;">
                                     <table class="table table-hover table-striped">
                                         <thead>
                                             <tr>
                                                 <th class="custom-tr">Clasificación</th>
-                                                <th class="custom-tr">Tipo</th>
+                                                <th class="custom-tr">Acciones</th>
                                                 <th class="custom-tr">Editar</th>
                                                 <th class="custom-tr">Eliminar</th>
                                             </tr>
@@ -34,16 +39,23 @@
                                                 <td class="custom-td">{{accion.clasificacion}}</td>
                                                 <td class="custom-td">{{accion.tipo}}</td>
                                                 <td class="custom-td">
-                                                    <button (click)="onUpdateAccion(accion)" class="btn btn-sm btn-secondary custom-button">Editar</button>
+                                                    <button (click)="onUpdateAccion(accion)"
+                                                        class="btn btn-sm btn-secondary custom-button">
+                                                        <i class="fas fa-edit me-1"></i> Editar
+                                                    </button>
                                                 </td>
                                                 <td>
-                                                    <button (click)="onRemoveAccion(accion.id)" class="btn btn-sm btn-danger custom-button">Eliminar</button>
+                                                    <button (click)="onRemoveAccion(accion.id)"
+                                                        class="btn btn-sm btn-danger custom-button">
+                                                        <i class="fas fa-trash-alt me-1"></i>
+                                                        Eliminar</button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <div *ngIf="accionesFiltrados.length === 0" class="alert alert-info">Lo sentimos, no hay información para mostrar</div>
+                                <div *ngIf="accionesFiltrados.length === 0" class="alert alert-info">Lo sentimos, no hay
+                                    información para mostrar</div>
                             </div>
                         </div>
                     </div>
@@ -54,4 +66,3 @@
         <app-footer></app-footer>
     </div>
 </body>
-

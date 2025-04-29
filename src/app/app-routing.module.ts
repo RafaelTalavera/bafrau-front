@@ -9,7 +9,7 @@ import { FactoresComponent } from './matriz/factores/componentes/factores.compon
 import { InicioCapitulosComponent } from './informe-auditoria/inicio-capitulos/inicio-capitulos.component';
 import { InicioFormularioInicialComponent } from './form-inicial-cliente/inicio-formulario-inicial/inicio-formulario-inicial.component';
 import { OrganizacionFormComponent } from './organizacion/organizacion-form/organizacion-form.component';
-import { PonderacionMatrizComponent } from './matriz/ponderacion-matriz/ponderacion-matriz.component';
+import { PonderacionMatrizComponent } from './matriz/matriz-ponderacion/ponderacion-matriz.component';
 import { MatrizImpactosComponent } from './matriz/matriz-impactos/matriz-impactos.component';
 import { MatrizCausaEfectoV1Component } from './matriz/matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
 import { MatrizCausaEfectoV1VisualizacionComponent } from './matriz/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component';
@@ -20,8 +20,7 @@ import { MatrizCausaEfectoV1VisualizacionComponent } from './matriz/matriz-causa
 export const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
-  { path: 'factor', component: FactoresComponent },
-  { path: 'accion', component: AccionesComponent},
+ 
   { path: 'usuarios', component: UsuariosComponent },
 
   { path: 'organizacion-form', component: OrganizacionFormComponent}, 
@@ -30,6 +29,8 @@ export const routes: Routes = [
   { path: 'matriz-impacto', component: MatrizImpactosComponent},
   { path: 'matriz-causa-efecto', component: MatrizCausaEfectoV1Component},
   { path: 'matriz-causa-efecto-visualizacion', component: MatrizCausaEfectoV1VisualizacionComponent},
+  { path: 'matriz-factor', component: FactoresComponent },
+  { path: 'matriz-accion', component: AccionesComponent},
 
    
 

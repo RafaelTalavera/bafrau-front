@@ -6,14 +6,14 @@
       <!-- Formulario Inicial -->
       <div class="card form-card shadow-sm my-4 border-0" #formularioInicial>
         <div class="card-header my-3 text-center bg-light">
-          <h5 class="card-title mb-0">Formulario inicial carga de organizaciones</h5>
+          <h5 class="card-title mb-0">Formulario alta de organizaciones</h5>
         </div>
         <div class="card-body">
           <form [formGroup]="organizacionForm" (ngSubmit)="onSubmit()">
             <!-- Fila 1 -->
             <div class="form-row mb-2">
               <div class="form-group col-md-2">
-                <label for="fechaAlta" class="label-custom">Fecha de alta</label>
+                <label for="fechaAlta" class="label-custom">Fecha de alta:</label>
                 <input id="fechaAlta" type="date" formControlName="fechaAlta" class="form-control input-custom" />
                 <div *ngIf="organizacionForm.get('fechaAlta')?.invalid && organizacionForm.get('fechaAlta')?.touched"
                   class="text alert-danger">
@@ -21,7 +21,7 @@
                 </div>
               </div>
               <div class="form-group col-md-3">
-                <label for="tipoDeContrato" class="label-custom">Tipo de contrato</label>
+                <label for="tipoDeContrato" class="label-custom">Tipo de contrato:</label>
                 <select id="tipoDeContrato" formControlName="tipoDeContrato" class="form-control input-custom">
                   <option value="" disabled selected>Seleccione una opción</option>
                   <option value="Auditoría Ambiental">Auditoría Ambiental</option>
@@ -34,7 +34,7 @@
                 </div>
               </div>
               <div class="form-group col-md-3">
-                <label for="nombreDelProponente" class="label-custom">Nombre del proponente</label>
+                <label for="nombreDelProponente" class="label-custom">Nombre del proponente:</label>
                 <input id="nombreDelProponente" formControlName="nombreDelProponente"
                   class="form-control input-custom" />
                 <div
@@ -44,7 +44,7 @@
                 </div>
               </div>
               <div class="form-group col-md-3">
-                <label for="razonSocial" class="label-custom">Razón social</label>
+                <label for="razonSocial" class="label-custom">Razón social:</label>
                 <input id="razonSocial" formControlName="razonSocial" class="form-control input-custom" />
                 <div
                   *ngIf="organizacionForm.get('razonSocial')?.invalid && organizacionForm.get('razonSocial')?.touched"
@@ -57,7 +57,7 @@
             <!-- Fila 2 -->
             <div class="form-row mb-2">
               <div class="form-group col-md-2">
-                <label for="cuit" class="label-custom">CUIT</label>
+                <label for="cuit" class="label-custom">CUIT:</label>
                 <input id="cuit" type="number" maxlength="11" formControlName="cuit"
                   class="form-control input-custom" />
                 <div
@@ -72,7 +72,7 @@
               </div>
 
               <div class="form-group col-md-5">
-                <label for="domicilioRealProyecto" class="label-custom">Domicilio real del proyecto</label>
+                <label for="domicilioRealProyecto" class="label-custom">Domicilio real del proyecto:</label>
                 <input id="domicilioRealProyecto" formControlName="domicilioRealProyecto"
                   class="form-control input-custom" />
                 <div
@@ -82,7 +82,7 @@
                 </div>
               </div>
               <div class="form-group col-md-4">
-                <label for="domicilioLegalProyecto" class="label-custom">Domicilio legal del proyecto</label>
+                <label for="domicilioLegalProyecto" class="label-custom">Domicilio legal del proyecto:</label>
                 <input id="domicilioLegalProyecto" formControlName="domicilioLegalProyecto"
                   class="form-control input-custom" />
                 <div
@@ -98,7 +98,7 @@
               <div class="col-md-12 text-center">
                 <button type="submit" class="btn btn-primary btn-custom" [disabled]="organizacionForm.invalid">
                   <i class="fa-solid fa-floppy-disk"></i>
-                  {{ organizacionIdEnEdicion ? 'Actualizar Informe' : 'Crear Organización' }}
+                  {{ organizacionIdEnEdicion ? 'Editar Organización' : 'Crear Organización' }}
                 </button>
               </div>
             </div>
@@ -120,7 +120,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let org of organizacion">
-                  <td class="custom-td2">{{ org.fechaAlta || '—' }}</td>
+                  <td class="custom-td2">{{ org.fechaAlta ? (org.fechaAlta | date:'dd/MM/yyyy') : '—' }}</td>
                   <td class="custom-td2">{{ org.tipoDeContrato || '—' }}</td>
                   <td class="custom-td2">{{ org.nombreDelProponente }}</td>
                   <td class="custom-td2">{{ org.razonSocial }}</td>

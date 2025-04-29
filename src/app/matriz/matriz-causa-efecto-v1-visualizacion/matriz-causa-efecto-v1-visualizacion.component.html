@@ -25,14 +25,14 @@
               <div class="table-wrapper">
                 <table>
                   <colgroup>
-                    <col class="col-id">
+                
                     <col class="col-fecha">
                     <col class="col-organizacion">
                     <col class="col-accion">
                   </colgroup>
                   <thead>
                     <tr>
-                      <th class="small-text">ID</th>
+                    
                       <th class="small-text">Fecha</th>
                       <th class="small-text">Organización</th>
                       <th class="small-text">Acción</th>
@@ -40,9 +40,13 @@
                   </thead>
                   <tbody>
                     <tr *ngFor="let matriz of filteredMatrices" class="small-text">
-                      <td class="small-text" style="text-align: center;">{{ matriz.id }}</td>
+                    
                       <td class="small-text" style="text-align: center;">{{ matriz.fecha | date }}</td>
-                      <td class="small-text" style="text-align: center;">{{ matriz.razonSocial }}</td>
+                      <td style="text-align: center;">
+                        <ng-container *ngFor="let item of matriz.items">
+                          {{ item.razonSocial }}<br>
+                        </ng-container>
+                      </td>
                       <td class="small-text" style="text-align: center;">
                         <button type="button" class="btn btn-primary btn-sm" (click)="viewDetails(matriz)">
                           <i class="fa-solid fa-eye me-1"></i> Ver Detalles
@@ -59,7 +63,13 @@
           <div *ngIf="selectedMatrix">
             <!-- Datos generales -->
             <p class="small-text"><strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}</p>
-            <p class="small-text"><strong>Organización:</strong> {{ selectedMatrix.razonSocial }}</p>
+            <p class="small-text">
+              <strong>Organización:</strong>
+              <ng-container *ngFor="let item of selectedMatrix.items">
+                {{ item.razonSocial }}<br>
+              </ng-container>
+            </p>
+            
   
             <!-- Grilla de la matriz -->
             <div *ngIf="factors.length > 0 && stages.length > 0" class="table-container">
@@ -117,10 +127,7 @@
               </table>
             </div>
   
-            <div class="export-buttons input-row">
-              <button class="btn-sm btn-success" (click)="exportarExcel()">Exportar Excel</button>
-              <button class="btn-sm btn-danger" (click)="exportarPDF()">Exportar PDF</button>
-            </div>
+
   
             <button type="button" class="btn-secondary small-text btn-spacing" (click)="backToList()">
               <i class="nav-icon fa-solid fa-arrow-left"></i> Volver a la lista

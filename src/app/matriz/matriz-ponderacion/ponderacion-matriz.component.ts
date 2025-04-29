@@ -1,3 +1,4 @@
+// src/app/ponderacion-matriz/ponderacion-matriz.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -26,9 +27,8 @@ interface FactorView {
 }
 
 export interface ItemUIPUpdateDTO {
-  factorId: number;
-  factor: string;
-  uIP: number;
+  itemId: number;
+  uip: number;
 }
 
 @Component({
@@ -45,12 +45,12 @@ export class PonderacionMatrizComponent implements OnInit {
   stages: Stage[] = [];
   additionalMap: { [key: string]: { [stage: string]: { [action: string]: AdditionalFields } } } = {};
   valuationsMap: { [key: string]: { [stage: string]: { [action: string]: string } } } = {};
-  organizationFilter: string = '';
+  organizationFilter = '';
   expandedFactors: { [key: string]: boolean } = {};
-  totalUIP: number = 0;
+  totalUIP = 0;
   readonly TOTAL_DISTRIBUCION = 1000;
 
-  constructor(private matrizService: MatrizService) { }
+  constructor(private matrizService: MatrizService) {}
 
   ngOnInit(): void {
     this.loadMatrices();
@@ -59,14 +59,21 @@ export class PonderacionMatrizComponent implements OnInit {
   loadMatrices(): void {
     this.matrizService.getAllMatrices().subscribe(
       data => this.matrices = data,
-      error => console.error('Error al cargar matrices:', error)
+      err => console.error('Error al cargar matrices:', err)
     );
   }
 
   get filteredMatrices(): Matriz[] {
-    if (!this.organizationFilter.trim()) return this.matrices;
+    const filtro = this.organizationFilter.trim().toLowerCase();
+    if (!filtro) {
+      return this.matrices;
+    }
     return this.matrices.filter(m =>
-      (m.razonSocial || '').toLowerCase().includes(this.organizationFilter.toLowerCase())
+      m.items.some(item =>
+        (item.razonSocial ?? '')
+          .toLowerCase()
+          .includes(filtro)
+      )
     );
   }
 
@@ -99,25 +106,26 @@ export class PonderacionMatrizComponent implements OnInit {
       }
 
       const factorKey = `${item.factorMedio}|${item.factorFactor}|${item.factorComponente}`;
-      const actionKey = item.accionTipo; // <-- ahora usamos el string
+      const actionKey = item.accionTipo;
+
+      // usar item.uip (viene del JSON) o 0 si es null/undefined
+      const uipVal = item.uip == null ? 0 : item.uip;
 
       if (!this.factors.find(f => f.key === factorKey)) {
         this.factors.push({
-          clasificacion: item.factorMedio,
-          factor: item.factorFactor,
+          clasificacion:    item.factorMedio,
+          factor:           item.factorFactor,
           factorComponente: item.factorComponente,
-          key: factorKey,
-          uIP: 0,
-          itemMatrizId: item.factorId!
+          key:              factorKey,
+          uIP:              uipVal,
+          itemMatrizId:     item.id!
         });
       }
 
-      // Naturaleza
       this.valuationsMap[factorKey] = this.valuationsMap[factorKey] || {};
       this.valuationsMap[factorKey][item.etapa] = this.valuationsMap[factorKey][item.etapa] || {};
       this.valuationsMap[factorKey][item.etapa][actionKey] = (item.naturaleza || '').toLowerCase();
 
-      // Stages y acciones
       let stageObj = this.stages.find(s => s.name === item.etapa);
       if (!stageObj) {
         stageObj = { name: item.etapa, actions: [] };
@@ -127,19 +135,12 @@ export class PonderacionMatrizComponent implements OnInit {
         stageObj.actions.push(actionKey);
       }
 
-      // Valores UIP
-      this.additionalMap[factorKey] = this.additionalMap[factorKey] || {};
-      this.additionalMap[factorKey][item.etapa] = this.additionalMap[factorKey][item.etapa] || {};
-      this.additionalMap[factorKey][item.etapa][actionKey] = { uIP: item.uIP! };
+      this.additionalMap[factorKey]             ||= {};
+      this.additionalMap[factorKey][item.etapa] ||= {};
+      this.additionalMap[factorKey][item.etapa][actionKey] = { uIP: uipVal };
     });
 
-    // Ordenar
-    this.factors.sort((a, b) =>
-      a.clasificacion.localeCompare(b.clasificacion) || a.factor.localeCompare(b.factor)
-    );
-    this.stages.sort((a, b) => a.name.localeCompare(b.name));
-
-    // Asignar UIP a cada factor
+    // reasignar por si acaso
     this.factors.forEach(factor => {
       const map = this.additionalMap[factor.key];
       for (const st in map) {
@@ -149,17 +150,15 @@ export class PonderacionMatrizComponent implements OnInit {
         }
       }
     });
+
+    this.factors.sort((a, b) =>
+      a.clasificacion.localeCompare(b.clasificacion) || a.factor.localeCompare(b.factor)
+    );
+    this.stages.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   calculateTotalUIP(): void {
     this.totalUIP = this.factors.reduce((sum, f) => sum + f.uIP, 0);
-  }
-
-  getUIPAdjustmentMessage(): string {
-    const diff = this.totalUIP - this.TOTAL_DISTRIBUCION;
-    if (diff > 0) return `Te pasaste, debes restar ${diff}`;
-    if (diff < 0) return `Te faltan, debes sumar ${-diff}`;
-    return `La distribución es correcta.`;
   }
 
   onFactorUIPChange(factor: FactorView, newValue: number): void {
@@ -176,55 +175,50 @@ export class PonderacionMatrizComponent implements OnInit {
   updateUIP(): void {
     this.calculateTotalUIP();
     if (this.totalUIP !== this.TOTAL_DISTRIBUCION) {
-      Swal.fire('Error', `La suma total de UIP debe ser ${this.TOTAL_DISTRIBUCION}. Actualmente es ${this.totalUIP}.`, 'error');
+      Swal.fire('Error', `La suma total debe ser ${this.TOTAL_DISTRIBUCION}. Actualmente es ${this.totalUIP}.`, 'error');
       return;
     }
 
     const updates: ItemUIPUpdateDTO[] = this.factors.map(f => ({
-      factorId: f.itemMatrizId,
-      factor: f.factor,
-      uIP: f.uIP
+      itemId: f.itemMatrizId,
+      uip:    f.uIP
     }));
 
     if (this.selectedMatrix?.id != null) {
       this.matrizService.updateUPI(this.selectedMatrix.id, updates).subscribe(
-        () => Swal.fire('Actualizado', 'Valor UIP actualizado correctamente.', 'success'),
+        () => Swal.fire('Actualizado', 'Valores UIP actualizados.', 'success'),
         err => {
           console.error('Error al actualizar UIP:', err);
-          Swal.fire('Error', 'No se pudo actualizar el valor UIP.', 'error');
+          Swal.fire('Error', 'No se pudo actualizar.', 'error');
         }
       );
     }
   }
 
-  shouldShowClasificacion(index: number): boolean {
-    return index === 0
-      ? true
-      : this.factors[index].clasificacion !== this.factors[index - 1].clasificacion;
-
+  getUIPAdjustmentMessage(): string {
+    const diff = this.totalUIP - this.TOTAL_DISTRIBUCION;
+    if (diff > 0) return `Te pasaste ${diff}`;
+    if (diff < 0) return `Te faltan ${-diff}`;
+    return `Distribución correcta.`;
   }
 
-  getRowSpan(index: number): number {
-    const cls = this.factors[index].clasificacion;
-    let count = 1;
-    for (let i = index + 1; i < this.factors.length; i++) {
-      if (this.factors[i].clasificacion === cls) count++;
+  shouldShowClasificacion(i: number): boolean {
+    return i === 0 || this.factors[i].clasificacion !== this.factors[i - 1].clasificacion;
+  }
+  getRowSpan(i: number): number {
+    const cls = this.factors[i].clasificacion;
+    let cnt = 1;
+    for (let j = i + 1; j < this.factors.length; j++) {
+      if (this.factors[j].clasificacion === cls) cnt++;
       else break;
     }
-    return count;
+    return cnt;
   }
-
-  isLastFactor(index: number): boolean {
-    return (
-      index === this.factors.length - 1 ||
-      this.factors[index].clasificacion !== this.factors[index + 1].clasificacion
-    );
+  isLastFactor(i: number): boolean {
+    return i === this.factors.length - 1 || this.factors[i].clasificacion !== this.factors[i + 1].clasificacion;
   }
-
   getFactorClassificationSum(clasificacion: string): number {
-    return this.factors
-      .filter(f => f.clasificacion === clasificacion)
-      .reduce((sum, f) => sum + f.uIP, 0);
+    return this.factors.filter(f => f.clasificacion === clasificacion)
+                       .reduce((sum, f) => sum + f.uIP, 0);
   }
-
 }

@@ -29,7 +29,7 @@ export class ItemMatriz {
   efecto!: number;
   periodicidad!: number;
   recuperacion!: number;
-  uIP!: number;
+  uip!: number;
   accionId!: number;
   factorId!: number;
   matrizId!: number;           // Agregado para enviar el ID de la matriz
