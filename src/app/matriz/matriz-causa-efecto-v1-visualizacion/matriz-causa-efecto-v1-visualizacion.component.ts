@@ -1,30 +1,36 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.ts
+
+import {
+  Component,
+  OnInit
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import Swal from 'sweetalert2';
+
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatrizService } from '../service/matriz-service';
-import { ItemMatriz, Matriz } from '../models/matriz';
-
-interface Stage {
-  name: string;
-  actions: string[];
-}
-
-interface FactorView {
-  sistema: string;
-  subsistema: string;
-  factor: string;
-  componente: string;
-  key: string;
-}
+import { MatrizGridService, FactorView, Stage as GridStage } from '../service/matriz-grid.service';
+import { Matriz, ItemMatriz } from '../models/matriz';
+import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
 
 @Component({
   selector: 'app-matriz-causa-efecto-v1-visualizacion',
   standalone: true,
-  imports: [ FormsModule, CommonModule, NavComponent, FooterComponent, HttpClientModule ],
+  imports: [
+    FormsModule,
+    CommonModule,
+    HttpClientModule,
+    NavComponent,
+    FooterComponent,
+    MatrizCausaEfectoV1Component 
+  ],
+  providers: [
+    MatrizService      // <-- Aquí indicamos a Angular que provea MatrizService
+  ],
   templateUrl: './matriz-causa-efecto-v1-visualizacion.component.html',
   styleUrls: ['./matriz-causa-efecto-v1-visualizacion.component.css']
 })
@@ -32,17 +38,21 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   matrices: Matriz[] = [];
   selectedMatrix: Matriz | null = null;
   factors: FactorView[] = [];
-  stages: Stage[] = [];
+  stages: GridStage[] = [];
   valuationsMap: { [key: string]: { [stage: string]: { [action: string]: string } } } = {};
   organizationFilter = '';
   logoBase64 = '';
-  items: ItemMatriz[] = [];
+  editMode = false;
 
-  constructor(private matrizService: MatrizService, private http: HttpClient) {}
+  constructor(
+    private gridService: MatrizGridService,
+    private matrizService: MatrizService,
+    private http: HttpClient
+  ) {}
 
   ngOnInit(): void {
     this.loadMatrices();
-    this.loadLogo(); 
+    this.loadLogo();
   }
 
   private logJSON(obj: any, mensaje?: string): void {
@@ -68,25 +78,22 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
         }));
         this.logJSON(this.matrices, 'Matrices cargadas:');
       },
-      error => console.error('Error al cargar matrices:', error)
+      err => console.error('Error al cargar matrices:', err)
     );
   }
 
   get filteredMatrices(): Matriz[] {
     const filtro = this.organizationFilter.trim().toLowerCase();
-    if (!filtro) {
-      return this.matrices;
-    }
+    if (!filtro) return this.matrices;
     return this.matrices.filter(m =>
       m.items.some(item =>
-        (item.razonSocial ?? '')
-          .toLowerCase()
-          .includes(filtro)
+        (item.razonSocial ?? '').toLowerCase().includes(filtro)
       )
     );
   }
-  
+
   viewDetails(matrix: Matriz): void {
+    this.editMode = false;
     this.matrizService.getMatrizById(matrix.id).subscribe(
       fullMatrix => {
         this.selectedMatrix = fullMatrix;
@@ -102,59 +109,32 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     this.factors = [];
     this.stages = [];
     this.valuationsMap = {};
+    this.editMode = false;
+  }
+
+  enableEdit(): void {
+    this.editMode = true;
+  }
+
+  onMatrixSaved(updated: Matriz): void {
+    // Llamada corregida: pasar el id y el objeto completo
+    this.matrizService.updateMatriz(updated.id, updated).subscribe(
+      () => {
+        this.selectedMatrix = updated;
+        this.editMode = false;
+        this.buildGrid(updated);
+        Swal.fire('Éxito', 'Matriz actualizada correctamente.', 'success');
+      },
+      () => Swal.fire('Error', 'No se pudo actualizar la matriz.', 'error')
+    );
   }
 
   private buildGrid(matriz: Matriz): void {
     this.logJSON(matriz, 'Ejecutando buildGrid con matriz:');
-    const factorMap: { [key: string]: FactorView } = {};
-    this.stages = [];
-    this.valuationsMap = {};
-
-    matriz.items.forEach((item: ItemMatriz) => {
-      this.logJSON(item, 'Procesando item:');
-
-      // Usar nuevas propiedades del modelo:
-      const etapa         = item.etapa ?? 'N/A';
-      const accionTipo    = item.accionTipo ?? 'N/A';
-      const sistema       = item.factorSistema ?? 'N/A';
-      const subsistema = item.factorSubsistema ?? 'N/A';
-      const factorTipo    = item.factorFactor ?? 'N/A';
-      const componente    = item.factorComponente ?? 'N/A';
-      const naturaleza    = item.naturaleza ?? 'N/A';
-
-      const key = `${sistema}|${subsistema}|${factorTipo}|${componente}`;
-
-      // Agregar factor si no existe
-      if (!factorMap[key]) {
-        factorMap[key] = { sistema, subsistema, factor: factorTipo, componente, key };
-        this.logJSON(factorMap[key], 'Nuevo factor añadido:');
-      }
-
-      // Etapa
-      let stageObj = this.stages.find(s => s.name === etapa);
-      if (!stageObj) {
-        stageObj = { name: etapa, actions: [] };
-        this.stages.push(stageObj);
-        this.logJSON(stageObj, 'Nueva etapa añadida:');
-      }
-      // Acción
-      if (!stageObj.actions.includes(accionTipo)) {
-        stageObj.actions.push(accionTipo);
-        this.logJSON(accionTipo, `Acción añadida en la etapa ${etapa}:`);
-      }
-
-      // Valoraciones
-      this.valuationsMap[key]                = this.valuationsMap[key]                || {};
-      this.valuationsMap[key][etapa]         = this.valuationsMap[key][etapa]         || {};
-      this.valuationsMap[key][etapa][accionTipo] = naturaleza;
-      this.logJSON(naturaleza, 'Valoración asignada:');
-    });
-
-    // Ordenar y asignar
-    this.factors = Object.values(factorMap)
-      .sort((a, b) => a.sistema.localeCompare(b.sistema));
-    this.stages.sort((a, b) => a.name.localeCompare(b.name));
-
+    const { factors, stages, valuationsMap } = this.gridService.buildGrid(matriz.items);
+    this.factors = factors;
+    this.stages = stages;
+    this.valuationsMap = valuationsMap;
     this.logJSON(this.factors, 'Factores finales:');
     this.logJSON(this.stages, 'Etapas finales:');
     this.logJSON(this.valuationsMap, 'Mapa de valoraciones:');
@@ -182,5 +162,4 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     if (name.includes('comunes')) return 'stage-comunes';
     return '';
   }
-
 }

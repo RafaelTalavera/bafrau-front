@@ -1,3 +1,4 @@
+// src/app/matriz/factores/form-factor/form-factor.component.ts
 import { AfterContentInit, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Factor } from '../../models/factor';
 import { FormsModule, NgForm } from '@angular/forms';
@@ -8,39 +9,37 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './form-factor.component.html',
-  styleUrl: './form-factor.component.css'
+  styleUrls: ['./form-factor.component.css']
 })
 export class FormFactorComponent implements AfterContentInit {
-  
-  ngAfterContentInit(): void {
-  }
 
   @Input() factor: Factor = {
     id: 0,
     sistema: '',
     subsistema: '',
-    factor:'',
+    factor: '',
     componente: ''
   };
 
-@Output() newFactorEvent = new EventEmitter();
+  @Output() newFactorEvent = new EventEmitter<Factor>();
 
-onSubmit(factorForm: NgForm): void {
-  if (factorForm.valid){
-    this.newFactorEvent.emit(this.factor)
+  ngAfterContentInit(): void {}
+
+  onSubmit(factorForm: NgForm): void {
+    if (factorForm.valid) {
+      console.log('Enviando para editar:', this.factor);
+      this.newFactorEvent.emit({ ...this.factor });  // emitir copia para conservar id
+      factorForm.resetForm();                        // sólo reset del formulario
+    }
   }
-  factorForm.reset();
-  factorForm.resetForm();
-}
 
-clean(): void {
-  this.factor = {
-    id: 0,
-    sistema: '',
-    subsistema: '',
-    factor:'',
-    componente: ''
+  clean(): void {
+    this.factor = {
+      id: 0,
+      sistema: '',
+      subsistema: '',
+      factor: '',
+      componente: ''
+    };
   }
-}
-
 }
