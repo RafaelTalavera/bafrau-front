@@ -9,7 +9,7 @@ import { ItemMatriz, Matriz } from '../models/matriz';
 import { MatrizService } from '../service/matriz-service';
 
 export interface AdditionalFields {
-  uIP: number;
+  uip: number;
 }
 
 interface Stage {
@@ -18,11 +18,12 @@ interface Stage {
 }
 
 interface FactorView {
-  clasificacion: string;
+  sistema: string;
+  subsistema: string;
   factor: string;
-  factorComponente: string;
+  Componente: string;
   key: string;
-  uIP: number;
+  uip: number;
   itemMatrizId: number;
 }
 
@@ -50,7 +51,7 @@ export class PonderacionMatrizComponent implements OnInit {
   totalUIP = 0;
   readonly TOTAL_DISTRIBUCION = 1000;
 
-  constructor(private matrizService: MatrizService) {}
+  constructor(private matrizService: MatrizService) { }
 
   ngOnInit(): void {
     this.loadMatrices();
@@ -101,11 +102,11 @@ export class PonderacionMatrizComponent implements OnInit {
     this.expandedFactors = {};
 
     matriz.items.forEach((item: ItemMatriz) => {
-      if (!item.factorMedio || !item.etapa || !item.accionTipo || !item.factorFactor || !item.factorComponente) {
+      if (!item.factorSistema || !item.etapa || !item.accionTipo || !item.factorFactor || !item.factorComponente) {
         return;
       }
 
-      const factorKey = `${item.factorMedio}|${item.factorFactor}|${item.factorComponente}`;
+      const factorKey = `${item.factorSistema}|${item.factorFactor}|${item.factorComponente}`;
       const actionKey = item.accionTipo;
 
       // usar item.uip (viene del JSON) o 0 si es null/undefined
@@ -113,12 +114,13 @@ export class PonderacionMatrizComponent implements OnInit {
 
       if (!this.factors.find(f => f.key === factorKey)) {
         this.factors.push({
-          clasificacion:    item.factorMedio,
-          factor:           item.factorFactor,
-          factorComponente: item.factorComponente,
-          key:              factorKey,
-          uIP:              uipVal,
-          itemMatrizId:     item.id!
+          sistema: item.factorSistema,
+          subsistema: item.factorSubsistema,
+          factor: item.factorFactor,
+          Componente: item.factorComponente,
+          key: factorKey,
+          uip: uipVal,
+          itemMatrizId: item.id!
         });
       }
 
@@ -135,9 +137,9 @@ export class PonderacionMatrizComponent implements OnInit {
         stageObj.actions.push(actionKey);
       }
 
-      this.additionalMap[factorKey]             ||= {};
+      this.additionalMap[factorKey] ||= {};
       this.additionalMap[factorKey][item.etapa] ||= {};
-      this.additionalMap[factorKey][item.etapa][actionKey] = { uIP: uipVal };
+      this.additionalMap[factorKey][item.etapa][actionKey] = { uip: uipVal };
     });
 
     // reasignar por si acaso
@@ -145,28 +147,28 @@ export class PonderacionMatrizComponent implements OnInit {
       const map = this.additionalMap[factor.key];
       for (const st in map) {
         for (const act in map[st]) {
-          factor.uIP = map[st][act].uIP;
+          factor.uip = map[st][act].uip;
           break;
         }
       }
     });
 
     this.factors.sort((a, b) =>
-      a.clasificacion.localeCompare(b.clasificacion) || a.factor.localeCompare(b.factor)
+      a.sistema.localeCompare(b.sistema) || a.factor.localeCompare(b.factor)
     );
     this.stages.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   calculateTotalUIP(): void {
-    this.totalUIP = this.factors.reduce((sum, f) => sum + f.uIP, 0);
+    this.totalUIP = this.factors.reduce((sum, f) => sum + f.uip, 0);
   }
 
   onFactorUIPChange(factor: FactorView, newValue: number): void {
-    factor.uIP = newValue;
+    factor.uip = newValue;
     const map = this.additionalMap[factor.key];
     for (const st in map) {
       for (const act in map[st]) {
-        map[st][act].uIP = newValue;
+        map[st][act].uip = newValue;
       }
     }
     this.calculateTotalUIP();
@@ -181,7 +183,7 @@ export class PonderacionMatrizComponent implements OnInit {
 
     const updates: ItemUIPUpdateDTO[] = this.factors.map(f => ({
       itemId: f.itemMatrizId,
-      uip:    f.uIP
+      uip: f.uip
     }));
 
     if (this.selectedMatrix?.id != null) {
@@ -203,22 +205,22 @@ export class PonderacionMatrizComponent implements OnInit {
   }
 
   shouldShowClasificacion(i: number): boolean {
-    return i === 0 || this.factors[i].clasificacion !== this.factors[i - 1].clasificacion;
+    return i === 0 || this.factors[i].sistema !== this.factors[i - 1].sistema;
   }
   getRowSpan(i: number): number {
-    const cls = this.factors[i].clasificacion;
+    const cls = this.factors[i].sistema;
     let cnt = 1;
     for (let j = i + 1; j < this.factors.length; j++) {
-      if (this.factors[j].clasificacion === cls) cnt++;
+      if (this.factors[j].sistema === cls) cnt++;
       else break;
     }
     return cnt;
   }
   isLastFactor(i: number): boolean {
-    return i === this.factors.length - 1 || this.factors[i].clasificacion !== this.factors[i + 1].clasificacion;
+    return i === this.factors.length - 1 || this.factors[i].sistema !== this.factors[i + 1].sistema;
   }
-  getFactorClassificationSum(clasificacion: string): number {
-    return this.factors.filter(f => f.clasificacion === clasificacion)
-                       .reduce((sum, f) => sum + f.uIP, 0);
+  getFactorClassificationSum(sistema: string): number {
+    return this.factors.filter(f => f.sistema === sistema)
+      .reduce((sum, f) => sum + f.uip, 0);
   }
 }

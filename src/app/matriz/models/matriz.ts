@@ -1,16 +1,3 @@
-// src/app/models/matriz.ts
-export class Accion {
-  id!: number;
-  clasificacion!: string;
-  tipo!: string;
-}
-
-export class Factor {
-  id!: number;
-  medio!: string;
-  factor!: string;
-  componente!: string;
-}
 
 export class ItemMatriz {
   id!: number;
@@ -33,7 +20,8 @@ export class ItemMatriz {
   accionId!: number;
   factorId!: number;
   matrizId!: number;           // Agregado para enviar el ID de la matriz
-  factorMedio!: string;        // Agregado para mapear tu DTO Java
+  factorSistema!: string;
+  factorSubsistema!: string;        // Agregado para mapear tu DTO Java
   factorFactor!: string;       // Agregado para mapear tu DTO Java
   factorComponente!: string;   // Agregado para mapear tu DTO Java
   accionTipo!: string;

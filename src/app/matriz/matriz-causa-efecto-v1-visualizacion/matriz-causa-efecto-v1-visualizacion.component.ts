@@ -3,9 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatrizService } from '../service/matriz-service';
 import { ItemMatriz, Matriz } from '../models/matriz';
@@ -16,7 +14,8 @@ interface Stage {
 }
 
 interface FactorView {
-  clasificacion: string;
+  sistema: string;
+  subsistema: string;
   factor: string;
   componente: string;
   key: string;
@@ -87,7 +86,6 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     );
   }
   
-
   viewDetails(matrix: Matriz): void {
     this.matrizService.getMatrizById(matrix.id).subscribe(
       fullMatrix => {
@@ -118,16 +116,17 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
       // Usar nuevas propiedades del modelo:
       const etapa         = item.etapa ?? 'N/A';
       const accionTipo    = item.accionTipo ?? 'N/A';
-      const clasificacion = item.factorMedio ?? 'N/A';
+      const sistema       = item.factorSistema ?? 'N/A';
+      const subsistema = item.factorSubsistema ?? 'N/A';
       const factorTipo    = item.factorFactor ?? 'N/A';
       const componente    = item.factorComponente ?? 'N/A';
       const naturaleza    = item.naturaleza ?? 'N/A';
 
-      const key = `${clasificacion}|${factorTipo}|${componente}`;
+      const key = `${sistema}|${subsistema}|${factorTipo}|${componente}`;
 
       // Agregar factor si no existe
       if (!factorMap[key]) {
-        factorMap[key] = { clasificacion, factor: factorTipo, componente, key };
+        factorMap[key] = { sistema, subsistema, factor: factorTipo, componente, key };
         this.logJSON(factorMap[key], 'Nuevo factor añadido:');
       }
 
@@ -153,7 +152,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
 
     // Ordenar y asignar
     this.factors = Object.values(factorMap)
-      .sort((a, b) => a.clasificacion.localeCompare(b.clasificacion));
+      .sort((a, b) => a.sistema.localeCompare(b.sistema));
     this.stages.sort((a, b) => a.name.localeCompare(b.name));
 
     this.logJSON(this.factors, 'Factores finales:');
@@ -162,14 +161,14 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   }
 
   shouldShowClasificacion(index: number): boolean {
-    return index === 0 || this.factors[index].clasificacion !== this.factors[index - 1].clasificacion;
+    return index === 0 || this.factors[index].sistema !== this.factors[index - 1].sistema;
   }
 
   getRowSpan(index: number): number {
     let count = 1;
-    const current = this.factors[index].clasificacion;
+    const current = this.factors[index].sistema;
     for (let i = index + 1; i < this.factors.length; i++) {
-      if (this.factors[i].clasificacion === current) count++;
+      if (this.factors[i].sistema === current) count++;
       else break;
     }
     return count;
@@ -184,5 +183,4 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     return '';
   }
 
- 
 }

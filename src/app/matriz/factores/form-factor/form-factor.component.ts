@@ -17,7 +17,8 @@ export class FormFactorComponent implements AfterContentInit {
 
   @Input() factor: Factor = {
     id: 0,
-    medio: '',
+    sistema: '',
+    subsistema: '',
     factor:'',
     componente: ''
   };
@@ -35,7 +36,8 @@ onSubmit(factorForm: NgForm): void {
 clean(): void {
   this.factor = {
     id: 0,
-    medio: '',
+    sistema: '',
+    subsistema: '',
     factor:'',
     componente: ''
   }

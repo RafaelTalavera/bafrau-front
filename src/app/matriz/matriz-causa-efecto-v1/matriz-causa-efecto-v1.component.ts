@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { MatrizService } from '../service/matriz-service';
 import { FactorService } from '../factores/services/factores.service';
@@ -10,7 +9,9 @@ import { AccionService } from '../acciones/services/acciones.service';
 
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
-import { Accion, Factor, ItemMatriz, Matriz } from '../models/matriz';
+import { Matriz } from '../models/matriz';
+import { Factor } from '../models/factor';
+import { Accion } from '../models/accion';
 
 interface Stage {
   name: string;
@@ -19,7 +20,8 @@ interface Stage {
 }
 
 interface FactorItem {
-  medio: string;
+  sistema: string;
+  subsistema: string;
   factor: string;
   componente: string;
   key: string;
@@ -29,13 +31,7 @@ interface FactorItem {
 @Component({
   selector: 'app-matriz-causa-efecto-v1',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    HttpClientModule,
-    NavComponent,
-    FooterComponent
-  ],
+  imports: [CommonModule, FormsModule, HttpClientModule, NavComponent, FooterComponent],
   templateUrl: './matriz-causa-efecto-v1.component.html',
   styleUrls: ['./matriz-causa-efecto-v1.component.css']
 })
@@ -62,19 +58,18 @@ export class MatrizCausaEfectoV1Component implements OnInit {
   stages: Stage[] = [];
   valoraciones = ['positivo', 'negativo', 'neutro'];
 
-  nuevoMedio = '';
+  nuevoSistema = '';
+  nuevoSubsistema = '';
   nuevoFactor = '';
   nuevoComponente = '';
   nuevaEtapa = '';
 
-  groupedFactors: { subsistema: string; factors: FactorItem[] }[] = [];
+  groupedFactors: { sistema: string; factors: FactorItem[] }[] = [];
 
   constructor(
     private matrizService: MatrizService,
     private factorService: FactorService,
     private accionService: AccionService,
-    private router: Router,
- 
   ) {}
 
   ngOnInit() {
@@ -102,63 +97,96 @@ export class MatrizCausaEfectoV1Component implements OnInit {
     this.informe.razonSocial = o?.razonSocial || '';
   }
 
-  getUniqueSubsistemas(): string[] {
-    const medios = new Set<string>();
-    this.availableFactors.forEach(f => medios.add(f.medio));
-    return Array.from(medios).sort();
+  // ------------ CAMBIOS A PARTIR DE AQUÍ ------------
+
+  /** Resetea subsistema, factor y componente al cambiar sistema */
+  onSistemaChange(): void {
+    this.nuevoSubsistema = '';
+    this.nuevoFactor = '';
+    this.nuevoComponente = '';
   }
 
-  getFilteredFactorsBySubsistema(sub: string): string[] {
+  /** Resetea factor y componente al cambiar subsistema */
+  onSubsistemaChange(): void {
+    this.nuevoFactor = '';
+    this.nuevoComponente = '';
+  }
+
+  /** Sistemas únicos ordenados */
+  getUniqueSistemas(): string[] {
+    const set = new Set<string>();
+    this.availableFactors.forEach(f => set.add(f.sistema));
+    return Array.from(set).sort();
+  }
+
+  /** Subsistemas del sistema seleccionado */
+  getUniqueSubsistemas(): string[] {
+    if (!this.nuevoSistema) return [];
     const set = new Set<string>();
     this.availableFactors
-      .filter(f => f.medio === sub)
+      .filter(f => f.sistema === this.nuevoSistema)
+      .forEach(f => set.add(f.subsistema));
+    return Array.from(set).sort();
+  }
+
+  /** Factores filtrados por sistema + subsistema */
+  getFilteredFactorsBySubsistema(sub: string): string[] {
+    if (!sub) return [];
+    const set = new Set<string>();
+    this.availableFactors
+      .filter(f => f.sistema === this.nuevoSistema && f.subsistema === sub)
       .forEach(f => set.add(f.factor));
     return Array.from(set).sort();
   }
 
-  getFilteredComponentesByFactor(sub: string, fac: string): string[] {
+  /** Componentes filtrados por factor (y sistema actual) */
+  getFilteredComponentesByFactor(fac: string): string[] {
+    if (!fac) return [];
     const set = new Set<string>();
     this.availableFactors
-      .filter(f => f.medio === sub && f.factor === fac)
+      .filter(f => f.sistema === this.nuevoSistema && f.factor === fac)
       .forEach(f => set.add(f.componente));
     return Array.from(set).sort();
   }
 
+  // ------------ RESTO DEL CÓDIGO SIN CAMBIOS ESQUEMÁTICOS ------------
+
   updateGroupedFactors() {
     const groups: Record<string, FactorItem[]> = {};
     this.factors.forEach(fi => {
-      groups[fi.medio] = groups[fi.medio] || [];
-      groups[fi.medio].push(fi);
+      groups[fi.sistema] = groups[fi.sistema] || [];
+      groups[fi.sistema].push(fi);
     });
     this.groupedFactors = Object.keys(groups)
       .sort()
       .map(sub => ({
-        subsistema: sub,
+        sistema: sub,
         factors: groups[sub].sort((a, b) => a.factor.localeCompare(b.factor))
       }));
   }
 
   addFactor() {
-    const medio = this.nuevoMedio.trim();
+    const sistema = this.nuevoSistema.trim();
+    const subsistema = this.nuevoSubsistema.trim();
     const factor = this.nuevoFactor.trim();
     const comp = this.nuevoComponente.trim();
-    if (!medio || !factor || !comp) {
+    if (!sistema || !subsistema || !factor || !comp) {
       Swal.fire('Error', 'Debe seleccionar Subsistema, Factor y Componente', 'error');
       return;
     }
-    const key = `${medio}|${factor}|${comp}`;
+    const key = `${sistema}|${subsistema}|${factor}|${comp}`;
     if (this.factors.some(f => f.key === key)) {
       Swal.fire('Error', 'Selección repetida', 'error');
       return;
     }
-    const item: FactorItem = { medio, factor, componente: comp, key, valuations: {} };
+    const item: FactorItem = { sistema, subsistema, factor, componente: comp, key, valuations: {} };
     this.stages.forEach(s => {
       item.valuations[s.name] = {};
-      s.actions.forEach(a => item.valuations[s.name][a] = '');
+      s.actions.forEach(a => (item.valuations[s.name][a] = ''));
     });
     this.factors.push(item);
     this.updateGroupedFactors();
-    this.nuevoMedio = this.nuevoFactor = this.nuevoComponente = '';
+    this.nuevoSistema = this.nuevoSubsistema = this.nuevoFactor = this.nuevoComponente = '';
   }
 
   eliminarFactor(fi: FactorItem) {
@@ -176,7 +204,7 @@ export class MatrizCausaEfectoV1Component implements OnInit {
     this.stages.sort((a, b) =>
       this.defaultStages.indexOf(a.name) - this.defaultStages.indexOf(b.name)
     );
-    this.factors.forEach(f => f.valuations[name] = {});
+    this.factors.forEach(f => (f.valuations[name] = {}));
     this.nuevaEtapa = '';
   }
 
@@ -192,7 +220,7 @@ export class MatrizCausaEfectoV1Component implements OnInit {
       return;
     }
     s.actions.push(act);
-    this.factors.forEach(f => f.valuations[s.name][act] = '');
+    this.factors.forEach(f => (f.valuations[s.name][act] = ''));
     s.nuevaAccion = '';
   }
 
@@ -221,15 +249,15 @@ export class MatrizCausaEfectoV1Component implements OnInit {
   }
 
   getAccionId(name: string) {
-    const a = this.availableActions.find(x =>
-      x.tipo.trim().toLowerCase() === name.trim().toLowerCase()
+    const a = this.availableActions.find(
+      x => x.tipo.trim().toLowerCase() === name.trim().toLowerCase()
     );
     return a?.id || 0;
   }
 
   getFactorId(name: string) {
-    const f = this.availableFactors.find(x =>
-      x.factor.trim().toLowerCase() === name.trim().toLowerCase()
+    const f = this.availableFactors.find(
+      x => x.factor.trim().toLowerCase() === name.trim().toLowerCase()
     );
     return f?.id || 0;
   }
@@ -245,7 +273,7 @@ export class MatrizCausaEfectoV1Component implements OnInit {
     this.factors = [];
     this.stages = [];
     this.groupedFactors = [];
-    this.nuevoMedio = this.nuevoFactor = this.nuevoComponente = this.nuevaEtapa = '';
+    this.nuevoSistema = this.nuevoSubsistema = this.nuevoFactor = this.nuevoComponente = this.nuevaEtapa = '';
   }
 
   onSubmit() {
@@ -257,9 +285,9 @@ export class MatrizCausaEfectoV1Component implements OnInit {
       id: 0,
       fecha: this.informe.fecha,
       organizacionId: this.informe.organizacionId!,
-      razonSocial: this.informe.razonSocial,
       direccion: this.informe.direccion,
       rubro: this.informe.rubro,
+      razonSocial: this.informe.razonSocial,
       items: [],
       informe: JSON.stringify(this.informe)
     };
@@ -289,7 +317,8 @@ export class MatrizCausaEfectoV1Component implements OnInit {
             accionId: this.getAccionId(a),
             factorId: this.getFactorId(fi.factor),
             matrizId: 0,
-            factorMedio: fi.medio,
+            factorSistema: fi.sistema,
+            factorSubsistema: fi.subsistema,
             factorFactor: fi.factor,
             factorComponente: fi.componente,
             accionTipo: a,

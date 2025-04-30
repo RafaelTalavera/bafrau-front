@@ -1,24 +1,30 @@
-.custom-h5 {
-    font-size: 16px; 
-    text-align: center; 
+/* Ámbito del formulario */
+.custom-form .form-control {
+  font-size: 12px;
+}
+.custom-form .small-text {
+  font-size: 12px;
 }
 
+/* Título de la tarjeta */
+.custom-h5 {
+  font-size: 16px;
+  text-align: center;
+}
 
-  .text.alert-danger {
-    font-size: 10px;
-    background-color: #f8d7da; /* Color rojo claro típico de error */
-    color: #721c24;            /* Texto rojo oscuro */
-    padding: 8px;
-    border-radius: 4px;
-    margin-top: 5px;
-  }
-  
-  .small-text {
-    font-size: 12px;
-  }
-  
-  .content-wrapper {
-    margin-top: 30px; /* Aumenta la separación */
-    overflow-y: auto;
-    height: 100vh;
-  }
+/* Mensajes de error */
+.text.alert-danger {
+  font-size: 10px;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+/* Ajuste general del contenedor de contenido */
+.content-wrapper {
+  margin-top: 30px;
+  overflow-y: auto;
+  height: 100vh;
+}

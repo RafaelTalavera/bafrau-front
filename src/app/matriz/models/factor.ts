@@ -1,6 +1,7 @@
 export class Factor {
     id!: number;
-    medio!: string;
+    sistema!: string;
+    subsistema!: string;
     factor!: string
     componente!: string
 }

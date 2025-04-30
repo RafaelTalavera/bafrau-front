@@ -2,7 +2,8 @@ import { AfterContentInit, Component, EventEmitter, Input, Output } from '@angul
 
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Accion } from '../models/matriz';
+import { Accion } from '../models/accion';
+
 
 
 @Component({

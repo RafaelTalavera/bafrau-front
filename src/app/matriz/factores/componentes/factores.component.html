@@ -17,7 +17,7 @@
                                 <div class="search-container">
                                     <input type="text"
                                            class="search-input"
-                                           placeholder="Buscar por factor"
+                                           placeholder="Buscar por componente"
                                            [(ngModel)]="tipoBusqueda"
                                            (input)="buscarPorTipo()">
                                   </div>
@@ -26,16 +26,18 @@
                                     <table class="table table-hover table-striped">
                                         <thead>
                                             <tr>
-                                                <th class="custom-tr">Medio</th>
+                                                <th class="custom-tr">Sistema</th>
+                                                <th class="custom-tr">Subsistema</th>
                                                 <th class="custom-tr">Factor</th>
                                                 <th class="custom-tr">Componente</th>
-                                                <th class="custom-tr">Accines</th>
+                                                <th class="custom-tr">Acciones</th>
                                             
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr *ngFor="let factor of factoresFiltrados; trackBy: trackByFn">
-                                                <td class="custom-td">{{factor.medio}}</td>
+                                                <td class="custom-td">{{factor.sistema}}</td>
+                                                <td class="custom-td">{{factor.subsistema}}</td>
                                                 <td class="custom-td">{{factor.factor}}</td>
                                                 <td class="custom-td">{{factor.componente}}</td>
 
