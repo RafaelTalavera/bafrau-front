@@ -69,6 +69,7 @@ input[type="date"].date-input {
 
 /* — Botones */
 .btn-primary,
+.btn-info,
 .btn-secondary,
 .btn-danger,
 .btn-sm {

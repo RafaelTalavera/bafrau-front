@@ -25,6 +25,7 @@ import { MatrizGridService, FactorView, Stage as GridStage } from '../service/ma
 import { Matriz, ItemMatriz } from '../models/matriz';
 import { Factor } from '../models/factor';
 import { Accion } from '../models/accion';
+import { Router } from '@angular/router';
 
 interface Stage {
   name: string;
@@ -39,6 +40,7 @@ interface FactorItem {
   componente: string;
   key: string;
   valuations: { [stageName: string]: { [action: string]: string } };
+  originalItemIds: { [stageName: string]: { [action: string]: number } };
 }
 
 @Component({
@@ -84,6 +86,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   nuevaEtapa = '';
 
   constructor(
+    private router: Router, 
     private gridService: MatrizGridService,
     private matrizService: MatrizService,
     private factorService: FactorService,
@@ -98,7 +101,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['matrix'] && this.matrix && this.editMode) {
-      // Prefill del informe con datos de la matriz
+      // 1) Prefill del informe
       this.informe = {
         fecha: this.matrix.fecha,
         organizacionId: this.matrix.organizacionId,
@@ -106,17 +109,30 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
         rubro: this.matrix.rubro,
         razonSocial: this.matrix.razonSocial
       };
-      // Construir grilla usando el servicio
+      // 2) Construir grilla
       const { factors, stages, valuationsMap } = this.gridService.buildGrid(this.matrix.items);
       this.stages = stages.map(s => ({ ...s, nuevaAccion: '' }));
+
+      // 3) Mapear originalItemIds
+      const origMap: Record<string, Record<string, Record<string, number>>> = {};
+      this.matrix.items.forEach(item => {
+        const key = `${item.factorSistema}|${item.factorSubsistema}|${item.factorFactor}|${item.factorComponente}`;
+        origMap[key] = origMap[key] || {};
+        origMap[key][item.etapa] = origMap[key][item.etapa] || {};
+        origMap[key][item.etapa][item.accionTipo] = item.id;
+      });
+
+      // 4) Construir factors incluyendo originalItemIds
       this.factors = factors.map(fv => ({
         sistema: fv.sistema,
         subsistema: fv.subsistema,
         factor: fv.factor,
         componente: fv.componente,
         key: fv.key,
-        valuations: { ...valuationsMap[fv.key] }
+        valuations: { ...valuationsMap[fv.key] },
+        originalItemIds: origMap[fv.key] || {}
       }));
+
       this.updateGroupedFactors();
     }
   }
@@ -201,7 +217,10 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
       Swal.fire('Error', 'Selección repetida', 'error');
       return;
     }
-    const item: FactorItem = { sistema, subsistema, factor, componente: comp, key, valuations: {} };
+    const item: FactorItem = { 
+      sistema, subsistema, factor, componente: comp, 
+      key, valuations: {}, originalItemIds: {} 
+    };
     this.stages.forEach(s => {
       item.valuations[s.name] = {};
       s.actions.forEach(a => item.valuations[s.name][a] = '');
@@ -280,14 +299,19 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
       items: [],
       informe: JSON.stringify(this.informe)
     };
+
     this.groupedFactors.forEach(group =>
       group.factors.forEach(fi =>
         this.stages.forEach(st =>
           st.actions.forEach(a => {
             const val = fi.valuations[st.name][a];
             if (!val) return;
+            //  ✅ Aquí reutilizamos el ID original si existe
+            const itemId = this.editMode 
+              ? (fi.originalItemIds[st.name]?.[a] ?? 0) 
+              : 0;
             payload.items.push({
-              id: 0,
+              id: itemId,
               fechaAlta: this.informe.fecha,
               organizacionId: this.informe.organizacionId!,
               razonSocial: this.informe.razonSocial,
@@ -349,4 +373,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     return a;
   }
 
+  goToVisualizacion(): void {
+    this.router.navigate(['/matriz-causa-efecto-visualizacion']);
+  }
 }

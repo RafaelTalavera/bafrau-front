@@ -1,5 +1,4 @@
 // src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.ts
-
 import {
   Component,
   OnInit
@@ -14,7 +13,7 @@ import { FooterComponent } from '../../gobal/footer/footer.component';
 
 import { MatrizService } from '../service/matriz-service';
 import { MatrizGridService, FactorView, Stage as GridStage } from '../service/matriz-grid.service';
-import { Matriz, ItemMatriz } from '../models/matriz';
+import { Matriz } from '../models/matriz';
 import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
 
 @Component({
@@ -26,10 +25,10 @@ import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-c
     HttpClientModule,
     NavComponent,
     FooterComponent,
-    MatrizCausaEfectoV1Component 
+    MatrizCausaEfectoV1Component
   ],
   providers: [
-    MatrizService      // <-- Aquí indicamos a Angular que provea MatrizService
+    MatrizService
   ],
   templateUrl: './matriz-causa-efecto-v1-visualizacion.component.html',
   styleUrls: ['./matriz-causa-efecto-v1-visualizacion.component.css']
@@ -53,6 +52,12 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   ngOnInit(): void {
     this.loadMatrices();
     this.loadLogo();
+  }
+
+  getOrganization(matrix: Matriz): string {
+    return matrix.items?.length
+      ? (matrix.items[0].razonSocial || '—')
+      : '—';
   }
 
   private logJSON(obj: any, mensaje?: string): void {
@@ -117,7 +122,6 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   }
 
   onMatrixSaved(updated: Matriz): void {
-    // Llamada corregida: pasar el id y el objeto completo
     this.matrizService.updateMatriz(updated.id, updated).subscribe(
       () => {
         this.selectedMatrix = updated;
@@ -131,10 +135,13 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
 
   private buildGrid(matriz: Matriz): void {
     this.logJSON(matriz, 'Ejecutando buildGrid con matriz:');
-    const { factors, stages, valuationsMap } = this.gridService.buildGrid(matriz.items);
-    this.factors = factors;
-    this.stages = stages;
-    this.valuationsMap = valuationsMap;
+    const grid = this.gridService.buildGrid(matriz.items);
+  
+    // **Ahora usamos los factors agrupados**, no volvemos a mapear matriz.items
+    this.factors      = grid.factors;
+    this.stages       = grid.stages;
+    this.valuationsMap= grid.valuationsMap;
+  
     this.logJSON(this.factors, 'Factores finales:');
     this.logJSON(this.stages, 'Etapas finales:');
     this.logJSON(this.valuationsMap, 'Mapa de valoraciones:');

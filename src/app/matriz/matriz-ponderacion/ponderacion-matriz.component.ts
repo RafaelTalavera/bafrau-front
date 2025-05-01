@@ -1,4 +1,3 @@
-// src/app/ponderacion-matriz/ponderacion-matriz.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -71,9 +70,7 @@ export class PonderacionMatrizComponent implements OnInit {
     }
     return this.matrices.filter(m =>
       m.items.some(item =>
-        (item.razonSocial ?? '')
-          .toLowerCase()
-          .includes(filtro)
+        (item.razonSocial ?? '').toLowerCase().includes(filtro)
       )
     );
   }
@@ -92,6 +89,7 @@ export class PonderacionMatrizComponent implements OnInit {
     this.valuationsMap = {};
     this.expandedFactors = {};
     this.totalUIP = 0;
+    this.loadMatrices();
   }
 
   private buildGrid(matriz: Matriz): void {
@@ -108,8 +106,6 @@ export class PonderacionMatrizComponent implements OnInit {
 
       const factorKey = `${item.factorSistema}|${item.factorFactor}|${item.factorComponente}`;
       const actionKey = item.accionTipo;
-
-      // usar item.uip (viene del JSON) o 0 si es null/undefined
       const uipVal = item.uip == null ? 0 : item.uip;
 
       if (!this.factors.find(f => f.key === factorKey)) {
@@ -142,16 +138,8 @@ export class PonderacionMatrizComponent implements OnInit {
       this.additionalMap[factorKey][item.etapa][actionKey] = { uip: uipVal };
     });
 
-    // reasignar por si acaso
-    this.factors.forEach(factor => {
-      const map = this.additionalMap[factor.key];
-      for (const st in map) {
-        for (const act in map[st]) {
-          factor.uip = map[st][act].uip;
-          break;
-        }
-      }
-    });
+    // Recalcular UIP tras construir la grilla
+    this.calculateTotalUIP();
 
     this.factors.sort((a, b) =>
       a.sistema.localeCompare(b.sistema) || a.factor.localeCompare(b.factor)
@@ -188,7 +176,10 @@ export class PonderacionMatrizComponent implements OnInit {
 
     if (this.selectedMatrix?.id != null) {
       this.matrizService.updateUPI(this.selectedMatrix.id, updates).subscribe(
-        () => Swal.fire('Actualizado', 'Valores UIP actualizados.', 'success'),
+        () => {
+          Swal.fire('Actualizado', 'Valores UIP actualizados.', 'success')
+            .then(() => this.backToList()); // ← tras cerrar el diálogo, recarga
+        },
         err => {
           console.error('Error al actualizar UIP:', err);
           Swal.fire('Error', 'No se pudo actualizar.', 'error');
@@ -196,6 +187,7 @@ export class PonderacionMatrizComponent implements OnInit {
       );
     }
   }
+  
 
   getUIPAdjustmentMessage(): string {
     const diff = this.totalUIP - this.TOTAL_DISTRIBUCION;
@@ -207,6 +199,7 @@ export class PonderacionMatrizComponent implements OnInit {
   shouldShowClasificacion(i: number): boolean {
     return i === 0 || this.factors[i].sistema !== this.factors[i - 1].sistema;
   }
+
   getRowSpan(i: number): number {
     const cls = this.factors[i].sistema;
     let cnt = 1;
@@ -216,9 +209,11 @@ export class PonderacionMatrizComponent implements OnInit {
     }
     return cnt;
   }
+
   isLastFactor(i: number): boolean {
     return i === this.factors.length - 1 || this.factors[i].sistema !== this.factors[i + 1].sistema;
   }
+
   getFactorClassificationSum(sistema: string): number {
     return this.factors.filter(f => f.sistema === sistema)
       .reduce((sum, f) => sum + f.uip, 0);

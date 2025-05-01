@@ -8,6 +8,7 @@ import { Chart, registerables } from 'chart.js';
 import { ItemMatriz, Matriz } from '../models/matriz';
 import { MatrizService } from '../service/matriz-service';
 import { AdditionalFieldOptions } from '../constants/additional-flied-options';
+import { Router } from '@angular/router';
 
 Chart.register(...registerables);
 
@@ -82,7 +83,9 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   @ViewChild('irtBarChart') irtBarChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('irtActionsChart') irtActionsChartRef!: ElementRef<HTMLCanvasElement>;
 
-  constructor(private matrizService: MatrizService) {}
+  constructor(
+    private router: Router,   
+    private matrizService: MatrizService) {}
 
   ngOnInit(): void {
     this.loadMatrices();
@@ -423,4 +426,5 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     }
     return count;
   }
+
 }
