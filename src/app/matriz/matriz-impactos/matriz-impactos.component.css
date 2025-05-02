@@ -258,3 +258,42 @@ body.layout-fixed {
   .modal-row {
     border-bottom: 1px solid #ccc;
   }
+
+  /* 1) Fijar diseño de tabla y ancho total */
+.table-container table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* 3) Justificar el contenido interno de cada celda de acción */
+.table-container th.small-text
+{
+  text-align: justify;
+}
+
+.table-container th.small-text {
+  text-align: justify;
+text-align: center;
+}
+
+/* ancho fijo para 4 dígitos */
+.uip-column {
+  width: 10ch;        /* 1ch ≈ ancho de “0” */
+  max-width: 10ch;
+  text-align: center;
+  white-space: nowrap;
+  text-align: justify;
+}
+
+/* ancho fijo para la columna “Sistema” */
+.col-sistema {
+  width: 150px;       /* ajusta el valor a lo que necesites */
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.total-row {
+  background-color: #f2f2f2; /* gris claro */
+}

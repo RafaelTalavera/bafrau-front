@@ -50,9 +50,9 @@
                       {{ getOrganization(matriz) }}
                     </td>
                     <td style="text-align: center;">
-                      <button class="btn btn-primary btn-sm"
+                      <button class="btn btn-success btn-sm"
                               (click)="viewDetails(matriz)">
-                        <i class="fa-solid fa-eye me-1"></i> Ver Detalles
+                        <i class="fa-solid fa-eye me-1"></i> Ver matriz
                       </button>
                     </td>
                   </tr>
@@ -90,7 +90,7 @@
               <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
             </p>
             <p class="small-text">
-              <strong>Organización:</strong><br />
+              <strong>Organización:</strong>
               {{ getOrganization(selectedMatrix) }}
             </p>
 

@@ -7,37 +7,11 @@ import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
 import { ItemMatriz, Matriz } from '../models/matriz';
 import { MatrizService } from '../service/matriz-service';
+import { GridBuilderService, Stage, FactorView, AdditionalFields } from '../service/grid-builder.service';
 import { AdditionalFieldOptions } from '../constants/additional-flied-options';
 import { Router } from '@angular/router';
 
 Chart.register(...registerables);
-
-interface Stage {
-  name: string;
-  actions: string[];
-}
-
-export interface AdditionalFields {
-  intensidad: number;
-  extension: number;
-  momento: number;
-  persistencia: number;
-  reversibilidad: number;
-  sinergia: number;
-  acumulacion: number;
-  efecto: number;
-  periodicidad: number;
-  recuperacion: number;
-  uip: number;
-}
-
-interface FactorView {
-  factorSistema: string;
-  factorSubsistema: string;
-  factorComponente?: string;
-  factorFactor: string;
-  key: string;
-}
 
 interface FactorSummary {
   factor: string;
@@ -84,14 +58,16 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   @ViewChild('irtActionsChart') irtActionsChartRef!: ElementRef<HTMLCanvasElement>;
 
   constructor(
-    private router: Router,   
-    private matrizService: MatrizService) {}
+    private router: Router,
+    private matrizService: MatrizService,
+    private gridBuilder: GridBuilderService
+  ) { }
 
   ngOnInit(): void {
     this.loadMatrices();
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   loadMatrices(): void {
     this.matrizService.getAllMatrices().subscribe(
@@ -127,77 +103,43 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
   buildGrid(matriz: Matriz): void {
-    this.factors = [];
-    this.stages = [];
-    this.valuationsMap = {};
-    this.additionalMap = {};
-    this.expandedFactors = {};
-
-    const factorMap: Record<string, FactorView> = {};
-
-    matriz.items.forEach(item => {
-      if (!item.factorSistema || !item.factorSubsistema || !item.factorFactor) return;
-
-      const sistema = item.factorSistema;
-      const subsistema = item.factorSubsistema;
-      const componente = item.factorComponente;
-      const key = `${sistema}|${subsistema}|${componente ?? ''}`;
-
-      if (!factorMap[key]) {
-        factorMap[key] = {
-          factorSistema: sistema,
-          factorSubsistema: subsistema,
-          factorFactor: item.factorFactor,
-          factorComponente: componente,
-          key
-        };
-        this.expandedFactors[key] = false;
-      }
-
-      let stage = this.stages.find(s => s.name === item.etapa);
-      if (!stage) {
-        stage = { name: item.etapa, actions: [] };
-        this.stages.push(stage);
-      }
-      if (item.accionTipo && !stage.actions.includes(item.accionTipo)) {
-        stage.actions.push(item.accionTipo);
-      }
-
-      this.valuationsMap[key] ||= {};
-      this.valuationsMap[key][item.etapa] ||= {};
-      this.valuationsMap[key][item.etapa][item.accionTipo] = item.naturaleza ?? '';
-
-      this.additionalMap[key] ||= {};
-      this.additionalMap[key][item.etapa] ||= {};
-      this.additionalMap[key][item.etapa][item.accionTipo] = {
-        intensidad: item.intensidad ?? 0,
-        extension: item.extension ?? 0,
-        momento: item.momento ?? 0,
-        persistencia: item.persistencia ?? 0,
-        reversibilidad: item.reversibilidad ?? 0,
-        sinergia: item.sinergia ?? 0,
-        acumulacion: item.acumulacion ?? 0,
-        efecto: item.efecto ?? 0,
-        periodicidad: item.periodicidad ?? 0,
-        recuperacion: item.recuperacion ?? 0,
-        uip: item.uip ?? 0,
-      };
-    });
-
+    // reiniciar estructuras
+    this.topThreePosIRTs = [];
+    this.topThreeNegIRTs = [];
+  
+    const items = matriz.items;
+  
+    // delegar a GridBuilderService
+    const factorMap = this.gridBuilder.buildFactorMap(items);
     this.factors = Object.values(factorMap)
       .sort((a, b) =>
         a.factorSistema.localeCompare(b.factorSistema) ||
         a.factorSubsistema.localeCompare(b.factorSubsistema) ||
+        (a.factorComponente ?? '').localeCompare(b.factorComponente ?? '') ||
         a.factorFactor.localeCompare(b.factorFactor)
       );
-    this.stages.sort((a, b) => a.name.localeCompare(b.name));
-
+    this.stages = this.gridBuilder.extractStages(items);
+    this.valuationsMap = this.gridBuilder.buildValuationsMap(items);
+    this.additionalMap = this.gridBuilder.buildAdditionalMap(items);
+    this.expandedFactors = Object.fromEntries(this.factors.map(f => [f.key, false]));
+  
+    // INYECTAR UIP REAL antes de calcular resúmenes
+    matriz.items.forEach(item => {
+      const key = `${item.factorSistema}|${item.factorSubsistema}|${item.factorComponente ?? ''}|${item.factorFactor}`;
+      const bucket = this.additionalMap[key]?.[item.etapa]?.[item.accionTipo];
+      if (bucket) {
+        bucket.uip = item.uip ?? 0;
+      }
+    });
+  
     this.computeSummaryIRTs();
+  
     setTimeout(() => {
       this.createBarChart();
       this.createBarChartActions();
     }, 100);
   }
+  
 
   toggleFactor(key: string): void {
     this.expandedFactors[key] = !this.expandedFactors[key];
@@ -212,7 +154,7 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
           const add = this.additionalMap[f.key]?.[st.name]?.[action];
           if (!add) return;
           const item = this.selectedMatrix!.items.find(i =>
-            `${i.factorSistema}|${i.factorSubsistema}|${i.factorComponente ?? ''}` === f.key &&
+            `${i.factorSistema}|${i.factorSubsistema}|${i.factorComponente ?? ''}|${i.factorFactor}` === f.key &&
             i.etapa === st.name &&
             i.accionTipo === action
           );
@@ -237,7 +179,16 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
 
     this.matrizService.updateMatriz(this.selectedMatrix.id, this.selectedMatrix)
       .subscribe(
-        () => Swal.fire('Actualizado', 'Correcto', 'success'),
+        () => {
+          Swal.fire('Actualizado', 'Correcto', 'success')
+            .then(() => {
+              // Volver a cargar datos y reconstruir la vista
+              this.loadMatrices();
+              if (this.selectedMatrix) {
+                this.viewDetails(this.selectedMatrix);
+              }
+            });
+        },
         () => Swal.fire('Error', 'No se pudo actualizar', 'error')
       );
   }
@@ -269,15 +220,14 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     return total;
   }
 
-  calculateImportanciaRelativaTotalFactor(factorKey: string): number {
-    let sum = 0;
-    this.stages.forEach(st => {
-      Object.keys(this.valuationsMap[factorKey]?.[st.name] || {}).forEach(ac => {
-        sum += this.calculateImpact(factorKey, st.name, ac) * this.getAdditional(factorKey, st.name, ac).uip;
-      });
-    });
-    return sum / 1000;
+  calculateImportanciaRelativaTotalFactor(fk: string): number {
+    return this.selectedMatrix!.items
+      .filter(i => `${i.factorSistema}|${i.factorSubsistema}|${i.factorComponente||''}|${i.factorFactor}` === fk)
+      .reduce((sum, i) =>
+        sum + this.calculateImpact(fk, i.etapa, i.accionTipo) * (i.uip/1000)
+      , 0);
   }
+  
 
   getAdditional(fk: string, st: string, ac: string): AdditionalFields {
     this.additionalMap[fk] ||= {};
@@ -299,27 +249,30 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
   getUIPValue(fk: string): number {
-    const values = Object.values(this.additionalMap[fk] || {}).flatMap(v => Object.values(v).map(a => a.uip));
-    return values.length > 0 ? values[0] : 0;
+    const vals = Object.values(this.additionalMap[fk] || {})
+      .flatMap(v => Object.values(v).map(a => a.uip));
+    return vals.length > 0 ? vals[0] : 0;
   }
 
   computeSummaryIRTs(): void {
     const summary = this.factors.map(f => ({
       factor: f.factorFactor,
       irt: this.calculateImportanciaRelativaTotalFactor(f.key),
-      actions: Object.keys(this.valuationsMap[f.key] || {}).flatMap(st => Object.keys(this.valuationsMap[f.key][st] || {}))
+      actions: Object.keys(this.valuationsMap[f.key] || {})
+        .flatMap(st => Object.keys(this.valuationsMap[f.key][st] || {}))
     }));
-    this.topThreePosIRTs = summary.filter(i => i.irt >= 0).sort((a, b) => b.irt - a.irt).slice(0, 3);
-    this.topThreeNegIRTs = summary.filter(i => i.irt < 0).sort((a, b) => a.irt - b.irt).slice(0, 3);
+    this.topThreePosIRTs = summary.filter(i => i.irt >= 0)
+      .sort((a, b) => b.irt - a.irt).slice(0, 3);
+    this.topThreeNegIRTs = summary.filter(i => i.irt < 0)
+      .sort((a, b) => a.irt - b.irt).slice(0, 3);
   }
-
 
   createBarChart(): void {
     const labels: string[] = [], pos: number[] = [], neg: number[] = [];
     this.factors.forEach(f => {
       const v = this.calculateImportanciaRelativaTotalFactor(f.key);
       labels.push(f.factorFactor);
-      v>=0 ? (pos.push(v), neg.push(0)) : (pos.push(0), neg.push(v));
+      v >= 0 ? (pos.push(v), neg.push(0)) : (pos.push(0), neg.push(v));
     });
     const ctx = this.irtBarChartRef.nativeElement.getContext('2d')!;
     if (this.irtChart) {
@@ -328,103 +281,114 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
       this.irtChart.data.datasets[1].data = neg;
       this.irtChart.update();
     } else {
-      this.irtChart = new Chart(ctx,{
-        type:'bar',
-        data:{ labels, datasets:[
-          { label:'IRT Positivos', data:pos },
-          { label:'IRT Negativos', data:neg }
-        ]},
-        options:{ responsive:true }
+      this.irtChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels, datasets: [
+            { label: 'IRT Positivos', data: pos },
+            { label: 'IRT Negativos', data: neg }
+          ]
+        },
+        options: { responsive: true }
       });
     }
   }
 
   createBarChartActions(): void {
-    const actions = Array.from(new Set(this.stages.flatMap(s=>s.actions)));
-    const labels = this.factors.map(f=>f.factorFactor);
-    const datasets = actions.map(a=>({
-      label:a,
-      data:this.factors.map(f=>{
-        let sum=0;
-        this.stages.forEach(st=>{
-          if(this.valuationsMap[f.key]?.[st.name]?.[a]!==undefined){
-            sum+=this.calculateImpact(f.key,st.name,a);
-          }
-        });
-        return sum;
+    const actions = Array.from(new Set(this.stages.flatMap(s => s.actions)));
+    const labels = this.factors.map(f => f.factorFactor);
+    const datasets = actions.map(a => ({
+      label: a,
+      data: this.factors.map(f => {
+        return this.stages.reduce((sum, st) => {
+          return sum + (this.valuationsMap[f.key]?.[st.name]?.[a] !== undefined
+            ? this.calculateImpact(f.key, st.name, a)
+            : 0);
+        }, 0);
       })
     }));
     const ctx = this.irtActionsChartRef.nativeElement.getContext('2d')!;
-    if(this.actionsChart){
+    if (this.actionsChart) {
       this.actionsChart.data.labels = labels;
       this.actionsChart.data.datasets = datasets;
       this.actionsChart.update();
     } else {
-      this.actionsChart = new Chart(ctx,{
-        type:'bar',
-        data:{ labels, datasets },
-        options:{ responsive:true }
+      this.actionsChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: { responsive: true }
       });
     }
   }
 
   getGroupUIPSum(sistema: string): number {
-    return this.factors.filter(f=>f.factorSistema===sistema)
-      .reduce((acc,f)=>acc+this.getUIPValue(f.key),0);
+    return this.factors.filter(f => f.factorSistema === sistema)
+      .reduce((acc, f) => acc + this.getUIPValue(f.key), 0);
   }
 
   getGroupImpactSum(sistema: string, st: string, ac: string): number {
-    return this.factors.filter(f=>f.factorSistema===sistema)
-      .reduce((acc,f)=>acc+this.calculateImpact(f.key,st,ac),0);
+    return this.factors.filter(f => f.factorSistema === sistema)
+      .reduce((acc, f) => acc + this.calculateImpact(f.key, st, ac), 0);
   }
 
   getGroupAbsoluta(sistema: string): number {
-    return this.factors.filter(f=>f.factorSistema===sistema)
-      .reduce((acc,f)=>acc+this.calculateImportanciaAbsolutaTotal(f.key),0);
+    return this.factors.filter(f => f.factorSistema === sistema)
+      .reduce((acc, f) => acc + this.calculateImportanciaAbsolutaTotal(f.key), 0);
   }
 
   getGroupRelativa(sistema: string): number {
-    return this.factors.filter(f=>f.factorSistema===sistema)
-      .reduce((acc,f)=>acc+this.calculateImportanciaRelativaTotalFactor(f.key),0);
+    return this.factors.filter(f => f.factorSistema === sistema)
+      .reduce((acc, f) => acc + this.calculateImportanciaRelativaTotalFactor(f.key), 0);
   }
 
   getGlobalActionSum(st: string, ac: string): number {
-    return this.factors.reduce((acc,f)=>acc+this.calculateImpact(f.key,st,ac),0);
+    return this.factors.reduce((acc, f) => acc + this.calculateImpact(f.key, st, ac), 0);
   }
 
   getGrandAbsolutaTotal(): number {
-    return this.factors.reduce((acc,f)=>acc+this.calculateImportanciaAbsolutaTotal(f.key),0);
+    return this.factors.reduce((acc, f) => acc + this.calculateImportanciaAbsolutaTotal(f.key), 0);
   }
 
   getGlobalRelativeAction(st: string, ac: string): number {
-    return this.factors.reduce((acc,f)=>acc+this.calculateImportanciaRelativaTotal(f.key,st,ac),0);
+    return this.factors.reduce((acc, f) => acc + this.calculateImportanciaRelativaTotal(f.key, st, ac), 0);
   }
 
-  isLastInGroup(i: number): boolean {
-    return i===0 || this.factors[i].factorSistema!==this.factors[i-1].factorSistema;
+
+  isFirstOfSystemFactor(i: number): boolean {
+    return i === 0
+      || this.factors[i].factorSistema !== this.factors[i - 1].factorSistema;
+  }
+
+  getSystemRowSpanFactor(i: number): number {
+    const sis = this.factors[i].factorSistema;
+    let count = 0;
+    for (let j = i; j < this.factors.length; j++) {
+      if (this.factors[j].factorSistema === sis) count++;
+      else break;
+    }
+    return count;
+  }
+
+  isLastOfSystemFactor(i: number): boolean {
+    return i === this.factors.length - 1
+      || this.factors[i + 1].factorSistema !== this.factors[i].factorSistema;
   }
 
   getStageClass(name: string): string {
     const n = name.toLowerCase();
     if (n.includes('construcci')) return 'stage-construccion';
-    if (n.includes('funcionamiento')||n.includes('operación')) return 'stage-funcionamiento';
-    if (n.includes('abandono')||n.includes('cierre')) return 'stage-abandono';
+    if (n.includes('funcionamiento') || n.includes('operación')) return 'stage-funcionamiento';
+    if (n.includes('abandono') || n.includes('cierre')) return 'stage-abandono';
     if (n.includes('comunes')) return 'stage-comunes';
     return '';
   }
 
-  shouldShowClasificacion(i: number): boolean {
-    return this.isLastInGroup(i);
-  }
-
-  getRowSpan(i: number): number {
-    let count = 1;
-    const sistema = this.factors[i].factorSistema;
-    for (let j=i+1; j<this.factors.length; j++){
-      if(this.factors[j].factorSistema===sistema) count++;
-      else break;
-    }
-    return count;
+  getSign(key: string, stage: string, action: string): string {
+    const val = this.valuationsMap[key]?.[stage]?.[action];
+    return val === 'positivo' ? '+'
+      : val === 'negativo' ? '−'
+        : val === 'neutro' ? '0'
+          : '--';
   }
 
 }

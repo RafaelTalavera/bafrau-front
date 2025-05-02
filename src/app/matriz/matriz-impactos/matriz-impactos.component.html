@@ -10,12 +10,8 @@
           <div class="input-row filter-container">
             <div class="input-group">
               <label class="small-text">Filtrar por Organización:</label>
-              <input
-                type="text"
-                [(ngModel)]="organizationFilter"
-                placeholder="Escriba para filtrar..."
-                class="custom-input small-text"
-              />
+              <input type="text" [(ngModel)]="organizationFilter" placeholder="Escriba para filtrar..."
+                class="custom-input small-text" />
             </div>
           </div>
         </div>
@@ -46,14 +42,10 @@
                       {{ matriz.fecha | date }}
                     </td>
                     <td style="text-align: center;">
-                      {{ matriz.items[0]?.razonSocial || '—' }}
+                      {{ matriz.items[0].razonSocial || '—' }}
                     </td>
                     <td style="text-align: center;">
-                      <button
-                        type="button"
-                        class="btn-success btn-sm"
-                        (click)="viewDetails(matriz)"
-                      >
+                      <button type="button" class="btn-success btn-sm" (click)="viewDetails(matriz)">
                         <i class="nav-icon fa-solid fa-bolt"></i> Matriz impacto
                       </button>
                     </td>
@@ -71,7 +63,7 @@
           </p>
           <p class="small-text">
             <strong>Organización:</strong>
-            {{ selectedMatrix.items[0]?.razonSocial || '—' }}
+            {{ selectedMatrix.items[0].razonSocial || '—' }}
           </p>
 
           <!-- Tabla de Factores/Etapas/Acciones -->
@@ -80,12 +72,15 @@
               table thead th.stage-construccion {
                 background-color: #add8e6 !important;
               }
+
               table thead th.stage-funcionamiento {
                 background-color: #ffa500 !important;
               }
+
               table thead th.stage-abandono {
                 background-color: #ff0000 !important;
               }
+
               table thead th.stage-comunes {
                 background-color: #ee82ee !important;
               }
@@ -94,17 +89,13 @@
             <table>
               <thead>
                 <tr>
-                  <th rowspan="2" class="small-text">Sistema</th>
+                  <th rowspan="2" class="small-text col-sistema">Sistema</th>
                   <th rowspan="2" class="small-text">Subsistema</th>
                   <th rowspan="2" class="small-text">Componente</th>
                   <th rowspan="2" class="small-text">Factor</th>
-                  <th rowspan="2" class="small-text">UIP</th>
-                  <th
-                    *ngFor="let st of stages"
-                    [attr.colspan]="st.actions.length"
-                    class="small-text"
-                    [ngClass]="getStageClass(st.name)"
-                  >
+                  <th rowspan="2" class="small-text uip-column">UIP</th>
+                  <th *ngFor="let st of stages" [attr.colspan]="st.actions.length" class="small-text"
+                    [ngClass]="getStageClass(st.name)">
                     {{ st.name }}
                   </th>
                   <th rowspan="2" class="small-text">Importancia Absoluta Total</th>
@@ -120,215 +111,165 @@
               </thead>
               <tbody>
                 <ng-container *ngFor="let factor of factors; let i = index">
-                  <tr class="small-text">
-                    <!-- Sistema -->
-                    <td
-                      *ngIf="shouldShowClasificacion(i)"
-                      [attr.rowspan]="getRowSpan(i)"
-                    >
+                  <!-- fila de datos -->
+                  <tr>
+                    <td *ngIf="isFirstOfSystemFactor(i)" [attr.rowspan]="getSystemRowSpanFactor(i)">
                       {{ factor.factorSistema }}
                     </td>
-                    <!-- Subsistema -->
-                    <td
-                      *ngIf="shouldShowClasificacion(i)"
-                      [attr.rowspan]="getRowSpan(i)"
-                    >
-                      {{ factor.factorSubsistema }}
-                    </td>
-                    <!-- Componente -->
-                    <td class="small-text">
-                      {{ factor.factorComponente }}
-                    </td>
-                    <!-- Factor con toggle -->
+                    <td class="small-text">{{ factor.factorSubsistema }}</td>
+                    <td class="small-text">{{ factor.factorComponente }}</td>
                     <td class="small-text">
                       <button type="button" (click)="toggleFactor(factor.key)">
-                        {{ expandedFactors[factor.key] ? '-' : '+' }}
+                        {{ expandedFactors[factor.key] ? '–' : '+' }}
                       </button>
                       {{ factor.factorFactor }}
                     </td>
-                    <!-- UIP -->
-                    <td class="small-text">
-                      {{ getUIPValue(factor.key) }}
-                    </td>
+                    <td class="small-text">{{ getUIPValue(factor.key) }}</td>
 
-                    <!-- Celdas de acciones -->
+                    <!-- para cada etapa/acción -->
                     <ng-container *ngFor="let st of stages">
-                      <td
-                        *ngFor="let action of st.actions"
-                        class="small-text"
-                        [ngClass]="{
-                          'cell-positive':
-                            valuationsMap[factor.key]?.[st.name]?.[action] === 'positivo',
-                          'cell-negative':
-                            valuationsMap[factor.key]?.[st.name]?.[action] === 'negativo',
-                          'cell-neutral':
-                            valuationsMap[factor.key]?.[st.name]?.[action] === 'neutro'
-                        }"
-                      >
+                      <td *ngFor="let action of st.actions" class="small-text" [ngClass]="{
+                'cell-positive': valuationsMap[factor.key]?.[st.name]?.[action]==='positivo',
+                'cell-negative': valuationsMap[factor.key]?.[st.name]?.[action]==='negativo',
+                'cell-neutral':  valuationsMap[factor.key]?.[st.name]?.[action]==='neutro'
+              }">
                         <table>
                           <tbody>
                             <tr>
-                              <td class="small-text2">Naturaleza:</td>
+                              <td class="small-text2">Natu:</td>
                               <td class="small-text2">
-                                {{ valuationsMap[factor.key]?.[st.name]?.[action] || '--' }}
+                                {{
+                                valuationsMap[factor.key]?.[st.name]?.[action] === 'positivo' ? '+' :
+                                valuationsMap[factor.key]?.[st.name]?.[action] === 'negativo' ? '−' :
+                                valuationsMap[factor.key]?.[st.name]?.[action] === 'neutro' ? '0' :
+                                '--'
+                                }}
                               </td>
                             </tr>
+
                             <ng-container *ngIf="expandedFactors[factor.key]">
                               <tr>
-                                <td class="small-text2">Intensidad:</td>
+                                <td class="small-text2">Int:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).intensidad"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of intensidadOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).intensidad"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of intensidadOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+                              <!-- Extensión -->
                               <tr>
-                                <td class="small-text2">Extensión:</td>
+                                <td class="small-text2">Ext:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).extension"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of extensionOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).extension"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of extensionOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Momento -->
                               <tr>
-                                <td class="small-text2">Momento:</td>
+                                <td class="small-text2">Mo:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).momento"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of momentoOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).momento"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of momentoOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Persistencia -->
                               <tr>
-                                <td class="small-text2">Persistencia:</td>
+                                <td class="small-text2">Per:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).persistencia"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of persistenciaOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).persistencia"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of persistenciaOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Reversibilidad -->
                               <tr>
-                                <td class="small-text2">Reversibilidad:</td>
+                                <td class="small-text2">Rever:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).reversibilidad"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of reversibilidadOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).reversibilidad"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of reversibilidadOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Sinergia -->
                               <tr>
-                                <td class="small-text2">Sinergia:</td>
+                                <td class="small-text2">Siner:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).sinergia"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of sinergiaOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).sinergia"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of sinergiaOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Acumulación -->
                               <tr>
-                                <td class="small-text2">Acumulación:</td>
+                                <td class="small-text2">Acumu:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).acumulacion"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of acumulacionOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).acumulacion"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of acumulacionOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Efecto -->
                               <tr>
-                                <td class="small-text2">Efecto:</td>
+                                <td class="small-text2">Efec:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).efecto"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of efectoOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).efecto"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of efectoOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Periodicidad -->
                               <tr>
-                                <td class="small-text2">Periodicidad:</td>
+                                <td class="small-text2">Perio:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).periodicidad"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of periodicidadOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).periodicidad"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of periodicidadOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
                                 </td>
                               </tr>
+
+                              <!-- Recuperación -->
                               <tr>
-                                <td class="small-text2">Recuperación:</td>
+                                <td class="small-text2">Recu:</td>
                                 <td>
-                                  <select
-                                    [(ngModel)]="getAdditional(factor.key, st.name, action).recuperacion"
-                                    class="custom-input small-text"
-                                  >
-                                    <option
-                                      *ngFor="let opt of recuperacionOptions"
-                                      [ngValue]="opt.value"
-                                    >
+                                  <select [(ngModel)]="getAdditional(factor.key, st.name, action).recuperacion"
+                                    class="custom-input small-text">
+                                    <option *ngFor="let opt of recuperacionOptions" [ngValue]="opt.value">
                                       {{ opt.label }}
                                     </option>
                                   </select>
@@ -336,7 +277,7 @@
                               </tr>
                             </ng-container>
                             <tr>
-                              <td class="small-text2">Impacto:</td>
+                              <td class="small-text2">Imp:</td>
                               <td class="small-text2">
                                 {{ calculateImpact(factor.key, st.name, action) }}
                               </td>
@@ -346,67 +287,62 @@
                       </td>
                     </ng-container>
 
-                    <td class="small-text" style="text-align: center;">
-                      {{ calculateImportanciaAbsolutaTotal(factor.key) }}
+                    <td class="small-text" style="text-align:center;">
+                      {{ calculateImportanciaAbsolutaTotal(factor.key) | number:'1.0-3' }}
                     </td>
-                    <td class="small-text" style="text-align: center;">
-                      {{ calculateImportanciaRelativaTotalFactor(factor.key) }}
+                    
+                    <td class="small-text" style="text-align:center;">
+                      {{ calculateImportanciaRelativaTotalFactor(factor.key) | number:'1.0-3' }}
                     </td>
                   </tr>
 
-                  <!-- Fila resumen de cada grupo (Sistema) -->
-                  <tr *ngIf="isLastInGroup(i)">
-                    <td colspan="4" class="small-text">
+                  <!-- fila resumen por sistema -->
+                  <tr *ngIf="isLastOfSystemFactor(i)" class="total-row">
+                    <td colspan="5" class="small-text">
                       <strong>Total {{ factor.factorSistema }}</strong>
-                    </td>
-                    <td class="small-text" style="text-align: center;">
-                      <strong>{{ getGroupUIPSum(factor.factorSistema) }}</strong>
                     </td>
                     <ng-container *ngFor="let st of stages">
                       <td *ngFor="let action of st.actions" class="small-text">
-                        <strong>{{ getGroupImpactSum(factor.factorSistema, st.name, action) }}</strong>
+                        <strong>
+                          {{ getGroupImpactSum(factor.factorSistema, st.name, action) | number:'1.0-3' }}
+                        </strong>
                       </td>
                     </ng-container>
-                    <td class="small-text" style="text-align: center;">
+                    <td class="small-text" style="text-align:center;">
                       <strong>{{ getGroupAbsoluta(factor.factorSistema) }}</strong>
                     </td>
-                    <td class="small-text" style="text-align: center;">
+                    <td class="small-text" style="text-align:center;">
                       <strong>{{ getGroupRelativa(factor.factorSistema) }}</strong>
                     </td>
                   </tr>
                 </ng-container>
 
-                <!-- Fila final: Importancia Absoluta Total Global -->
+                <!-- totales globales -->
                 <tr>
-                  <td colspan="5" class="small-text">
-                    <strong>Importancia Absoluta Total</strong>
-                  </td>
+                  <td colspan="5" class="small-text"><strong>Importancia Absoluta Total</strong></td>
                   <ng-container *ngFor="let st of stages">
                     <td *ngFor="let action of st.actions" class="small-text">
                       <strong>{{ getGlobalActionSum(st.name, action) }}</strong>
                     </td>
                   </ng-container>
-                  <td class="small-text" style="text-align: center;">
+                  <td class="small-text" style="text-align:center;">
                     <strong>{{ getGrandAbsolutaTotal() }}</strong>
                   </td>
-                  <td class="small-text" style="text-align: center;"></td>
+                  <td></td>
                 </tr>
-
-                <!-- Fila final: Importancia Relativa Total Global -->
                 <tr>
-                  <td colspan="5" class="small-text">
-                    <strong>Importancia Relativa Total</strong>
-                  </td>
+                  <td colspan="5" class="small-text"><strong>Importancia Relativa Total</strong></td>
                   <ng-container *ngFor="let st of stages">
                     <td *ngFor="let action of st.actions" class="small-text">
                       <strong>{{ getGlobalRelativeAction(st.name, action) | number:'1.0-2' }}</strong>
                     </td>
                   </ng-container>
-                  <td class="small-text" style="text-align: center;"></td>
-                  <td class="small-text" style="text-align: center;"></td>
+                  <td></td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
+
           </div>
 
           <!-- Resumen - Top 3 IRT Positivos con Acciones -->
@@ -449,22 +385,14 @@
             <canvas id="irtActionsChart" #irtActionsChart style="width: 100%; height: 400px;"></canvas>
           </div>
 
-          <button
-            type="button"
-            class="btn-primary small-text btn-spacing"
-            (click)="updateAdditionalValues()"
-          >
+          <button type="button" class="btn-primary small-text btn-spacing" (click)="updateAdditionalValues()">
             <i class="fas fa-save"></i> Guardar Valores Adicionales
           </button>
 
-          <button
-            type="button"
-            class="btn-secondary small-text btn-spacing"
-            (click)="backToList()"
-          >
+          <button type="button" class="btn-secondary small-text btn-spacing" (click)="backToList()">
             <i class="fas fa-arrow-left"></i> Volver a la lista
           </button>
-          
+
         </div>
       </div>
     </div>

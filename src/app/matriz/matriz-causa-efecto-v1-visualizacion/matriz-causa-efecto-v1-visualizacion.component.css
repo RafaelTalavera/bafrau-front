@@ -258,3 +258,22 @@ body.layout-fixed {
   .modal-row {
     border-bottom: 1px solid #ccc;
   }
+
+/* 1) Fijar diseño de tabla y ancho total */
+.table-container table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+
+
+/* 3) Justificar el contenido interno de cada celda de acción */
+.table-container th.small-text,
+.table-container td.small-text {
+  text-align: justify;
+  text-align: center;
+}
+
+
+
+
