@@ -1,4 +1,4 @@
-import { Informe } from "../organizacion/models/organizacion.model";
+import { Informe } from "../../organizacion/models/organizacion.model";
 import { Insumo } from "./insumo";
 
 export interface Proceso {

@@ -6,7 +6,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { FormUsuarioComponent } from './form-usuario/form-usuario.component';
-import { Usuario } from '../models/usuario';
+import { Usuario } from './usuario';
 import { UsuariosService } from './services/usuarios.service';
 import { FooterComponent } from '../gobal/footer/footer.component';
 import { NavComponent } from '../gobal/nav/nav.component';
@@ -50,21 +50,17 @@ export class UsuariosComponent implements OnInit {
   addUsuario(usuario: Usuario) {
     if (usuario.id > 0) {
       this.service.updateUsuario(usuario).subscribe(usuarioUpdated => {
-        this.usuarios = this.usuarios.map(org => org.id === usuario.id ? usuarioUpdated : org);
-        Swal.fire({
-          icon: 'success',
-          title: 'Usuario Actualizado',
-          text: 'El usuario se ha actualizado con éxito',
-        });
+        // Reemplazamos en el array y volvemos a filtrar
+        this.usuarios = this.usuarios.map(u => u.id === usuario.id ? usuarioUpdated : u);
+        this.buscarPorDNI();  // ← aquí
+        Swal.fire('Usuario Actualizado', 'El usuario se ha actualizado con éxito', 'success');
       });
     } else {
       this.service.create(usuario).subscribe(usuarioNew => {
+        // Añadimos al array y volvemos a filtrar
         this.usuarios.push(usuarioNew);
-        Swal.fire({
-          icon: 'success',
-          title: 'Usuario Creado',
-          text: 'El usuario se ha creado con éxito',
-        });
+        this.buscarPorDNI();  // ← aquí
+        Swal.fire('Usuario Creado', 'El usuario se ha creado con éxito', 'success');
       });
     }
     this.usuarioSelected = new Usuario();

@@ -17,7 +17,7 @@
                 <input id="fechaAlta" type="date" formControlName="fechaAlta" class="form-control input-custom" />
                 <div *ngIf="organizacionForm.get('fechaAlta')?.invalid && organizacionForm.get('fechaAlta')?.touched"
                   class="text alert-danger">
-                  Debes colocar una fecha de alta
+                  Debes colocar una fecha de alta.
                 </div>
               </div>
               <div class="form-group col-md-3">
@@ -30,7 +30,7 @@
                 <div
                   *ngIf="organizacionForm.get('tipoDeContrato')?.invalid && organizacionForm.get('tipoDeContrato')?.touched"
                   class="text alert-danger">
-                  Debes colocar que tipo de contrato tiene la organizacion con Bafrau
+                  Debes colocar que tipo de contrato tiene la organizacion con Bafrau.
                 </div>
               </div>
               <div class="form-group col-md-3">
@@ -40,7 +40,7 @@
                 <div
                   *ngIf="organizacionForm.get('nombreDelProponente')?.invalid && organizacionForm.get('nombreDelProponente')?.touched"
                   class="text alert-danger">
-                  Debes colocar el nombre del proponente del contrato con Bafrau
+                  Debes colocar el nombre del proponente del contrato con Bafrau.
                 </div>
               </div>
               <div class="form-group col-md-3">
@@ -49,7 +49,7 @@
                 <div
                   *ngIf="organizacionForm.get('razonSocial')?.invalid && organizacionForm.get('razonSocial')?.touched"
                   class="text alert-danger">
-                  Debes colocar la razón social
+                  Debes colocar la razón social.
                 </div>
               </div>
             </div>
@@ -67,7 +67,7 @@
                 </div>
                 <div *ngIf="organizacionForm.get('cuit')?.errors?.['pattern'] && organizacionForm.get('cuit')?.touched"
                   class="text alert-danger">
-                  Solo números
+                  Solo números.
                 </div>
               </div>
 
@@ -78,7 +78,7 @@
                 <div
                   *ngIf="organizacionForm.get('domicilioRealProyecto')?.invalid && organizacionForm.get('domicilioRealProyecto')?.touched"
                   class="text alert-danger">
-                  Requerido
+                  Ingresa el domicilio real del proyecto.
                 </div>
               </div>
               <div class="form-group col-md-4">
@@ -88,7 +88,7 @@
                 <div
                   *ngIf="organizacionForm.get('domicilioLegalProyecto')?.invalid && organizacionForm.get('domicilioLegalProyecto')?.touched"
                   class="text alert-danger">
-                  Requerido
+                  Ingresa el domicilio legar del proyecto.
                 </div>
               </div>
             </div>
@@ -106,8 +106,17 @@
 
           <!-- Lista de Organizaciones Cargadas -->
           <div class="mt-5">
-            <h5 class="custom-h5" style="font-size:16px;color:#555;padding:0.5rem;">Organizaciones Cargadas</h5>
-            <table class="table table-striped" *ngIf="organizacion.length; else noData">
+            <h5 class="custom-h5" style="font-size:16px;color:#555;padding:0.5rem;">
+              Organizaciones Cargadas
+            </h5>
+
+            <!-- FILTRO RAZÓN SOCIAL -->
+            <div class="form-group mb-3">
+              <input type="text" [(ngModel)]="filtroRazon" placeholder="Buscar Razón Social..."
+                class="form-control input-custom" />
+            </div>
+
+            <table class="table table-striped" *ngIf="filteredOrganizaciones.length; else noData">
               <thead>
                 <tr>
                   <th class="custom-th2">Fecha Alta</th>
@@ -119,8 +128,10 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let org of organizacion">
-                  <td class="custom-td2">{{ org.fechaAlta ? (org.fechaAlta | date:'dd/MM/yyyy') : '—' }}</td>
+                <tr *ngFor="let org of filteredOrganizaciones">
+                  <td class="custom-td2">
+                    {{ org.fechaAlta ? (org.fechaAlta | date:'dd/MM/yyyy') : '—' }}
+                  </td>
                   <td class="custom-td2">{{ org.tipoDeContrato || '—' }}</td>
                   <td class="custom-td2">{{ org.nombreDelProponente }}</td>
                   <td class="custom-td2">{{ org.razonSocial }}</td>
@@ -133,7 +144,6 @@
                       <i class="fa-solid fa-trash"></i> Eliminar
                     </button>
                   </td>
-                  
                 </tr>
               </tbody>
             </table>
@@ -141,6 +151,7 @@
               <p class="text-muted">No hay organizaciones cargadas.</p>
             </ng-template>
           </div>
+
         </div>
       </div>
     </div>

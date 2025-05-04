@@ -1,4 +1,4 @@
-import { Organizacion } from "../organizacion/models/organizacion.model";
+import { Organizacion } from "../../organizacion/models/organizacion.model";
 
 
 export interface Capitulo {

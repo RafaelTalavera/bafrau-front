@@ -95,7 +95,7 @@ export class GridBuilderService {
         extension:        item.extension     ?? 0,
         momento:          item.momento       ?? 0,
         persistencia:     item.persistencia  ?? 0,
-        reversibilidad:   item.reversibilidad?? 0,
+        reversibilidad:   item.reversivilidad       ?? 0,
         sinergia:         item.sinergia      ?? 0,
         acumulacion:      item.acumulacion   ?? 0,
         efecto:           item.efecto        ?? 0,

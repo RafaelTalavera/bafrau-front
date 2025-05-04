@@ -164,21 +164,30 @@ export class PonderacionMatrizComponent implements OnInit {
 
   updateUIP(): void {
     this.calculateTotalUIP();
-    if (this.totalUIP !== this.TOTAL_DISTRIBUCION) {
-      Swal.fire('Error', `La suma total debe ser ${this.TOTAL_DISTRIBUCION}. Actualmente es ${this.totalUIP}.`, 'error');
+  
+    if (this.totalUIP < this.TOTAL_DISTRIBUCION) {
+      // Usuario presionó guardar con UIP < 1000
+      Swal.fire('Error', 'El Valor total de UIP debe ser 1.000', 'error');
       return;
     }
-
+  
+    if (this.totalUIP > this.TOTAL_DISTRIBUCION) {
+      // Opcional: manejar exceso
+      Swal.fire('Error', `Te pasaste ${this.totalUIP - this.TOTAL_DISTRIBUCION}`, 'error');
+      return;
+    }
+  
+    // Aquí totalUIP === TOTAL_DISTRIBUCION
     const updates: ItemUIPUpdateDTO[] = this.factors.map(f => ({
       itemId: f.itemMatrizId,
       uip: f.uip
     }));
-
+  
     if (this.selectedMatrix?.id != null) {
       this.matrizService.updateUPI(this.selectedMatrix.id, updates).subscribe(
         () => {
           Swal.fire('Actualizado', 'Valores UIP actualizados.', 'success')
-            .then(() => this.backToList()); // ← tras cerrar el diálogo, recarga
+            .then(() => this.backToList());
         },
         err => {
           console.error('Error al actualizar UIP:', err);
@@ -188,7 +197,6 @@ export class PonderacionMatrizComponent implements OnInit {
     }
   }
   
-
   getUIPAdjustmentMessage(): string {
     const diff = this.totalUIP - this.TOTAL_DISTRIBUCION;
     if (diff > 0) return `Te pasaste ${diff}`;

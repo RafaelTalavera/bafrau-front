@@ -284,6 +284,24 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     return f?.id || 0;
   }
 
+  private resetForm(): void {
+    // Salir de modo edición
+    this.editMode = false;
+    // Reiniciar datos del informe
+    this.informe = {
+      fecha: '',
+      organizacionId: null,
+      direccion: '',
+      rubro: '',
+      razonSocial: ''
+    };
+    // Restaurar etapas por defecto
+    this.stages = this.defaultStages.map(name => ({ name, actions: [], nuevaAccion: '' }));
+    // Limpiar factores y agrupación
+    this.factors = [];
+    this.updateGroupedFactors();
+  }
+
   onSubmit() {
     if (!this.informe.organizacionId) {
       Swal.fire('Error', 'Debes seleccionar una organización', 'error');
@@ -321,7 +339,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
               extension: 0,
               momento: 0,
               persistencia: 0,
-              reversibilidad: 0,
+              reversivilidad: 0,
               sinergia: 0,
               acumulacion: 0,
               efecto: 0,
@@ -348,7 +366,10 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
       this.saved.emit(payload);
     } else {
       this.matrizService.createMatriz(payload).subscribe(
-        () => Swal.fire('Éxito', 'Matriz guardada correctamente', 'success'),
+        () => {
+          Swal.fire('Éxito', 'Matriz guardada correctamente', 'success')
+            .then(() => this.resetForm());  // <-- aquí recargas el formulario
+        },
         () => Swal.fire('Error', 'No se pudo guardar la matriz', 'error')
       );
     }

@@ -10,7 +10,7 @@ export class ItemMatriz {
   extension!: number;
   momento!: number;
   persistencia!: number;
-  reversibilidad!: number;
+  reversivilidad!: number;
   sinergia!: number;
   acumulacion!: number;
   efecto!: number;

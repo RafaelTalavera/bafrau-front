@@ -5,35 +5,40 @@
       <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
     </li>
     <li class="nav-item d-none d-sm-inline-block">
-      <a href="/for-inicial-cliente" class="nav-link">Home</a>
+      <a [routerLink]="['/']" class="nav-link">Home</a>
     </li>
   </ul>
 
   <!-- Right navbar links -->
-  <ul class="navbar-nav ml-auto">
-    <li class="nav-item">
-      <a class="navbar-brand" href="/for-inicial-cliente">
-        <img src="/assets/dist/img/logo-letras.png" alt="bafrau logo" style="height: 40px;">
-      </a>
-    </li>
-  </ul>
+<ul class="navbar-nav ml-auto">
+  <li class="nav-item">
+    <a class="navbar-brand" [routerLink]="['/for-inicial-cliente']">
+      <img src="/assets/dist/img/logo-letras.png" alt="bafrau logo" style="height: 40px;">
+    </a>
+  </li>
+  <li class="nav-item">
+    <button class="btn btn-danger ml-3" (click)="logout()">
+      <i class="fas fa-sign-out-alt"></i> Salir
+    </button>
+  </li>
+</ul>
+
 </nav>
+
 <aside class="main-sidebar sidebar-dark-primary elevation-4" style="position: fixed; top: 0; height: 100vh;">
   <!-- Brand Logo -->
-  <a href="/for-inicial-cliente" class="brand-link">
+  <a [routerLink]="['']" class="brand-link">
     <span class="brand-text font-weight-light">Bafrau</span>
-
   </a>
+
   <!-- Sidebar Menu -->
   <div class="sidebar">
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
-
-
         <!-- Primer opción Informe inicial -->
         <li class="nav-item">
-          <a href="/for-inicial-cliente" class="nav-link">
+          <a [routerLink]="['/organizacion-form']" class="nav-link">
             <i class="nav-icon fas fa-square-plus"></i>
             <p>
               Formulario Inicial
@@ -44,7 +49,7 @@
 
         <!-- Segunda opción Crear matriz-->
         <li class="nav-item">
-          <a href="" class="nav-link">
+          <a class="nav-link">
             <i class="nav-icon fas fa-table-list"></i>
             <p>
               Matriz Leopold
@@ -53,7 +58,7 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/matriz-causa-efecto" class="nav-link">
+              <a [routerLink]="['/matriz-causa-efecto']" class="nav-link">
                 <i class="nav-icon fa-solid fa-industry"></i>
                 <p>Causa y efecto</p>
               </a>
@@ -61,7 +66,7 @@
           </ul>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/matriz-causa-efecto-visualizacion" class="nav-link">
+              <a [routerLink]="['/matriz-causa-efecto-visualizacion']" class="nav-link">
                 <i class="nav-icon fa-solid fa-eye"></i>
                 <p>Ver causa y efecto</p>
               </a>
@@ -69,34 +74,31 @@
           </ul>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/matriz-ponderacion" class="nav-link">
+              <a [routerLink]="['/matriz-ponderacion']" class="nav-link">
                 <i class="nav-icon fa-solid fa-calculator"></i>
                 <p>Ponderación</p>
               </a>
             </li>
           </ul>
-
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/matriz-impacto" class="nav-link">
+              <a [routerLink]="['/matriz-impacto']" class="nav-link">
                 <i class="nav-icon fa-solid fa-bolt"></i>
                 <p>Matriz de impacto</p>
               </a>
             </li>
           </ul>
-
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/matriz-factor" class="nav-link">
+              <a [routerLink]="['/matriz-factor']" class="nav-link">
                 <i class="nav-icon fa-solid fa-fire"></i>
                 <p>Factores</p>
               </a>
             </li>
           </ul>
-
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/matriz-accion" class="nav-link">
+              <a [routerLink]="['/matriz-accion']" class="nav-link">
                 <i class="nav-icon fa-solid fa-screwdriver-wrench"></i>
                 <p>Acciones</p>
               </a>
@@ -104,10 +106,9 @@
           </ul>
         </li>
 
-
         <!-- Segunda opción Crear auditoria -->
         <li class="nav-item">
-          <a href="/form-informe" class="nav-link">
+          <a [routerLink]="['/form-informe']" class="nav-link">
             <i class="nav-icon fas fa-swatchbook"></i>
             <p>
               Auditoria Ambiental
@@ -116,24 +117,24 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/for-auditoria" class="nav-link">
+              <a [routerLink]="['/for-auditoria']" class="nav-link">
                 <i class="nav-icon fa-solid fa-seedling"></i>
-                <p>Crear Audiroria</p>
+                <p>Crear Auditoria</p>
               </a>
             </li>
           </ul>
-
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="" class="nav-link">
+              <!-- Si no hay ruta asignada, puedes dejar esto vacío o asignar la ruta correcta -->
+              <a [routerLink]="['/ver-auditorias']" class="nav-link">
                 <i class="nav-icon fa-brands fa-pagelines"></i>
                 <p>Ver Auditorias</p>
               </a>
             </li>
           </ul>
-
         </li>
 
+        <!-- Configuración -->
         <li class="nav-item">
           <a class="nav-link">
             <i class="fas fa-cog nav-icon"></i>
@@ -144,12 +145,11 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="/usuarios" class="nav-link">
+              <a [routerLink]="['/usuarios']" class="nav-link">
                 <i class="fas fa-users nav-icon"></i>
                 <p>Usuarios</p>
               </a>
             </li>
-
           </ul>
         </li>
 

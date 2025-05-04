@@ -90,16 +90,16 @@
               <thead>
                 <tr>
                   <th rowspan="2" class="small-text col-sistema">Sistema</th>
-                  <th rowspan="2" class="small-text">Subsistema</th>
-                  <th rowspan="2" class="small-text">Componente</th>
-                  <th rowspan="2" class="small-text">Factor</th>
+                  <th rowspan="2" class="small-text col-sistema">Subsistema</th>
+                  <th rowspan="2" class="small-text col-sistema">Componente</th>
+                  <th rowspan="2" class="small-text col-sistema">Factor</th>
                   <th rowspan="2" class="small-text uip-column">UIP</th>
                   <th *ngFor="let st of stages" [attr.colspan]="st.actions.length" class="small-text"
                     [ngClass]="getStageClass(st.name)">
                     {{ st.name }}
                   </th>
-                  <th rowspan="2" class="small-text">Importancia Absoluta Total</th>
-                  <th rowspan="2" class="small-text">Importancia Relativa Total</th>
+                  <th rowspan="2" class="small-text uip-column">IAT</th>
+                  <th rowspan="2" class="small-text uip-column">IRT</th>
                 </tr>
                 <tr>
                   <ng-container *ngFor="let st of stages">
@@ -290,7 +290,7 @@
                     <td class="small-text" style="text-align:center;">
                       {{ calculateImportanciaAbsolutaTotal(factor.key) | number:'1.0-3' }}
                     </td>
-                    
+
                     <td class="small-text" style="text-align:center;">
                       {{ calculateImportanciaRelativaTotalFactor(factor.key) | number:'1.0-3' }}
                     </td>
@@ -309,29 +309,31 @@
                       </td>
                     </ng-container>
                     <td class="small-text" style="text-align:center;">
-                      <strong>{{ getGroupAbsoluta(factor.factorSistema) }}</strong>
+                      <strong>{{ getGroupAbsoluta(factor.factorSistema)| number:'1.0-3' }}
+                      </strong>
                     </td>
                     <td class="small-text" style="text-align:center;">
-                      <strong>{{ getGroupRelativa(factor.factorSistema) }}</strong>
+                      <strong>{{ getGroupRelativa(factor.factorSistema) | number:'1.0-3' }}
+                      </strong>
                     </td>
                   </tr>
                 </ng-container>
 
                 <!-- totales globales -->
                 <tr>
-                  <td colspan="5" class="small-text"><strong>Importancia Absoluta Total</strong></td>
+                  <td colspan="5" class="small-text"><strong>IAT</strong></td>
                   <ng-container *ngFor="let st of stages">
                     <td *ngFor="let action of st.actions" class="small-text">
-                      <strong>{{ getGlobalActionSum(st.name, action) }}</strong>
+                      <strong>{{ getGlobalActionSum(st.name, action) | number:'1.0-2' }}</strong>
                     </td>
                   </ng-container>
                   <td class="small-text" style="text-align:center;">
-                    <strong>{{ getGrandAbsolutaTotal() }}</strong>
+                    <strong>{{ getGrandAbsolutaTotal() | number:'1.0-2' }}</strong>
                   </td>
                   <td></td>
                 </tr>
                 <tr>
-                  <td colspan="5" class="small-text"><strong>Importancia Relativa Total</strong></td>
+                  <td colspan="5" class="small-text"><strong>IRT</strong></td>
                   <ng-container *ngFor="let st of stages">
                     <td *ngFor="let action of st.actions" class="small-text">
                       <strong>{{ getGlobalRelativeAction(st.name, action) | number:'1.0-2' }}</strong>
@@ -345,8 +347,21 @@
 
           </div>
 
+          <button type="button" class="btn-primary small-text btn-spacing" (click)="updateAdditionalValues()">
+            <i class="fas fa-save"></i> Guardar Valores Adicionales
+          </button>
+
+          <button type="button" class="btn-secondary small-text btn-spacing" (click)="backToList()">
+            <i class="fas fa-arrow-left"></i> Volver a la lista
+          </button>
+
+          <!-- Boton de Mostar matriz numerica -->
+          <button type="button" class="btn-info small-text btn-spacing" (click)="showNumericPopup()">
+            <i class="fas fa-list"></i> Ver Matriz Numérica
+          </button>
+
           <!-- Resumen - Top 3 IRT Positivos con Acciones -->
-          <div class="card summary-card" *ngIf="topThreePosIRTs.length > 0">
+          <div class="card summary-card" *ngIf="shouldShowTopThreePosIRTs()">
             <h3>Resumen - Top 3 IRT Factores Positivos</h3>
             <ul>
               <li *ngFor="let item of topThreePosIRTs">
@@ -374,24 +389,17 @@
           </div>
 
           <!-- Gráfico de Barras - IRT de cada Factor -->
-          <div class="card chart-card" *ngIf="selectedMatrix">
+          <div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
             <h3>Gráfico de Barras - IRT de cada Factor</h3>
             <canvas id="irtBarChart" #irtBarChart style="width: 100%; height: 400px;"></canvas>
           </div>
 
           <!-- Gráfico de Barras - IRT por Acciones y Factores -->
-          <div class="card chart-card" *ngIf="selectedMatrix">
+          <div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
             <h3>Gráfico de Barras - IRT por Acciones y Factores</h3>
             <canvas id="irtActionsChart" #irtActionsChart style="width: 100%; height: 400px;"></canvas>
           </div>
 
-          <button type="button" class="btn-primary small-text btn-spacing" (click)="updateAdditionalValues()">
-            <i class="fas fa-save"></i> Guardar Valores Adicionales
-          </button>
-
-          <button type="button" class="btn-secondary small-text btn-spacing" (click)="backToList()">
-            <i class="fas fa-arrow-left"></i> Volver a la lista
-          </button>
 
         </div>
       </div>

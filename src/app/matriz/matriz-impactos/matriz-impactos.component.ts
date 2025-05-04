@@ -38,6 +38,8 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   organizationFilter = '';
   expandedFactors: Record<string, boolean> = {};
 
+  showNumeric = false;
+
   intensidadOptions = AdditionalFieldOptions.intensidadOptions;
   extensionOptions = AdditionalFieldOptions.extensionOptions;
   momentoOptions = AdditionalFieldOptions.momentoOptions;
@@ -83,10 +85,14 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     );
   }
 
-  viewDetails(matrix: Matriz): void {
-    this.selectedMatrix = matrix;
-    this.buildGrid(matrix);
-  }
+ // matriz-impactos.component.ts
+viewDetails(matrix: Matriz): void {
+  this.matrizService.getMatrizById(matrix.id)
+    .subscribe(fullMatrix => {
+      this.selectedMatrix = fullMatrix;      
+      this.buildGrid(fullMatrix);
+    }, err => console.error('No pudo cargar detalle:', err));
+}
 
   backToList(): void {
     this.selectedMatrix = null;
@@ -140,6 +146,91 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     }, 100);
   }
   
+  toggleNumericView(): void {
+    this.showNumeric = !this.showNumeric;
+  }
+
+  getNumericMatrix(): any[] {
+    if (!this.selectedMatrix) {
+      return [];
+    }
+    return this.selectedMatrix.items.map(item => ({
+      id:               item.id,
+      etapa:            item.etapa,
+      intensidad:       item.intensidad,
+      extension:        item.extension,
+      momento:          item.momento,
+      persistencia:     item.persistencia,
+      reversivilidad:   item.reversivilidad,
+      sinergia:         item.sinergia,
+      acumulacion:      item.acumulacion,
+      efecto:           item.efecto,
+      periodicidad:     item.periodicidad,
+      recuperacion:     item.recuperacion,
+      uip:              item.uip,
+      magnitude:        item.magnitude,
+      importance:       item.importance
+    }));
+  }
+
+  showNumericPopup(): void {
+    if (!this.selectedMatrix) {
+      Swal.fire('Atención', 'No hay ninguna matriz seleccionada.', 'warning');
+      return;
+    }
+  
+    const rows = this.selectedMatrix.items.map(item => `
+      <tr>
+        <td>${item.factorSistema}</td>
+        <td>${item.factorSubsistema}</td>
+        <td>${item.factorComponente ?? ''}</td>
+        <td>${item.factorFactor}</td>
+        <td>${item.etapa}</td>
+        <td>${item.accionTipo}</td>
+        <td>${item.intensidad}</td>
+        <td>${item.extension}</td>
+        <td>${item.momento}</td>
+        <td>${item.persistencia}</td>
+        <td>${item.reversivilidad}</td>
+        <td>${item.sinergia}</td>
+        <td>${item.acumulacion}</td>
+        <td>${item.efecto}</td>
+        <td>${item.periodicidad}</td>
+        <td>${item.recuperacion}</td>
+        <td>${item.uip}</td>
+        <td>${item.magnitude}</td>
+        <td>${item.importance}</td>
+      </tr>
+    `).join('');
+  
+    const htmlTable = `
+      <div style="overflow:auto; max-height:60vh; font-size:10px;">
+        <table style="width:100%; border-collapse:collapse; font-size:10px;">
+          <thead>
+            <tr>
+              <th>Sistema</th><th>Subsistema</th><th>Componente</th><th>Factor</th>
+              <th>Etapa</th><th>Acción</th>
+              <th>Int</th><th>Ext</th><th>Mo</th><th>Per</th><th>Rev</th>
+              <th>Sin</th><th>Acu</th><th>Efe</th><th>Peri</th><th>Recu</th>
+              <th>UIP</th><th>Magn</th><th>Imp</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  
+    Swal.fire({
+      title: 'Matriz Numérica',
+      html: htmlTable,
+      width: '95%',
+      showCloseButton: true,
+      focusConfirm: false,
+      confirmButtonText: 'Cerrar'
+    });
+  }
+  
+  
 
   toggleFactor(key: string): void {
     this.expandedFactors[key] = !this.expandedFactors[key];
@@ -164,7 +255,7 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
           item.extension = add.extension;
           item.momento = add.momento;
           item.persistencia = add.persistencia;
-          item.reversibilidad = add.reversibilidad;
+          item.reversivilidad = add.reversibilidad;
           item.sinergia = add.sinergia;
           item.acumulacion = add.acumulacion;
           item.efecto = add.efecto;
@@ -390,5 +481,24 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
         : val === 'neutro' ? '0'
           : '--';
   }
+
+  shouldShowTopThreePosIRTs(): boolean {
+    return this.topThreePosIRTs.some(item => item.irt > 0);
+  }
+  
+  shouldShowIrtBarChart(): boolean {
+    return this.factors.some(f => this.calculateImportanciaRelativaTotalFactor(f.key) !== 0);
+  }
+  
+  shouldShowIrtActionsChart(): boolean {
+    return this.factors.some(f =>
+      this.stages.some(st =>
+        st.actions.some(ac =>
+          this.calculateImpact(f.key, st.name, ac) !== 0
+        )
+      )
+    );
+  }
+  
 
 }

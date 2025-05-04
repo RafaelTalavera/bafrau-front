@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Usuario } from '../../models/usuario';
+import { Usuario } from '../usuario';
 
 @Component({
   selector: 'app-form-usuario',

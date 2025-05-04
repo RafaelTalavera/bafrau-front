@@ -1,4 +1,4 @@
-import { Capitulo } from "../../models/capitulo";
+import { Capitulo } from "../../informe-auditoria/models/capitulo";
 
 
 export interface Organizacion {

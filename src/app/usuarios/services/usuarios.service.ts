@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { map, Observable, of } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Usuario } from '../../models/usuario';
+import { Usuario } from '../usuario';
+import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../../enviroments/enviroment';
 
 
 @Injectable({
@@ -10,16 +11,13 @@ import { tap } from 'rxjs/operators';
 })
 export class UsuariosService {
 
-  private usuarios: Usuario[] = []
+  private usuarios: Usuario[] = [];
+  private baseUrl = environment.apiUrl + '/usuarios';
 
   constructor(private http: HttpClient) { }
 
   private getAuthHeaders(): HttpHeaders {
-
-    
-
     const token = localStorage.getItem('jwt_token');
-    console.log(`token aca: ${token}`);
     let headers = new HttpHeaders();
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
@@ -28,33 +26,27 @@ export class UsuariosService {
   }
 
   findAll(): Observable<Usuario[]> {
-    const url = 'https://appbafrau-production.up.railway.app/api/usuarios';
     const headers = this.getAuthHeaders();
-    console.log('Encabezados enviados con la solicitud:', headers); // Imprimir los headers con el token
-
-    console.log(`Este 1 Realizando solicitud GET aca: ${url}`);
-    console.log('Encabezados enviados con la solicitud:', headers); // Imprimir los headers con el token
-
-    return this.http.get<Usuario[]>(url, { headers }).pipe(
-      tap(usuarios => {
-        console.log('Respuesta del backend:', usuarios); // Imprimir la respuesta del backend
-      })
+    return this.http.get<Usuario[]>(this.baseUrl, { headers }).pipe(
+      tap(usuarios => console.log('Respuesta del backend:', usuarios))
     );
   }
 
-  create (usuario: Usuario): Observable<Usuario>{
-    
-    return this.http.post<Usuario>('https://appbafrau-production.up.railway.app/api/usuarios',usuario);
+  create(usuario: Usuario): Observable<Usuario> {
+    return this.http.post<Usuario>(this.baseUrl, usuario);
   }
 
   updateUsuario(usuario: Usuario): Observable<Usuario> {
-    const url = 'https://appbafrau-production.up.railway.app/api/usuarios/' + usuario.id;
-    return this.http.put<Usuario>(url, usuario);
-  }
-
-  remove(id: number): Observable<void> {
-    const url = 'https://appbafrau-production.up.railway.app/api/usuarios/' + id;
-    return this.http.delete<void>(url);
+    // Muestra en consola el objeto Usuario y su representación JSON
+    console.log('Objeto Usuario a enviar:', usuario);
+    console.log('Payload JSON:', JSON.stringify(usuario));
+    
+    return this.http
+      .put<Usuario>(`${this.baseUrl}/${usuario.id}`, usuario);
   }
   
+
+  remove(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }
