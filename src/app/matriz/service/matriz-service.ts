@@ -36,18 +36,6 @@ export class MatrizService {
       .pipe(catchError(err => throwError(() => err)));
   }
 
-  /** Obtiene organizaciones de Auditoría Ambiental */
-  getOrganizacionesAuditoriaAmbiental(): Observable<Organizacion[]> {
-    return this.http
-      .get<Organizacion[]>(this.orgUrl, { headers: this.getAuthHeaders() })
-      .pipe(
-        catchError(err => {
-          console.error('Error al cargar organizaciones:', err);
-          return throwError(() => err);
-        })
-      );
-  }
-
   /** Obtiene una matriz por ID */
   getMatrizById(id: number): Observable<Matriz> {
     return this.http

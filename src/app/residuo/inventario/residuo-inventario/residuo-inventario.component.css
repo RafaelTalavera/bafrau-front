@@ -1,0 +1,166 @@
+/* Contenedor global */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* Contenedor del contenido principal */
+  .content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    padding-bottom: 100px; /* Espacio extra para evitar superposición con el footer */
+  }
+  
+  /* Título principal */
+  .matriz-title {
+    text-align: center;
+    font-size: 25px;
+    font-weight: bold;
+    padding: 20px;
+    margin-top: 45px;
+  }
+  
+  /* Tarjeta del formulario */
+  .input-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .custom-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+  
+  /* Botones */
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-sm {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .btn-primary { background-color: #007bff; color: #fff; }
+  .btn-secondary { background-color: #6c757d; color: #fff; }
+  .btn-danger { background-color: #dc3545; color: #fff; }
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  /* Tabla */
+  .table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+  }
+  
+  .matriz {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .matriz thead {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  .matriz th, 
+  .matriz td {
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 12px;
+  }
+  
+  .matriz tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
+  }
+  
+  .matriz tbody tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .matriz tbody tr:last-child {
+    border-bottom: none;
+  }
+  
+  /* Alertas */
+  .alert-danger {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 0.5em;
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: #f8d7da;
+  }
+  /* Modal */
+.modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 1000px;
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.col-acciones {
+  white-space: nowrap;  /* evita que los botones line-break */
+  width: 1px;           /* fuerza que la columna se ajuste al contenido mínimo */
+}
+
+.col-fecha {
+  white-space: nowrap;
+  width: 120px; /* ancho estándar para “YYYY-MM-DD” */
+  text-align: center;
+}
+
+/* Ajuste de ancho de la tabla matriz */
+.matriz2 {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;      /* centra la tabla */
+  table-layout: auto;  /* deja que las celdas se dimensionen según su contenido */
+}
+

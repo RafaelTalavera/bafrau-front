@@ -11,10 +11,8 @@
     overflow: hidden; /* Para asegurarte de que no haya desbordes */
 }
 
-
   .label-custom, .input-custom {
     font-size: 12px;
-
   }
 
   .custom-th, .custom-td {
@@ -22,8 +20,6 @@
     padding: 0.3rem;
     max-width: 100px; /* Limita el ancho máximo de cada celda */
     text-align: center;
-  
-  
   }
 
   .separated-content {
@@ -54,12 +50,17 @@
   
   button {
     margin-right: 5px;
-   
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #ccc;
+    cursor: pointer;
   }
 
   /* Estilo general para todos los botones */
 .btn-custom {
-  
   padding: 10px 20px;
   font-size: 14px;
   border-radius: 5px;

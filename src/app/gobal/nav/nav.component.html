@@ -10,18 +10,18 @@
   </ul>
 
   <!-- Right navbar links -->
-<ul class="navbar-nav ml-auto">
-  <li class="nav-item">
-    <a class="navbar-brand" [routerLink]="['/for-inicial-cliente']">
-      <img src="/assets/dist/img/logo-letras.png" alt="bafrau logo" style="height: 40px;">
-    </a>
-  </li>
-  <li class="nav-item">
-    <button class="btn btn-danger ml-3" (click)="logout()">
-      <i class="fas fa-sign-out-alt"></i> Salir
-    </button>
-  </li>
-</ul>
+  <ul class="navbar-nav ml-auto">
+    <li class="nav-item">
+      <a class="navbar-brand" [routerLink]="['/for-inicial-cliente']">
+        <img src="/assets/dist/img/logo-letras.png" alt="bafrau logo" style="height: 40px;">
+      </a>
+    </li>
+    <li class="nav-item">
+      <button class="btn btn-danger ml-3" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i> Salir
+      </button>
+    </li>
+  </ul>
 
 </nav>
 
@@ -106,31 +106,52 @@
           </ul>
         </li>
 
-        <!-- Segunda opción Crear auditoria -->
-        <li class="nav-item">
-          <a [routerLink]="['/form-informe']" class="nav-link">
-            <i class="nav-icon fas fa-swatchbook"></i>
+      
+        <!-- cuarta opción Crear legal -->
+        <li class="nav-item has-treeview">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-helmet-safety"></i>
             <p>
-              Auditoria Ambiental
-              <i class="fas fa-angle-left right"></i>
+              Rep. Técnica
+              <i class="right fas fa-angle-left"></i>
             </p>
           </a>
           <ul class="nav nav-treeview">
+
             <li class="nav-item">
-              <a [routerLink]="['/for-auditoria']" class="nav-link">
-                <i class="nav-icon fa-solid fa-seedling"></i>
-                <p>Crear Auditoria</p>
+              <a [routerLink]="['/registro-semaforo']" class="nav-link">
+                <i class="nav-icon fas fa-traffic-light"></i>
+                <p>Semaforo de Requisitos</p>
               </a>
             </li>
-          </ul>
-          <ul class="nav nav-treeview">
+
             <li class="nav-item">
-              <!-- Si no hay ruta asignada, puedes dejar esto vacío o asignar la ruta correcta -->
-              <a [routerLink]="['/ver-auditorias']" class="nav-link">
-                <i class="nav-icon fa-brands fa-pagelines"></i>
-                <p>Ver Auditorias</p>
+              <a [routerLink]="['/residuo-inventario']" class="nav-link">
+                <i class="nav-icon fas fa-pencil"></i>
+                <p>Inventario de Residuos</p>
               </a>
             </li>
+
+            <li class="nav-item">
+              <a [routerLink]="['/registro-inventario']" class="nav-link">
+                <i class="nav-icon fas fa-calendar-days"></i>
+                <p>Registro de vencimientos</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a [routerLink]="['/documento']" class="nav-link">
+                <i class="nav-icon fas fa-scale-balanced"></i>
+                <p>Alta de Requisitos</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a [routerLink]="['/residuo']" class="nav-link">
+                <i class="nav-icon fas fa-trash"></i>
+                <p>Alta de Residuos</p>
+              </a>
+            </li>
+            <!-- más items -->
           </ul>
         </li>
 
@@ -147,7 +168,7 @@
             <li class="nav-item">
               <a [routerLink]="['/usuarios']" class="nav-link">
                 <i class="fas fa-users nav-icon"></i>
-                <p>Usuarios</p>
+                <p>Alta de Usuarios</p>
               </a>
             </li>
           </ul>

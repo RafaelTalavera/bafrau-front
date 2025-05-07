@@ -1,4 +1,3 @@
-// src/app/matriz-causa-efecto-v1/matriz-causa-efecto-v1.component.ts
 
 import {
   Component,
@@ -26,6 +25,7 @@ import { Matriz, ItemMatriz } from '../models/matriz';
 import { Factor } from '../models/factor';
 import { Accion } from '../models/accion';
 import { Router } from '@angular/router';
+import { OrganizacionService } from '../../organizacion/service/organizacion-service';
 
 interface Stage {
   name: string;
@@ -88,6 +88,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   constructor(
     private router: Router, 
     private gridService: MatrizGridService,
+    private organizacionService: OrganizacionService,
     private matrizService: MatrizService,
     private factorService: FactorService,
     private accionService: AccionService,
@@ -138,7 +139,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   }
 
   obtenerOrganizaciones() {
-    this.matrizService.getOrganizacionesAuditoriaAmbiental().subscribe(
+    this.organizacionService.getOrganizacionesAuditoriaAmbiental().subscribe(
       o => this.organizaciones = o,
       err => console.error('Error al obtener organizaciones:', err)
     );

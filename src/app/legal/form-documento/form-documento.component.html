@@ -1,0 +1,81 @@
+<form #documentoForm="ngForm" (ngSubmit)="onSubmit(documentoForm)" class="container mt-2 custom-form">
+  <div class="card w-100">
+    <div class="card-header bg-primary text-white">
+      <h5 class="custom-h5">Crear Documento Legales</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+
+        <!-- Nombre -->
+        <div class="col-md-6 mb-3">
+          <label for="nombre" class="small-text">Nombre:</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            [(ngModel)]="documento.nombre"
+            #nombre="ngModel"
+            required
+            class="form-control"
+            placeholder="Escriba un nombre para el documento legal"
+          />
+          <div *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)" class="text alert-danger">
+            <div *ngIf="nombre.errors?.['required']">Tienes que escribir un nombre para el documento</div>
+          </div>
+        </div>
+
+        <!-- Juridicción -->
+        <div class="col-md-6 mb-3">
+          <label for="juridiccion" class="small-text">Juridicción:</label>
+          <input
+            type="text"
+            id="juridiccion"
+            name="juridiccion"
+            [(ngModel)]="documento.juridiccion"
+            #juridiccion="ngModel"
+            required
+            class="form-control"
+            placeholder="Escriba una juridicción para el documento legal"
+          />
+          <div *ngIf="juridiccion.invalid && (juridiccion.dirty || juridiccion.touched)" class="text alert-danger">
+            <div *ngIf="juridiccion.errors?.['required']">Tienes que escribir una juridicción para el documento</div>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="col-md-6 mb-3">
+          <label for="observaciones" class="small-text">Observaciones:</label>
+          <input
+            type="text"
+            id="observaciones"
+            name="observaciones"
+            [(ngModel)]="documento.observaciones"
+            #observaciones="ngModel"
+            class="form-control"
+            placeholder="Escriba una juridicción para el documento legal"
+          />
+
+        </div>
+
+      </div> <!-- cierre del div.row -->
+
+      <!-- Botones centrados -->
+      <div class="text-center">
+        <button
+          [disabled]="!documentoForm.form.valid"
+          type="submit"
+          class="btn btn-primary btn-custom"
+        >
+          <i class="fas fa-save me-1"></i> Guardar
+        </button>
+        <button
+          type="button"
+          class="btn btn-success btn-custom"
+          (click)="clean()"
+        >
+          <i class="fas fa-eraser me-1"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+</form>

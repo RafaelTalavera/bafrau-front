@@ -1,0 +1,67 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+    <!-- Site wrapper -->
+    <div class="wrapper">
+            <app-nav></app-nav>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper" style="overflow-y: auto; height: 100vh;">
+            <!-- Content Header (Page header) -->
+            <div *ngIf="!showError" class="container my-4 d-flex justify-content-center">
+                <div class="separated-content">
+                    <div class="col">
+                        <app-form-residuo (newResiduoEvent)="addResiduo($event)" [residuo]="residuoSelected"></app-form-residuo>
+                    </div>
+                    <div class="card" style="width: 100%;">
+                        <div class="col mt-3">
+                            <div>
+                                <h5 class="text-center custom-font-size">Lista de residuos</h5>
+                                <div class="search-container">
+                                    <input type="text"
+                                           class="search-input"
+                                           placeholder="Buscar por Corriente"
+                                           [(ngModel)]="tipoBusqueda"
+                                           (input)="buscarPorTipo()">
+                                  </div>
+                                  
+                                <div *ngIf="residuosFiltrados.length > 0" style="max-height: 600px; overflow-y: auto;">
+                                    <table class="table table-hover table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th class="custom-tr">Corriente</th>
+                                                <th class="custom-tr">Juridicción</th>
+                                                <th class="custom-tr">Detalle</th>                                            
+                                                <th class="custom-tr">Acciones</th>
+                                            
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let residuo of residuosFiltrados; trackBy: trackByFn">
+                                                <td class="custom-td">{{residuo.corriente}}</td>
+                                                <td class="custom-td">{{residuo.juridiccion}}</td>                                    
+                                                <td class="custom-td">{{residuo.detalle}}</td>
+
+                                                <td class="custom-td">
+                                                    <button (click)="onUpdateResiduo(residuo)" class="btn btn-sm btn-secondary custom-button" style="font-size: 12px;">
+                                                        <i class="fas fa-edit me-1"></i> Editar
+                                                      </button>                                                      
+                                                </td>
+                                                <td>
+                                                    <button (click)="onRemoveResiduo(residuo.id)" class="btn btn-sm btn-danger custom-button" style="font-size: 12px;">
+                                                        <i class="fas fa-trash-alt me-1"></i> Eliminar
+                                                      </button>
+                                                      
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div *ngIf="residuosFiltrados.length === 0" class="alert alert-info">Lo sentimos, no hay información para mostrar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.content -->
+        </div>
+        <app-footer></app-footer>
+    </div>
+</body>

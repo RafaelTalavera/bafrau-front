@@ -76,5 +76,32 @@ export class OrganizacionService {
       })
     );
   }
+
+    /** Obtiene organizaciones de Auditoría Ambiental */
+    getOrganizacionesAuditoriaAmbiental(): Observable<Organizacion[]> {
+      const url = `${this.apiUrl}/auditorias-ambientales`;
+      return this.http
+        .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
+        .pipe(
+          catchError(err => {
+            console.error('Error al cargar organizaciones:', err);
+            return throwError(() => err);
+          })
+        );
+    }
+    
+        /** Obtiene organizaciones de Representacion Tecnica */
+        getOrganizacionesRepresentacionTecnica(): Observable<Organizacion[]> {
+          const url = `${this.apiUrl}/representacion-tecnica`;
+          return this.http
+            .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
+            .pipe(
+              catchError(err => {
+                console.error('Error al cargar organizaciones:', err);
+                return throwError(() => err);
+              })
+            );
+        }
+        
   
 }

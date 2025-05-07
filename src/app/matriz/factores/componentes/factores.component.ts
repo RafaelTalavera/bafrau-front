@@ -27,7 +27,9 @@ export class FactoresComponent implements OnInit {
   factoresFiltrados: Factor[] = [];
   factorSelected: Factor = new Factor();
 
-  constructor(private service: FactorService, private router: Router) {}
+  constructor(
+    private service: FactorService,
+    private router: Router) {}
 
   ngOnInit(): void {
     this.refreshFactores();

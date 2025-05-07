@@ -1,0 +1,84 @@
+<form #residuoForm="ngForm" (ngSubmit)="onSubmit(residuoForm)" class="container mt-2 custom-form">
+    <div class="card w-100">
+      <div class="card-header bg-primary text-white">
+        <h5 class="custom-h5">Crear Residuo</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+  
+          <!-- Corriente -->
+          <div class="col-md-6 mb-3">
+            <label for="corriente" class="small-text">Corriente:</label>
+            <input
+              type="text"
+              id="corriente"
+              name="corriente"
+              [(ngModel)]="residuo.corriente"
+              #corriente="ngModel"
+              required
+              class="form-control"
+              placeholder="Escriba una corriente de residuo"
+            />
+            <div *ngIf="corriente.invalid && (corriente.dirty || corriente.touched)" class="text alert-danger">
+              <div *ngIf="corriente.errors?.['required']">Tienes que escribir una corriente de residuos</div>
+            </div>
+          </div>
+  
+          <!-- Juridicción -->
+          <div class="col-md-6 mb-3">
+            <label for="juridiccion" class="small-text">Juridicción:</label>
+            <input
+              type="text"
+              id="juridiccion"
+              name="juridiccion"
+              [(ngModel)]="residuo.juridiccion"
+              #juridiccion="ngModel"
+              required
+              class="form-control"
+              placeholder="Escriba una juridicción la corriente"
+            />
+            <div *ngIf="juridiccion.invalid && (juridiccion.dirty || juridiccion.touched)" class="text alert-danger">
+              <div *ngIf="juridiccion.errors?.['required']">Tienes que escribir una juridicción para el residuo</div>
+            </div>
+          </div>
+  
+          <!-- Detalle -->
+          <div class="col-md-6 mb-3">
+            <label for="detalle" class="small-text">Detalle:</label>
+            <input
+              type="text"
+              id="detalle"
+              name="detalle"
+              [(ngModel)]="residuo.detalle"
+              #detalle="ngModel"
+              class="form-control"
+              placeholder="Escriba una detalle"
+            />
+            <div *ngIf="detalle.invalid && (detalle.dirty || detalle.touched)" class="text alert-danger">
+                <div *ngIf="detalle.errors?.['required']">Tienes que escribir un detalle para el residuo</div>
+              </div>
+          </div>
+  
+        </div> <!-- cierre del div.row -->
+  
+        <!-- Botones centrados -->
+        <div class="text-center">
+          <button
+            [disabled]="!residuoForm.form.valid"
+            type="submit"
+            class="btn btn-primary btn-sm mx-2"
+          >
+            <i class="fas fa-save me-1"></i> Guardar
+          </button>
+          <button
+            type="button"
+            class="btn btn-success btn-sm mx-2"
+            (click)="clean()"
+          >
+            <i class="fas fa-eraser me-1"></i> Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+  

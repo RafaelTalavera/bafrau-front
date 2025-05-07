@@ -1,0 +1,143 @@
+<!-- src/app/legal/inventario-registro/inventario-registro.component.html -->
+<div class="wrapper">
+  <app-nav></app-nav>
+  <div class="content-wrapper">
+    <div class="content">
+      <form (ngSubmit)="onSubmit()">
+        <h1 class="matriz-title">Registro de Requisitos Legales</h1>
+
+        <!-- Fecha y Organización -->
+        <div class="input-row">
+          <div class="input-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" required [(ngModel)]="controlForm.fecha" name="fecha" class="custom-input" />
+          </div>
+          <div class="input-group">
+            <label for="organizacion">Organización:</label>
+            <select id="organizacion" required [(ngModel)]="controlForm.organizacionId" name="organizacionId"
+              class="custom-input">
+              <option [ngValue]="0" disabled>-- Seleccione --</option>
+              <option *ngFor="let org of organizaciones" [ngValue]="org.id">
+                {{ org.razonSocial }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="addItem()" style="margin-bottom: 12px;">
+          <i class="fas fa-plus" style="margin-right: 6px;"></i>
+          Agregar requisito
+        </button>
+
+        <!-- Lista de ítems con nueva estructura -->
+        <!-- Reemplaza tus dos filas por UNA sola fila por ítem -->
+        <div *ngFor="let item of controlForm.items; let i = index" class="input-row item-row"
+          style="margin-bottom: 8px;">
+          <!-- Jurisdicción -->
+          <div class="input-group">
+            <label for="juridiccionSelect{{ i }}">Jurisdicción:</label>
+            <select id="juridiccionSelect{{ i }}" [(ngModel)]="item.juridiccion" name="juridiccion{{ i }}"
+              class="custom-input" (ngModelChange)="onJuridiccionChange(i)" required>
+              <option value="" disabled>-- Seleccione Jurisdicción --</option>
+              <option *ngFor="let j of juridiccionesUnicas" [value]="j">
+                {{ j }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Documento -->
+          <div class="input-group">
+            <label for="documentoSelect{{ i }}">Documento:</label>
+            <select id="documentoSelect{{ i }}" [(ngModel)]="item.documentoId" name="documento{{ i }}"
+              class="custom-input" [disabled]="!item.juridiccion" (ngModelChange)="onDocumentoChange(i)" required>
+              <option value="" disabled>-- Seleccione Documento --</option>
+              <option *ngFor="let doc of documentos | filterByJurisdiccion : item.juridiccion" [ngValue]="doc.id">
+                {{ doc.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Vencimiento -->
+          <div class="input-group fecha-group">
+            <label for="vencimiento{{ i }}">Vencimiento:</label>
+            <input type="date" id="vencimiento{{ i }}" required [(ngModel)]="item.vencimiento" name="vencimiento{{ i }}"
+              class="custom-input narrow" />
+          </div>
+
+          <!-- Observaciones -->
+          <div class="input-group observaciones-group">
+            <label for="observaciones{{ i }}">Observaciones:</label>
+            <input id="observaciones{{ i }}" [(ngModel)]="item.observaciones" name="observaciones{{ i }}"
+              class="custom-input" />
+          </div>
+
+          <!-- Mails -->
+          <div class="input-group">
+            <label for="mails{{ i }}">Mails:</label>
+            <input id="mails{{ i }}" [ngModel]="item.listMail.join(',')" name="mails{{ i }}"
+              placeholder="Mails (separados por coma)" class="custom-input"
+              (ngModelChange)="onListMailChange(item, $event)" />
+          </div>
+
+          <!-- Eliminar ítem -->
+
+          <button type="button" class="btn-sm btn-danger" (click)="removeItem(i)">
+            <i class="fas fa-trash"></i>
+
+          </button>
+
+        </div>
+
+
+        <!-- Botones Enviar / Limpiar -->
+        <div class="input-row" style="padding: 8px 0;">
+          <button type="submit" class="btn-primary">
+            <i class="fas fa-save" style="margin-right: 6px;"></i>
+            {{ editMode ? 'Actualizar' : 'Crear' }} Control
+          </button>
+          <button type="button" class="btn-success" (click)="resetForm()" style="margin-left: 12px;">
+            <i class="fas fa-eraser me-1"></i>
+            Limpiar
+          </button>
+        </div>
+      </form>
+
+      <hr />
+
+      <!-- Listado de Controles Existentes -->
+      <h2 class="matriz-title">Controles Existentes</h2>
+      <div class="table-container">
+        <table class="matriz">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Organización</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of controles">
+              <td>{{ c.fecha }}</td>
+              <td>{{ getRazonSocial(c.organizacionId) }}</td>
+              <td class="col-acciones">
+                <button class="btn-sm btn-success" (click)="viewDetails(c)">
+                  <i class="fas fa-eye" style="margin-right: 6px;"></i>
+                  Ver detalles
+                </button>
+                <button class="btn-sm btn-info" (click)="edit(c)">
+                  <i class="fas fa-edit" style="margin-right: 6px;"></i>
+                  Editar
+                </button>
+                <button class="btn-sm btn-danger" (click)="delete(c.id)">
+                  <i class="fas fa-trash" style="margin-right: 6px;"></i>
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <app-footer></app-footer>
+</div>
