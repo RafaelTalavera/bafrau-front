@@ -6,144 +6,160 @@
       <div class="matrices-container">
         <h1 class="matriz-title">Visualización Matriz de Causa y Efecto</h1>
 
-        <!-- Filtro por Organización -->
-        <div class="filter-wrapper" *ngIf="!selectedMatrix">
-          <div class="input-row filter-container">
-            <div class="input-group">
-              <label class="small-text">Filtrar por Organización:</label>
-              <input
-                type="text"
-                [(ngModel)]="organizationFilter"
-                placeholder="Escriba para filtrar..."
-                class="custom-input small-text"
-              >
+        <!-- LISTADO DE MATRICES -->
+        <ng-container *ngIf="!selectedMatrix">
+          <!-- Spinner mientras carga la lista -->
+          <div *ngIf="loadingList" class="d-flex justify-content-center my-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Cargando matrices...</span>
             </div>
           </div>
-        </div>
 
-        <!-- Lista de matrices -->
-        <ng-container *ngIf="!selectedMatrix">
-          <div *ngIf="filteredMatrices.length === 0">
-            <p class="small-text">No hay matrices registradas.</p>
-          </div>
-          <div *ngIf="filteredMatrices.length > 0" class="table-container">
-            <div class="table-wrapper">
-              <table>
-                <colgroup>
-                  <col class="col-fecha">
-                  <col class="col-organizacion">
-                  <col class="col-accion">
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th class="small-text">Fecha</th>
-                    <th class="small-text">Organización</th>
-                    <th class="small-text">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let matriz of filteredMatrices" class="small-text">
-                    <td style="text-align: center;">
-                      {{ matriz.fecha | date:'dd/MM/yyyy' }}
-                    </td>
-                    <td style="text-align: center;">
-                      {{ getOrganization(matriz) }}
-                    </td>
-                    <td style="text-align: center;">
-                      <button class="btn btn-success btn-sm"
-                              (click)="viewDetails(matriz)">
-                        <i class="fa-solid fa-eye me-1"></i> Ver matriz
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- Filtro y tabla cuando termine de cargar -->
+          <div *ngIf="!loadingList">
+            <div class="filter-wrapper">
+              <div class="input-row filter-container">
+                <div class="input-group">
+                  <label class="small-text">Filtrar por Organización:</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="organizationFilter"
+                    placeholder="Escriba para filtrar..."
+                    class="custom-input small-text">
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="filteredMatrices.length === 0">
+              <p class="small-text">No hay matrices registradas.</p>
+            </div>
+            <div *ngIf="filteredMatrices.length > 0" class="table-container">
+              <div class="table-wrapper">
+                <table>
+                  <colgroup>
+                    <col class="col-fecha">
+                    <col class="col-organizacion">
+                    <col class="col-accion">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th class="small-text">Fecha</th>
+                      <th class="small-text">Organización</th>
+                      <th class="small-text">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let matriz of filteredMatrices" class="small-text">
+                      <td style="text-align: center;">
+                        {{ matriz.fecha | date:'dd/MM/yyyy' }}
+                      </td>
+                      <td style="text-align: center;">
+                        {{ getOrganization(matriz) }}
+                      </td>
+                      <td style="text-align: center;">
+                        <button class="btn btn-success btn-sm"
+                                (click)="viewDetails(matriz)">
+                          <i class="fa-solid fa-eye me-1"></i> Ver matriz
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </ng-container>
 
-        <!-- Detalle / Vista / Edición -->
+        <!-- DETALLE DE UNA MATRIZ -->
         <ng-container *ngIf="selectedMatrix">
-          <div class="input-row mb-2">
-            <button *ngIf="!editMode" 
-                    class="btn btn-warning btn-sm me-2"
-                    (click)="enableEdit()">
-              <i class="fa-solid fa-edit"></i> Editar
-            </button>
-            <button class="btn-secondary btn-sm" (click)="backToList()">
-              <i class="fa-solid fa-arrow-left"></i> Volver
-            </button>
+          <!-- Spinner mientras carga el detalle -->
+          <div *ngIf="loadingDetail" class="d-flex justify-content-center my-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Cargando detalle...</span>
+            </div>
           </div>
 
-          <!-- Modo edición -->
-          <app-matriz-causa-efecto-v1
-            *ngIf="editMode"
-            [matrix]="selectedMatrix"
-            [editMode]="true"
-            (saved)="onMatrixSaved($event)">
-          </app-matriz-causa-efecto-v1>
+          <!-- Contenido de detalle cuando termine de cargar -->
+          <div *ngIf="!loadingDetail">
+            <div class="input-row mb-2">
+              <button *ngIf="!editMode"
+                      class="btn btn-warning btn-sm me-2"
+                      (click)="enableEdit()">
+                <i class="fa-solid fa-edit"></i> Editar
+              </button>
+              <button class="btn-secondary btn-sm" (click)="backToList()">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+              </button>
+            </div>
 
-          <!-- Modo sólo lectura -->
-          <div *ngIf="!editMode">
-            <!-- Datos generales -->
-            <p class="small-text">
-              <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
-            </p>
-            <p class="small-text">
-              <strong>Organización:</strong>
-              {{ getOrganization(selectedMatrix) }}
-            </p>
+            <app-matriz-causa-efecto-v1
+              *ngIf="editMode"
+              [matrix]="selectedMatrix"
+              [editMode]="true"
+              (saved)="onMatrixSaved($event)">
+            </app-matriz-causa-efecto-v1>
 
-            <!-- Grilla de la matriz -->
-            <div *ngIf="factors.length && stages.length" class="table-container">
-              <style>
-                table thead th.stage-construccion { background-color: #add8e6 !important; }
-                table thead th.stage-funcionamiento { background-color: #ffa500 !important; }
-                table thead th.stage-abandono { background-color: #ff0000 !important; }
-                table thead th.stage-comunes { background-color: #ee82ee !important; }
-              </style>
-              <table>
-                <thead>
-                  <tr>
-                    <th rowspan="2" class="small-text">Sistema</th>
-                    <th rowspan="2" class="small-text">Subsistema</th>
-                    <th rowspan="2" class="small-text">Factor</th>
-                    <th rowspan="2" class="small-text">Componente</th>
-                    <th *ngFor="let st of stages"
-                        [attr.colspan]="st.actions.length"
-                        class="small-text"
-                        [ngClass]="getStageClass(st.name)">
-                      {{ st.name }}
-                    </th>
-                  </tr>
-                  <tr>
-                    <ng-container *ngFor="let st of stages">
-                      <th *ngFor="let action of st.actions" class="small-text">
-                        {{ action }}
+            <div *ngIf="!editMode">
+              <!-- Datos generales -->
+              <p class="small-text">
+                <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
+              </p>
+              <p class="small-text">
+                <strong>Organización:</strong>
+                {{ getOrganization(selectedMatrix) }}
+              </p>
+
+              <!-- Grilla de la matriz -->
+              <div *ngIf="factors.length && stages.length" class="table-container">
+                <style>
+                  table thead th.stage-construccion { background-color: #add8e6 !important; }
+                  table thead th.stage-funcionamiento { background-color: #ffa500 !important; }
+                  table thead th.stage-abandono { background-color: #ff0000 !important; }
+                  table thead th.stage-comunes { background-color: #ee82ee !important; }
+                </style>
+                <table>
+                  <thead>
+                    <tr>
+                      <th rowspan="2" class="small-text">Sistema</th>
+                      <th rowspan="2" class="small-text">Subsistema</th>
+                      <th rowspan="2" class="small-text">Factor</th>
+                      <th rowspan="2" class="small-text">Componente</th>
+                      <th *ngFor="let st of stages"
+                          [attr.colspan]="st.actions.length"
+                          class="small-text"
+                          [ngClass]="getStageClass(st.name)">
+                        {{ st.name }}
                       </th>
-                    </ng-container>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let factor of factors; let i = index">
-                    <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
-                      {{ factor.sistema }}
-                    </td>
-                    <td>{{ factor.subsistema }}</td>
-                    <td>{{ factor.factor }}</td>
-                    <td>{{ factor.componente }}</td>
-                    <ng-container *ngFor="let st of stages">
-                      <td *ngFor="let action of st.actions" class="small-text" [ngClass]="{
-                            'cell-positive': valuationsMap[factor.key]?.[st.name]?.[action] === 'positivo',
-                            'cell-negative': valuationsMap[factor.key]?.[st.name]?.[action] === 'negativo',
-                            'cell-neutral': valuationsMap[factor.key]?.[st.name]?.[action] === 'neutro'
-                          }">
-                        {{ valuationsMap[factor.key]?.[st.name]?.[action] || '--' }}
+                    </tr>
+                    <tr>
+                      <ng-container *ngFor="let st of stages">
+                        <th *ngFor="let action of st.actions" class="small-text">
+                          {{ action }}
+                        </th>
+                      </ng-container>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let factor of factors; let i = index">
+                      <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
+                        {{ factor.sistema }}
                       </td>
-                    </ng-container>
-                  </tr>
-                </tbody>
-              </table>
+                      <td>{{ factor.subsistema }}</td>
+                      <td>{{ factor.factor }}</td>
+                      <td>{{ factor.componente }}</td>
+                      <ng-container *ngFor="let st of stages">
+                        <td *ngFor="let action of st.actions" class="small-text" [ngClass]="{
+                              'cell-positive': valuationsMap[factor.key]?.[st.name]?.[action] === 'positivo',
+                              'cell-negative': valuationsMap[factor.key]?.[st.name]?.[action] === 'negativo',
+                              'cell-neutral': valuationsMap[factor.key]?.[st.name]?.[action] === 'neutro'
+                            }">
+                          {{ valuationsMap[factor.key]?.[st.name]?.[action] || '--' }}
+                        </td>
+                      </ng-container>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </ng-container>

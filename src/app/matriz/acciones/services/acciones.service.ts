@@ -3,7 +3,7 @@ import { map, Observable, of, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Accion } from '../../models/accion';
-import { environment } from '../../../../enviroments/enviroment';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';  // Añadido FormsModule
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import Swal from 'sweetalert2';
@@ -14,7 +14,7 @@ import { Organizacion } from '../models/organizacion.model';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule,             // Import necesario para ngModel
+    FormsModule,
     NavComponent,
     FooterComponent
   ],
@@ -26,8 +26,11 @@ export class OrganizacionFormComponent implements OnInit {
   organizacionForm!: FormGroup;
   organizacion: Organizacion[] = [];
   organizacionIdEnEdicion: number | null = null;
+  filtroRazon: string = '';
+  loading: boolean = false;  // ← indicador de carga
 
-  filtroRazon: string = '';  // Control del filtro
+  // Opciones de RRPP
+  rrppOptions = ['Generador', 'Operador', 'Transportista'];
 
   constructor(
     private fb: FormBuilder,
@@ -42,9 +45,11 @@ export class OrganizacionFormComponent implements OnInit {
       razonSocial:            ['', Validators.required],
       cuit:                   ['', [Validators.required, Validators.maxLength(11), Validators.pattern('^[0-9]*$')]],
       domicilioRealProyecto:  ['', Validators.required],
-      domicilioLegalProyecto: ['', Validators.required]
+      domicilioLegalProyecto: ['', Validators.required],
+      rrpp:                   [[]]  // array de RRPP
     });
     this.loadOrganizaciones();
+    
   }
 
   get filteredOrganizaciones(): Organizacion[] {
@@ -56,20 +61,39 @@ export class OrganizacionFormComponent implements OnInit {
   }
 
   loadOrganizaciones(): void {
+    this.loading = true;  // ← comienza a cargar
     this.organizacionService.getAllOrganizaciones().subscribe({
-      next: data => this.organizacion = data,
-      error: () => Swal.fire('Error', 'No se pudieron cargar las organizaciones.', 'error')
+      next: data => {
+        this.organizacion = data;
+        this.loading = false;  // ← terminó de cargar
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudieron cargar las organizaciones.', 'error');
+        this.loading = false;  // ← asegurar que desaparezca el spinner
+      }
     });
+  }
+
+  onRrppChange(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    const list: string[] = this.organizacionForm.get('rrpp')!.value;
+    if (checkbox.checked) {
+      list.push(checkbox.value);
+    } else {
+      const idx = list.indexOf(checkbox.value);
+      if (idx > -1) list.splice(idx, 1);
+    }
+    this.organizacionForm.get('rrpp')!.setValue(list);
   }
 
   onSubmit(): void {
     if (this.organizacionForm.invalid) return;
-    const datos = this.organizacionForm.value as Organizacion;
-
+    const datos = this.organizacionForm.value as Organizacion & { rrpp: string[] };
+    console.log('Enviando:', datos);
     if (this.organizacionIdEnEdicion) {
       this.organizacionService.updateOrganizacion(this.organizacionIdEnEdicion, datos).subscribe({
         next: resp => {
-          Swal.fire('Éxito', 'Informe actualizado.', 'success');
+          Swal.fire('Éxito', 'Organización actualizada.', 'success');
           const idx = this.organizacion.findIndex(o => o.id === this.organizacionIdEnEdicion);
           if (idx !== -1) this.organizacion[idx] = resp;
           this.resetFormulario();
@@ -79,7 +103,7 @@ export class OrganizacionFormComponent implements OnInit {
     } else {
       this.organizacionService.createOrganizacion(datos).subscribe({
         next: resp => {
-          Swal.fire('Éxito', 'Informe creado.', 'success');
+          Swal.fire('Éxito', 'Organización creado.', 'success');
           this.organizacion.push(resp);
           this.resetFormulario();
         },
@@ -110,7 +134,7 @@ export class OrganizacionFormComponent implements OnInit {
       if (res.isConfirmed) {
         this.organizacionService.deleteOrganizacion(org.id!).subscribe({
           next: () => {
-            Swal.fire('Eliminado', 'Informe eliminado.', 'success');
+            Swal.fire('Eliminado', 'Organización eliminado.', 'success');
             this.organizacion = this.organizacion.filter(o => o.id !== org.id);
           },
           error: () => Swal.fire('Error', 'No se pudo eliminar.', 'error')

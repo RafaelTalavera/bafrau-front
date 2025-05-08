@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Usuario } from '../usuario';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { environment } from '../../../enviroments/enviroment';
+import { environment } from '../../../environments/environment';
 
 
 @Injectable({

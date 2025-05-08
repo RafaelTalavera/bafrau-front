@@ -11,7 +11,9 @@
         <div class="card-body">
           <form [formGroup]="organizacionForm" (ngSubmit)="onSubmit()">
             <!-- Fila 1 -->
+            <!-- Fila 1: Fecha, Tipo de contrato y RRPP -->
             <div class="form-row mb-2">
+              <!-- Fecha de alta -->
               <div class="form-group col-md-2">
                 <label for="fechaAlta" class="label-custom">Fecha de alta:</label>
                 <input id="fechaAlta" type="date" formControlName="fechaAlta" class="form-control input-custom" />
@@ -20,19 +22,37 @@
                   Debes colocar una fecha de alta.
                 </div>
               </div>
+
+              <!-- Tipo de contrato -->
               <div class="form-group col-md-3">
                 <label for="tipoDeContrato" class="label-custom">Tipo de contrato:</label>
                 <select id="tipoDeContrato" formControlName="tipoDeContrato" class="form-control input-custom">
                   <option value="" disabled selected>Seleccione una opción</option>
                   <option value="Auditoría Ambiental">Auditoría Ambiental</option>
                   <option value="Representación Técnica">Representación Técnica</option>
+                  <option value="AA/RT">AA/RT</option>
                 </select>
                 <div
                   *ngIf="organizacionForm.get('tipoDeContrato')?.invalid && organizacionForm.get('tipoDeContrato')?.touched"
                   class="text alert-danger">
-                  Debes colocar que tipo de contrato tiene la organizacion con Bafrau.
+                  Debes colocar el tipo de contrato.
                 </div>
               </div>
+
+              <!-- RRPP (ahora col-md-3 para igualar ancho) -->
+              <div *ngIf="['Representación Técnica', 'AA/RT'].includes(organizacionForm.get('tipoDeContrato')?.value)" class="form-group col-md-4">
+           
+                <label class="label-custom">Seleccione RRPP:</label>
+                <div *ngFor="let opt of rrppOptions" class="form-check">
+                  <input class="form-check-input" type="checkbox" [value]="opt" (change)="onRrppChange($event)"
+                    [checked]="organizacionForm.value.rrpp.includes(opt)" id="{{opt}}">
+                  <label class="form-check-label" for="{{opt}}">{{ opt }}</label>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="form-row mb-2">
               <div class="form-group col-md-3">
                 <label for="nombreDelProponente" class="label-custom">Nombre del proponente:</label>
                 <input id="nombreDelProponente" formControlName="nombreDelProponente"
@@ -116,6 +136,13 @@
                 class="form-control input-custom" />
             </div>
 
+            <!-- Spinner de carga -->
+            <div *ngIf="loading" class="d-flex justify-content-center my-4">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+            </div>
+
             <table class="table table-striped" *ngIf="filteredOrganizaciones.length; else noData">
               <thead>
                 <tr>
@@ -147,8 +174,9 @@
                 </tr>
               </tbody>
             </table>
+            <!-- Mensaje si no hay datos y no se está cargando -->
             <ng-template #noData>
-              <p class="text-muted">No hay organizaciones cargadas.</p>
+              <p class="text-muted" *ngIf="!loading">No hay organizaciones cargadas.</p>
             </ng-template>
           </div>
 

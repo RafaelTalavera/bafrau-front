@@ -1,34 +1,63 @@
 <!-- src/app/legal/semaforo-requisitos/semaforo-requisitos.component.html -->
 <body class="hold-transition sidebar-mini layout-fixed">
-    <div class="wrapper">
-      <app-nav></app-nav>
-      <div class="content-wrapper" style="overflow-y: auto; height: 100vh;">
-        <div class="container my-4 d-flex justify-content-center">
-          <div class="separated-content">
-            <div class="card" style="width: 100%;">
-              <div class="col mt-3">
-                <h5 class="text-center custom-font-size">Semáforo de Requisitos</h5>
-                <div *ngIf="requisitos.length > 0" style="max-height: 600px; overflow-y: auto;">
+  <div class="wrapper">
+    <app-nav></app-nav>
+    <div class="content-wrapper" style="overflow-y: auto; height: 100vh;">
+      <div class="container my-4 d-flex justify-content-center">
+        <div class="separated-content">
+          <div class="card" style="width: 100%;">
+            <div class="col mt-3">
+              <h5 class="text-center custom-font-size">Semáforo de Requisitos</h5>
+
+              <!-- Spinner -->
+              <div *ngIf="loading" class="d-flex justify-content-center my-4">
+                <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+
+              <!-- Filtros -->
+              <div *ngIf="!loading && requisitos.length > 0" class="row mb-3 gx-2">
+                <div class="col-sm-6">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Buscar por registro"
+                    [(ngModel)]="filterNombre"
+                  />
+                </div>
+                <div class="col-sm-6">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Buscar por razón social"
+                    [(ngModel)]="filterRazon"
+                  />
+                </div>
+              </div>
+
+              <!-- Tabla sólo si NO está cargando -->
+              <div *ngIf="!loading">
+                <div *ngIf="requisitosFiltrados.length > 0" style="max-height: 600px; overflow-y: auto;">
                   <table class="table table-hover table-striped">
                     <thead>
                       <tr>
-                        <th class="custom-tr">Razon Social</th>
+                        <th class="custom-tr">Razón Social</th>
                         <th class="custom-tr">Fecha de Control</th>
                         <th class="custom-tr">Vencimiento</th>
                         <th class="custom-tr">Días</th>
                         <th class="custom-tr">Semáforo</th>
-                        <th class="custom-tr">Nombre</th>
+                        <th class="custom-tr">Registro</th>
                         <th class="custom-tr">Jurisdicción</th>
                         <th class="custom-tr">Obs. Documento</th>
                         <th class="custom-tr">Observaciones</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let r of requisitos">
+                      <tr *ngFor="let r of requisitosFiltrados">
                         <td class="custom-td">{{ r.organizacionRazonSocial }}</td>
                         <td class="custom-td">{{ r.fechaControl | date:'dd/MM/yyyy' }}</td>
-                        <td class="custom-td">{{ r.vencimiento  | date:'dd/MM/yyyy' }}</td>
-                        
+                        <td class="custom-td">{{ r.vencimiento | date:'dd/MM/yyyy' }}</td>
                         <td class="custom-td">{{ r.dias }}</td>
                         <td class="custom-td">
                           <span class="semaforo-circle" [ngClass]="r.semaforo"></span>
@@ -41,15 +70,16 @@
                     </tbody>
                   </table>
                 </div>
-                <div *ngIf="requisitos.length === 0" class="alert alert-info">
-                  No hay requisitos para mostrar
+                <div *ngIf="requisitosFiltrados.length === 0" class="alert alert-info">
+                  No se encontraron requisitos con esos filtros
                 </div>
               </div>
+
             </div>
           </div>
         </div>
       </div>
-      <app-footer></app-footer>
     </div>
-  </body>
-  
+    <app-footer></app-footer>
+  </div>
+</body>

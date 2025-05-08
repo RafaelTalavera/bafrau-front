@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LocalStorageService } from './service/local-Storage-Service';
-import { environment } from '../../enviroments/enviroment';
+import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
 
 

@@ -56,6 +56,11 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   irtChart?: Chart;
   actionsChart?: Chart;
 
+   // ← Banderas de carga
+   loadingList: boolean = false;
+   loadingDetail: boolean = false;
+ 
+
   @ViewChild('irtBarChart') irtBarChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('irtActionsChart') irtActionsChartRef!: ElementRef<HTMLCanvasElement>;
 
@@ -72,9 +77,16 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void { }
 
   loadMatrices(): void {
+    this.loadingList = true;  // inicia spinner
     this.matrizService.getAllMatrices().subscribe(
-      data => this.matrices = data,
-      err => console.error('Error cargar matrices:', err)
+      data => {
+        this.matrices = data;
+        this.loadingList = false;  // detiene spinner
+      },
+      err => {
+        console.error('Error cargar matrices:', err);
+        this.loadingList = false;  // detiene spinner
+      }
     );
   }
 
@@ -86,12 +98,19 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
  // matriz-impactos.component.ts
-viewDetails(matrix: Matriz): void {
-  this.matrizService.getMatrizById(matrix.id)
-    .subscribe(fullMatrix => {
-      this.selectedMatrix = fullMatrix;      
+ viewDetails(matrix: Matriz): void {
+  this.loadingDetail = true;  // inicia spinner detalle
+  this.matrizService.getMatrizById(matrix.id).subscribe(
+    fullMatrix => {
+      this.selectedMatrix = fullMatrix;
       this.buildGrid(fullMatrix);
-    }, err => console.error('No pudo cargar detalle:', err));
+      this.loadingDetail = false;  // detiene spinner detalle
+    },
+    err => {
+      console.error('No pudo cargar detalle:', err);
+      this.loadingDetail = false;  // detiene spinner detalle
+    }
+  );
 }
 
   backToList(): void {

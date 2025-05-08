@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Inventario } from '../models/inventario';
-import { environment } from '../../../enviroments/enviroment';
+import { environment } from '../../../environments/environment';
 import { ItemInventario } from '../models/ItemInventario';
 import { InventarioPayload } from '../models/inventario-payload';
 

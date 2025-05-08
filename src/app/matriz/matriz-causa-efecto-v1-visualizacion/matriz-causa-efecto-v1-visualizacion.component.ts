@@ -42,6 +42,8 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   organizationFilter = '';
   logoBase64 = '';
   editMode = false;
+  loadingList: boolean = false;
+  loadingDetail: boolean = false;
 
   constructor(
     private gridService: MatrizGridService,
@@ -75,17 +77,19 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   }
 
   loadMatrices(): void {
+    this.loadingList = true;  // ← comienza
     this.matrizService.getAllMatrices().subscribe(
       data => {
-        this.matrices = data.map(m => ({
-          ...m,
-          razonSocial: m.razonSocial ?? m.organizacionId
-        }));
-        this.logJSON(this.matrices, 'Matrices cargadas:');
+        this.matrices = data.map(m => ({ ...m, razonSocial: m.razonSocial ?? m.organizacionId }));
+        this.loadingList = false;  // ← termina
       },
-      err => console.error('Error al cargar matrices:', err)
+      err => {
+        console.error('Error al cargar matrices:', err);
+        this.loadingList = false;  // ← asegurar fin
+      }
     );
   }
+
 
   get filteredMatrices(): Matriz[] {
     const filtro = this.organizationFilter.trim().toLowerCase();
@@ -98,14 +102,17 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   }
 
   viewDetails(matrix: Matriz): void {
-    this.editMode = false;
+    this.loadingDetail = true;  // ← comienza
     this.matrizService.getMatrizById(matrix.id).subscribe(
       fullMatrix => {
         this.selectedMatrix = fullMatrix;
-        this.logJSON(fullMatrix, 'Matriz completa:');
         this.buildGrid(fullMatrix);
+        this.loadingDetail = false;  // ← termina
       },
-      err => console.error('Error al cargar matriz por ID:', err)
+      err => {
+        console.error('Error al cargar matriz por ID:', err);
+        this.loadingDetail = false;  // ← asegurar fin
+      }
     );
   }
 

@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ItemUIPUpdateDTO } from '../matriz-ponderacion/ponderacion-matriz.component';
-import { environment } from '../../../enviroments/enviroment';
+import { environment } from '../../../environments/environment';
 import { Matriz } from '../models/matriz';
 import { Organizacion } from '../../organizacion/models/organizacion.model';
 
