@@ -1,4 +1,5 @@
 <!-- src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.html -->
+
 <body class="layout-fixed">
   <div class="wrapper">
     <app-nav></app-nav>
@@ -21,10 +22,7 @@
               <div class="input-row filter-container">
                 <div class="input-group">
                   <label class="small-text">Filtrar por Organización:</label>
-                  <input
-                    type="text"
-                    [(ngModel)]="organizationFilter"
-                    placeholder="Escriba para filtrar..."
+                  <input type="text" [(ngModel)]="organizationFilter" placeholder="Escriba para filtrar..."
                     class="custom-input small-text">
                 </div>
               </div>
@@ -57,8 +55,7 @@
                         {{ getOrganization(matriz) }}
                       </td>
                       <td style="text-align: center;">
-                        <button class="btn btn-success btn-sm"
-                                (click)="viewDetails(matriz)">
+                        <button class="btn btn-success btn-sm" (click)="viewDetails(matriz)">
                           <i class="fa-solid fa-eye me-1"></i> Ver matriz
                         </button>
                       </td>
@@ -82,9 +79,7 @@
           <!-- Contenido de detalle cuando termine de cargar -->
           <div *ngIf="!loadingDetail">
             <div class="input-row mb-2">
-              <button *ngIf="!editMode"
-                      class="btn btn-warning btn-sm me-2"
-                      (click)="enableEdit()">
+              <button *ngIf="!editMode" class="btn btn-warning btn-sm me-2" (click)="enableEdit()">
                 <i class="fa-solid fa-edit"></i> Editar
               </button>
               <button class="btn-secondary btn-sm" (click)="backToList()">
@@ -92,10 +87,7 @@
               </button>
             </div>
 
-            <app-matriz-causa-efecto-v1
-              *ngIf="editMode"
-              [matrix]="selectedMatrix"
-              [editMode]="true"
+            <app-matriz-causa-efecto-v1 *ngIf="editMode" [matrix]="selectedMatrix" [editMode]="true"
               (saved)="onMatrixSaved($event)">
             </app-matriz-causa-efecto-v1>
 
@@ -112,28 +104,37 @@
               <!-- Grilla de la matriz -->
               <div *ngIf="factors.length && stages.length" class="table-container">
                 <style>
-                  table thead th.stage-construccion { background-color: #add8e6 !important; }
-                  table thead th.stage-funcionamiento { background-color: #ffa500 !important; }
-                  table thead th.stage-abandono { background-color: #ff0000 !important; }
-                  table thead th.stage-comunes { background-color: #ee82ee !important; }
+                  table thead th.stage-construccion {
+                    background-color: #add8e6 !important;
+                  }
+
+                  table thead th.stage-funcionamiento {
+                    background-color: #ffa500 !important;
+                  }
+
+                  table thead th.stage-abandono {
+                    background-color: #ff0000 !important;
+                  }
+
+                  table thead th.stage-comunes {
+                    background-color: #ee82ee !important;
+                  }
                 </style>
                 <table>
                   <thead>
                     <tr>
-                      <th rowspan="2" class="small-text">Sistema</th>
-                      <th rowspan="2" class="small-text">Subsistema</th>
-                      <th rowspan="2" class="small-text">Factor</th>
-                      <th rowspan="2" class="small-text">Componente</th>
-                      <th *ngFor="let st of stages"
-                          [attr.colspan]="st.actions.length"
-                          class="small-text"
-                          [ngClass]="getStageClass(st.name)">
+                      <th rowspan="2">Sistema</th>
+                      <th rowspan="2">Subsistema</th>
+                      <th rowspan="2">Factor</th>
+                      <th rowspan="2">Componente</th>
+                      <th *ngFor="let st of stages" [attr.colspan]="st.actions.length"
+                        [ngClass]="getStageClass(st.name)">
                         {{ st.name }}
                       </th>
                     </tr>
                     <tr>
                       <ng-container *ngFor="let st of stages">
-                        <th *ngFor="let action of st.actions" class="small-text">
+                        <th *ngFor="let action of st.actions">
                           {{ action }}
                         </th>
                       </ng-container>
@@ -147,15 +148,20 @@
                       <td>{{ factor.subsistema }}</td>
                       <td>{{ factor.factor }}</td>
                       <td>{{ factor.componente }}</td>
-                      <ng-container *ngFor="let st of stages">
-                        <td *ngFor="let action of st.actions" class="small-text" [ngClass]="{
-                              'cell-positive': valuationsMap[factor.key]?.[st.name]?.[action] === 'positivo',
-                              'cell-negative': valuationsMap[factor.key]?.[st.name]?.[action] === 'negativo',
-                              'cell-neutral': valuationsMap[factor.key]?.[st.name]?.[action] === 'neutro'
-                            }">
-                          {{ valuationsMap[factor.key]?.[st.name]?.[action] || '--' }}
-                        </td>
-                      </ng-container>
+   <ng-container *ngFor="let st of stages">
+  <td *ngFor="let action of st.actions"
+      [ngClass]="{
+        'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
+        'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
+        'cell-neutral' : valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
+      }">
+    <!-- valoración o “—” -->
+    {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+    <!-- si existe, muestro el ID -->
+
+  </td>
+</ng-container>
+
                     </tr>
                   </tbody>
                 </table>

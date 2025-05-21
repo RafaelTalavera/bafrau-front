@@ -262,7 +262,7 @@ body.layout-fixed {
 
   /* 1) Fijar diseño de tabla y ancho total */
 .table-container table {
-  table-layout: fixed;
+  table-layout: auto;
   width: 100%;
 }
 
@@ -298,3 +298,5 @@ text-align: center;
 .total-row {
   background-color: #f2f2f2; /* gris claro */
 }
+
+

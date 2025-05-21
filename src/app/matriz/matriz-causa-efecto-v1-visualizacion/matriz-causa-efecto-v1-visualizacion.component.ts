@@ -1,20 +1,22 @@
 // src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.ts
 import {
   Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  EventEmitter,
   OnInit
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import Swal from 'sweetalert2';
-
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
-
 import { MatrizService } from '../service/matriz-service';
-import { MatrizGridService, FactorView, Stage as GridStage } from '../service/matriz-grid.service';
 import { Matriz } from '../models/matriz';
+import { FactorView, MatrizBuilderUnifiedService, Stage } from '../service/matriz-builder-unified.service';
 import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
+
+
 
 @Component({
   selector: 'app-matriz-causa-efecto-v1-visualizacion',
@@ -25,8 +27,10 @@ import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-c
     HttpClientModule,
     NavComponent,
     FooterComponent,
-    MatrizCausaEfectoV1Component
+    MatrizCausaEfectoV1Component 
+,
   ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],  
   providers: [
     MatrizService
   ],
@@ -37,7 +41,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   matrices: Matriz[] = [];
   selectedMatrix: Matriz | null = null;
   factors: FactorView[] = [];
-  stages: GridStage[] = [];
+  stages: Stage[] = [];
   valuationsMap: { [key: string]: { [stage: string]: { [action: string]: string } } } = {};
   organizationFilter = '';
   logoBase64 = '';
@@ -46,7 +50,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   loadingDetail: boolean = false;
 
   constructor(
-    private gridService: MatrizGridService,
+    private gridService: MatrizBuilderUnifiedService,
     private matrizService: MatrizService,
     private http: HttpClient
   ) {}
@@ -101,20 +105,30 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     );
   }
 
-  viewDetails(matrix: Matriz): void {
-    this.loadingDetail = true;  // ← comienza
-    this.matrizService.getMatrizById(matrix.id).subscribe(
-      fullMatrix => {
-        this.selectedMatrix = fullMatrix;
-        this.buildGrid(fullMatrix);
-        this.loadingDetail = false;  // ← termina
-      },
-      err => {
-        console.error('Error al cargar matriz por ID:', err);
-        this.loadingDetail = false;  // ← asegurar fin
-      }
-    );
-  }
+viewDetails(matrix: Matriz): void {
+  this.loadingDetail = true;
+  this.matrizService.getMatrizById(matrix.id).subscribe(
+    full => {
+      this.selectedMatrix = full;
+
+      // — DEBUG: filtrar ítems con IDs 149-194 —
+      const idsProblema = Array.from({ length: 194 - 149 + 1 }, (_, i) => i + 149);
+      const faulty = full.items
+        .filter(i => idsProblema.includes(i.id))
+        .map(({ id, factorSistema, factorSubsistema, factorFactor, factorComponente, etapa, accionTipo, naturaleza }) => ({
+          id, factorSistema, factorSubsistema, factorFactor, factorComponente, etapa, accionTipo, naturaleza
+        }));
+      console.table(faulty);
+
+      this.buildGrid(full);
+      this.loadingDetail = false;
+    },
+    err => {
+      console.error('Error al cargar matriz por ID:', err);
+      this.loadingDetail = false;
+    }
+  );
+}
 
   backToList(): void {
     this.selectedMatrix = null;
@@ -128,17 +142,21 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     this.editMode = true;
   }
 
-  onMatrixSaved(updated: Matriz): void {
-    this.matrizService.updateMatriz(updated.id, updated).subscribe(
-      () => {
-        this.selectedMatrix = updated;
+onMatrixSaved(updated: Matriz): void {
+  this.matrizService.updateMatriz(updated.id, updated).subscribe(
+    () => {
+      // 1) Traer la matriz UNA VEZ ACTUALIZADA
+      this.matrizService.getMatrizById(updated.id).subscribe(full => {
+        this.selectedMatrix = full;
         this.editMode = false;
-        this.buildGrid(updated);
+        this.buildGrid(full);
         Swal.fire('Éxito', 'Matriz actualizada correctamente.', 'success');
-      },
-      () => Swal.fire('Error', 'No se pudo actualizar la matriz.', 'error')
-    );
-  }
+      });
+    },
+    () => Swal.fire('Error', 'No se pudo actualizar la matriz.', 'error')
+  );
+}
+
 
   private buildGrid(matriz: Matriz): void {
     this.logJSON(matriz, 'Ejecutando buildGrid con matriz:');
@@ -150,7 +168,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     this.valuationsMap= grid.valuationsMap;
   
     this.logJSON(this.factors, 'Factores finales:');
-    this.logJSON(this.stages, 'Etapas finales:');
+   
     this.logJSON(this.valuationsMap, 'Mapa de valoraciones:');
   }
 
@@ -176,4 +194,15 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     if (name.includes('comunes')) return 'stage-comunes';
     return '';
   }
+
+  // Dentro de MatrizCausaEfectoV1VisualizacionComponent
+getItemId(factorId: number, etapa: string, accion: string): number | null {
+  const found = this.selectedMatrix?.items.find(i =>
+    i.factorId === factorId &&
+    i.etapa     === etapa    &&
+    i.accionTipo=== accion
+  );
+  return found ? found.id : null;
+}
+
 }

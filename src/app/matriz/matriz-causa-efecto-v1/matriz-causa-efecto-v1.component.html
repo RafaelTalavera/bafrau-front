@@ -6,29 +6,20 @@
 
         <form (ngSubmit)="onSubmit()" #informeForm="ngForm">
           <h1 class="matriz-title">
-            Matriz de causa y efecto        
+            Matriz de causa y efecto
           </h1>
 
           <!-- Fecha y Organización -->
           <div class="input-row">
             <div class="input-group">
               <label for="fecha" class="small-text">Fecha:</label>
-              <input
-                type="date"
-                id="fecha"
-                required
-                [(ngModel)]="informe.fecha"
-                name="fecha"
+              <input type="date" id="fecha" required [(ngModel)]="informe.fecha" name="fecha"
                 class="custom-input small-text date-input" />
             </div>
             <div class="input-group">
               <label for="organizacion" class="small-text">Organización:</label>
-              <select
-                id="organizacion"
-                required
-                [(ngModel)]="informe.organizacionId"
-                (ngModelChange)="setRazonSocial($event)"
-                name="organizacionId"
+              <select id="organizacion" required [(ngModel)]="informe.organizacionId"
+                (ngModelChange)="setRazonSocial($event)" name="organizacionId"
                 class="custom-input small-text small-select">
                 <option [ngValue]="null" disabled>-- Seleccione una organización --</option>
                 <option *ngFor="let org of organizaciones" [ngValue]="org.id">
@@ -43,10 +34,7 @@
             <div class="row align-items-center">
               <div class="col-auto">
                 <label class="small-text">Sistema:</label>
-                <select
-                  [(ngModel)]="nuevoSistema"
-                  name="nuevoSistema"
-                  (ngModelChange)="onSistemaChange()"
+                <select [(ngModel)]="nuevoSistema" name="nuevoSistema" (ngModelChange)="onSistemaChange()"
                   class="form-control custom-input small-text">
                   <option value="" disabled>-- Seleccione un Sistema --</option>
                   <option *ngFor="let s of getUniqueSistemas()" [value]="s">
@@ -56,10 +44,7 @@
               </div>
               <div class="col-auto">
                 <label class="small-text">Subsistema:</label>
-                <select
-                  [(ngModel)]="nuevoSubsistema"
-                  name="nuevoSubsistema"
-                  (ngModelChange)="onSubsistemaChange()"
+                <select [(ngModel)]="nuevoSubsistema" name="nuevoSubsistema" (ngModelChange)="onSubsistemaChange()"
                   class="form-control custom-input small-text">
                   <option value="" disabled>-- Seleccione un Subsistema --</option>
                   <option *ngFor="let sub of getUniqueSubsistemas()" [value]="sub">
@@ -69,10 +54,7 @@
               </div>
               <div class="col-auto">
                 <label class="small-text">Factor:</label>
-                <select
-                  [(ngModel)]="nuevoFactor"
-                  name="nuevoFactor"
-                  class="form-control custom-input small-text">
+                <select [(ngModel)]="nuevoFactor" name="nuevoFactor" class="form-control custom-input small-text">
                   <option value="" disabled>-- Seleccione un Factor --</option>
                   <option *ngFor="let fac of getFilteredFactorsBySubsistema(nuevoSubsistema)" [value]="fac">
                     {{ fac }}
@@ -81,9 +63,7 @@
               </div>
               <div class="col-auto">
                 <label class="small-text">Componente:</label>
-                <select
-                  [(ngModel)]="nuevoComponente"
-                  name="nuevoComponente"
+                <select [(ngModel)]="nuevoComponente" name="nuevoComponente"
                   class="form-control custom-input small-text">
                   <option value="" disabled>-- Seleccione un Componente --</option>
                   <option *ngFor="let comp of getFilteredComponentesByFactor(nuevoFactor)" [value]="comp">
@@ -92,10 +72,7 @@
                 </select>
               </div>
               <div class="col-auto">
-                <button
-                  type="button"
-                  class="btn btn-primary small-text btn-spacing"
-                  (click)="addFactor()">
+                <button type="button" class="btn btn-primary small-text btn-spacing" (click)="addFactor()">
                   <i class="nav-icon fa-solid fa-leaf"></i> Agregar componente
                 </button>
               </div>
@@ -176,6 +153,38 @@
 
           <!-- Tabla Final -->
           <div class="table-container" *ngIf="factors.length > 0 && stages.length > 0">
+
+            <style>
+              /* Colores de encabezado según etapa */
+              table thead th.stage-construccion {
+                background-color: #add8e6 !important;
+              }
+
+              table thead th.stage-funcionamiento {
+                background-color: #ffa500 !important;
+              }
+
+              table thead th.stage-abandono {
+                background-color: #ff0000 !important;
+              }
+
+              table thead th.stage-comunes {
+                background-color: #ee82ee !important;
+              }
+
+              /* Colores de celdas según valoración */
+              td.cell-positive {
+                background-color: #d4edda;
+              }
+
+              td.cell-negative {
+                background-color: #f8d7da;
+              }
+
+              td.cell-neutral {
+                background-color: #fff3cd;
+              }
+            </style>
             <table>
               <thead>
                 <tr>
@@ -194,51 +203,39 @@
                 </tr>
               </thead>
               <tbody>
-                <ng-container *ngFor="let group of groupedFactors">
-                  <ng-container *ngFor="let fi of group.factors; let i = index">
-                    <tr>
-                      <td *ngIf="i === 0" [attr.rowspan]="group.factors.length">
-                        {{ group.sistema }}
-                      </td>
-                      <td>{{ fi.subsistema }}</td>
-                      <td>{{ fi.factor }}</td>
-                      <td>{{ fi.componente }}</td>
-                      <!-- aquí comienza el loop de acciones -->
-                      <ng-container *ngFor="let st of stages">
-                        <td *ngFor="let act of st.actions">
-                          <select
-                            name="{{fi.key}}-{{st.name}}-{{act}}"
-                            [(ngModel)]="fi.valuations[st.name][act]">
-                            <option value="">-- Seleccionar --</option>
-                            <option *ngFor="let val of valoraciones" [value]="val">
-                              {{ val }}
-                            </option>
-                          </select>
-                        </td>
-                      </ng-container>
-                    </tr>
+                <tr *ngFor="let fi of factors; let i = index">
+                  <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
+                    {{ fi.sistema }}
+                  </td>
+                  <td>{{ fi.subsistema }}</td>
+                  <td>{{ fi.factor }}</td>
+                  <td>{{ fi.componente }}</td>
+
+                  <ng-container *ngFor="let st of stages">
+                    <td *ngFor="let act of st.actions" [attr.title]="fi.factor + ' – ' + fi.componente + ' – ' + act">
+                      <select name="{{fi.key}}-{{st.name}}-{{act}}" [(ngModel)]="fi.valuations[st.name][act]">
+                        <option value="">-- Seleccionar --</option>
+                        <option *ngFor="let val of valoraciones" [value]="val">
+                          {{ val }}
+                        </option>
+                      </select>
+                    </td>
                   </ng-container>
-                </ng-container>
+
+                </tr>
               </tbody>
-              
             </table>
           </div>
 
           <!-- Botón Guardar -->
           <div class="input-row" *ngIf="factors.length > 0 && stages.length > 0">
-            <button 
-            type="submit" 
-            class="btn-secondary small-text btn-spacing">
+            <button type="submit" class="btn-secondary small-text btn-spacing">
               <i class="nav-icon fa-solid fa-floppy-disk"></i> Guardar Matriz
             </button>
 
-            <button
-            type="button"
-            class="btn-info small-text btn-spacing"
-            (click)="goToVisualizacion()"
-          >
-            <i class="fas fa-eye"></i> Ver matriz Causa-Efecto
-          </button>
+            <button type="button" class="btn-info small-text btn-spacing" (click)="goToVisualizacion()">
+              <i class="fas fa-eye"></i> Ver matriz Causa-Efecto
+            </button>
 
           </div>
         </form>

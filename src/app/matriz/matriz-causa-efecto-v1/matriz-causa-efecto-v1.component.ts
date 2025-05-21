@@ -15,17 +15,16 @@ import Swal from 'sweetalert2';
 
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
-
 import { MatrizService } from '../service/matriz-service';
 import { FactorService } from '../factores/services/factores.service';
 import { AccionService } from '../acciones/services/acciones.service';
-import { MatrizGridService, FactorView, Stage as GridStage } from '../service/matriz-grid.service';
-
 import { Matriz, ItemMatriz } from '../models/matriz';
 import { Factor } from '../models/factor';
 import { Accion } from '../models/accion';
 import { Router } from '@angular/router';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
+
+import { MatrizBuilderUnifiedService } from '../service/matriz-builder-unified.service';
 
 interface Stage {
   name: string;
@@ -46,15 +45,15 @@ interface FactorItem {
 @Component({
   selector: 'app-matriz-causa-efecto-v1',
   standalone: true,
-  providers: [ MatrizService ],  
-  imports: [ CommonModule, FormsModule, HttpClientModule, NavComponent, FooterComponent ],
+  providers: [MatrizService],
+  imports: [CommonModule, FormsModule, HttpClientModule, NavComponent, FooterComponent],
   templateUrl: './matriz-causa-efecto-v1.component.html',
   styleUrls: ['./matriz-causa-efecto-v1.component.css']
 })
 export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   @Input() matrix!: Matriz;
   @Input() editMode = false;
-  @Output() saved = new EventEmitter<Matriz>();
+@Output() saved = new EventEmitter<Matriz>();
 
   informe = {
     fecha: '',
@@ -84,15 +83,16 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   nuevoFactor = '';
   nuevoComponente = '';
   nuevaEtapa = '';
+  gridService2: any;
 
   constructor(
-    private router: Router, 
-    private gridService: MatrizGridService,
+    private router: Router,
+    private gridBuilder: MatrizBuilderUnifiedService,
     private organizacionService: OrganizacionService,
     private matrizService: MatrizService,
     private factorService: FactorService,
     private accionService: AccionService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.factorService.findAll().subscribe(f => this.availableFactors = f);
@@ -100,43 +100,81 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     this.obtenerOrganizaciones();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['matrix'] && this.matrix && this.editMode) {
-      // 1) Prefill del informe
-      this.informe = {
-        fecha: this.matrix.fecha,
-        organizacionId: this.matrix.organizacionId,
-        direccion: this.matrix.direccion,
-        rubro: this.matrix.rubro,
-        razonSocial: this.matrix.razonSocial
+
+ngOnChanges(changes: SimpleChanges): void {
+  if ((changes['matrix'] || changes['editMode']) && this.matrix && this.editMode) {
+    // 1) Prefill del informe
+    this.informe = {
+      fecha: this.matrix.fecha,
+      organizacionId: this.matrix.organizacionId,
+      direccion: this.matrix.direccion,
+      rubro: this.matrix.rubro,
+      razonSocial: this.matrix.razonSocial
+    };
+
+    // 2) Mapear originalItemIds
+    const origMap: Record<string, Record<string, Record<string, number>>> = {};
+    this.matrix.items.forEach(item => {
+      const key = [
+        item.factorSistema,
+        item.factorSubsistema,
+        item.factorFactor,
+        item.factorComponente || ''
+      ].join('|');
+      origMap[key] ||= {};
+      origMap[key][item.etapa] ||= {};
+      origMap[key][item.etapa][item.accionTipo] = item.id;
+    });
+
+    // 3) Llamada unificada
+    const { factors, stages, valuationsMap, additionalMap } =
+      this.gridBuilder.buildGrid(this.matrix.items);
+
+    // 4) Crear mapa key→id
+    const keyIdMap: Record<string, number> = {};
+    factors.forEach(fv => {
+      const key = [fv.sistema, fv.subsistema, fv.factor, fv.componente || ''].join('|');
+      keyIdMap[key] = fv.id;
+    });
+
+    // 5) Construir this.factors
+    this.factors = factors.map(fv => {
+      const key = [fv.sistema, fv.subsistema, fv.factor, fv.componente || ''].join('|');
+      return {
+        sistema:        fv.sistema,
+        subsistema:     fv.subsistema,
+        factor:         fv.factor,
+        componente:     fv.componente || '',
+        key,
+        valuations:     {} as Record<string, Record<string, string>>,
+        originalItemIds: origMap[key] || {},
+        additional:     additionalMap[fv.id] || {}
       };
-      // 2) Construir grilla
-      const { factors, stages, valuationsMap } = this.gridService.buildGrid(this.matrix.items);
-      this.stages = stages.map(s => ({ ...s, nuevaAccion: '' }));
+    });
 
-      // 3) Mapear originalItemIds
-      const origMap: Record<string, Record<string, Record<string, number>>> = {};
-      this.matrix.items.forEach(item => {
-        const key = `${item.factorSistema}|${item.factorSubsistema}|${item.factorFactor}|${item.factorComponente}`;
-        origMap[key] = origMap[key] || {};
-        origMap[key][item.etapa] = origMap[key][item.etapa] || {};
-        origMap[key][item.etapa][item.accionTipo] = item.id;
+    // 6) Construir this.stages
+    this.stages = stages.map(s => ({
+      name: s.name,
+      actions: s.actions,
+      nuevaAccion: ''
+    }));
+
+    // 7) Rellenar las valoraciones usando keyIdMap
+    this.factors.forEach(fi => {
+      const id = keyIdMap[fi.key];
+      this.stages.forEach(st => {
+        fi.valuations[st.name] = {};
+        st.actions.forEach(act => {
+          fi.valuations[st.name][act] =
+            valuationsMap[id]?.[st.name]?.[act] || '';
+        });
       });
+    });
 
-      // 4) Construir factors incluyendo originalItemIds
-      this.factors = factors.map(fv => ({
-        sistema: fv.sistema,
-        subsistema: fv.subsistema,
-        factor: fv.factor,
-        componente: fv.componente,
-        key: fv.key,
-        valuations: { ...valuationsMap[fv.key] },
-        originalItemIds: origMap[fv.key] || {}
-      }));
-
-      this.updateGroupedFactors();
-    }
+    // 8) Agrupar factores para la vista
+    this.updateGroupedFactors();
   }
+}
 
   obtenerOrganizaciones() {
     this.organizacionService.getOrganizacionesAuditoriaAmbiental().subscribe(
@@ -218,9 +256,9 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
       Swal.fire('Error', 'Selección repetida', 'error');
       return;
     }
-    const item: FactorItem = { 
-      sistema, subsistema, factor, componente: comp, 
-      key, valuations: {}, originalItemIds: {} 
+    const item: FactorItem = {
+      sistema, subsistema, factor, componente: comp,
+      key, valuations: {}, originalItemIds: {}
     };
     this.stages.forEach(s => {
       item.valuations[s.name] = {};
@@ -278,12 +316,16 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     return a?.id || 0;
   }
 
-  getFactorId(name: string) {
-    const f = this.availableFactors.find(
-      x => x.factor.trim().toLowerCase() === name.trim().toLowerCase()
-    );
-    return f?.id || 0;
-  }
+getFactorId(fi: FactorItem): number {
+  const f = this.availableFactors.find(
+    x =>
+      x.sistema.trim()      === fi.sistema.trim() &&
+      x.subsistema.trim()   === fi.subsistema.trim() &&
+      x.factor.trim()       === fi.factor.trim() &&
+      (x.componente || '').trim() === fi.componente.trim()
+  );
+  return f?.id ?? 0;
+}
 
   private resetForm(): void {
     // Salir de modo edición
@@ -303,78 +345,103 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     this.updateGroupedFactors();
   }
 
-  onSubmit() {
-    if (!this.informe.organizacionId) {
-      Swal.fire('Error', 'Debes seleccionar una organización', 'error');
-      return;
-    }
-    const payload: Matriz = {
-      id: this.editMode ? this.matrix.id : 0,
-      fecha: this.informe.fecha,
-      organizacionId: this.informe.organizacionId!,
-      direccion: this.informe.direccion,
-      rubro: this.informe.rubro,
-      razonSocial: this.informe.razonSocial,
-      items: [],
-      informe: JSON.stringify(this.informe)
-    };
+onSubmit() {
 
-    this.groupedFactors.forEach(group =>
-      group.factors.forEach(fi =>
-        this.stages.forEach(st =>
-          st.actions.forEach(a => {
-            const val = fi.valuations[st.name][a];
-            if (!val) return;
-            //  ✅ Aquí reutilizamos el ID original si existe
-            const itemId = this.editMode 
-              ? (fi.originalItemIds[st.name]?.[a] ?? 0) 
-              : 0;
-            payload.items.push({
-              id: itemId,
-              fechaAlta: this.informe.fecha,
-              organizacionId: this.informe.organizacionId!,
-              razonSocial: this.informe.razonSocial,
-              etapa: st.name,
-              naturaleza: val,
-              intensidad: 0,
-              extension: 0,
-              momento: 0,
-              persistencia: 0,
-              reversivilidad: 0,
-              sinergia: 0,
-              acumulacion: 0,
-              efecto: 0,
-              periodicidad: 0,
-              recuperacion: 0,
-              uip: 0,
-              accionId: this.getAccionId(a),
-              factorId: this.getFactorId(fi.factor),
-              matrizId: payload.id,
-              factorSistema: fi.sistema,
-              factorSubsistema: fi.subsistema,
-              factorFactor: fi.factor,
-              factorComponente: fi.componente,
-              accionTipo: a,
-              magnitude: 0,
-              importance: 0
-            });
-          })
-        )
+    console.log("📥 Items originales (matrix.items):", this.matrix.items);
+
+  if (!this.informe.organizacionId) {
+    Swal.fire('Error', 'Debes seleccionar una organización', 'error');
+    return;
+  }
+
+  // aviso de carga
+  Swal.fire({
+    title: 'Cargando…',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    didOpen: () => (Swal as any).showLoading()
+  });
+
+  // armo el payload
+  const payload: Matriz = {
+    id: this.editMode ? this.matrix.id : 0,
+    fecha: this.informe.fecha,
+    organizacionId: this.informe.organizacionId!,
+    direccion: this.informe.direccion,
+    rubro: this.informe.rubro,
+    razonSocial: this.informe.razonSocial,
+    items: [],
+    informe: JSON.stringify(this.informe)
+  };
+  this.groupedFactors.forEach(group =>
+    group.factors.forEach(fi =>
+      this.stages.forEach(st =>
+        st.actions.forEach(a => {
+          const val = fi.valuations[st.name][a] || '';
+          const itemId = this.editMode
+            ? (fi.originalItemIds[st.name]?.[a] ?? 0)
+            : 0;
+          payload.items.push({
+            id: itemId,
+            fechaAlta: this.informe.fecha,
+            organizacionId: this.informe.organizacionId!,
+            razonSocial: this.informe.razonSocial,
+            etapa: st.name,
+            naturaleza: val,
+            intensidad: 0, extension: 0, momento: 0,
+            persistencia: 0, reversivilidad: 0,
+            sinergia: 0, acumulacion: 0,
+            efecto: 0, periodicidad: 0,
+            recuperacion: 0, uip: 0,
+            accionId: this.getAccionId(a),
+            factorId: this.getFactorId(fi),
+            matrizId: payload.id,
+            factorSistema: fi.sistema,
+            factorSubsistema: fi.subsistema,
+            factorFactor: fi.factor,
+            factorComponente: fi.componente,
+            accionTipo: a,
+            magnitude: 0, importance: 0
+          });
+        })
       )
-    );
+    )
+  );
 
-    if (this.editMode) {
-      this.saved.emit(payload);
-    } else {
-      this.matrizService.createMatriz(payload).subscribe(
-        () => {
-          Swal.fire('Éxito', 'Matriz guardada correctamente', 'success')
-            .then(() => this.resetForm());  // <-- aquí recargas el formulario
-        },
-        () => Swal.fire('Error', 'No se pudo guardar la matriz', 'error')
+  console.log("📤 Payload.items a enviar:", payload.items);
+  
+  // llamada HTTP
+  const req$ = this.editMode
+    ? this.matrizService.updateMatriz(payload.id, payload)  // <— dos args
+    : this.matrizService.createMatriz(payload);
+
+  req$.subscribe({
+    next: () => {
+      Swal.close();
+      Swal.fire(
+        'Éxito',
+        this.editMode
+          ? 'Matriz actualizada correctamente'
+          : 'Matriz guardada correctamente',
+        'success'
+      ).then(() => {
+        if (this.editMode) this.saved.emit(payload);
+        else this.resetForm();
+      });
+    },
+    error: () => {
+      Swal.close();
+      Swal.fire(
+        'Error',
+        this.editMode
+          ? 'No se pudo actualizar la matriz'
+          : 'No se pudo guardar la matriz',
+        'error'
       );
     }
-  }
+  });
+}
+
 
   getStageClass(name: string) {
     const l = name.toLowerCase();
@@ -398,4 +465,20 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   goToVisualizacion(): void {
     this.router.navigate(['/matriz-causa-efecto-visualizacion']);
   }
+
+  // al final de la clase MatrizCausaEfectoV1Component
+shouldShowClasificacion(index: number): boolean {
+  return index === 0 || this.factors[index].sistema !== this.factors[index - 1].sistema;
+}
+
+getRowSpan(index: number): number {
+  let count = 1;
+  const current = this.factors[index].sistema;
+  for (let i = index + 1; i < this.factors.length; i++) {
+    if (this.factors[i].sistema === current) count++;
+    else break;
+  }
+  return count;
+}
+
 }

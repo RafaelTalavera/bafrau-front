@@ -114,7 +114,7 @@ input[type="date"].date-input {
 }
 
 /* — Tabla final */
-.table-container {
+.table-container { 
   margin-top: 20px;
   overflow-x: auto;
 }
@@ -256,3 +256,4 @@ select.custom-input.small-text option {
   margin-bottom: 1px;    /* altura mínima entre ítems */
   padding: 2px 0;        /* acolchado vertical interno */
 }
+
