@@ -53,6 +53,27 @@ export class MatrizBuilderUnifiedService {
     });
     const factors = Object.values(factorsMap);
 
+    // **ORDENAR según prioridad de subsistema**
+    const prioridadSubs = [
+      'Medio Inerte',
+      'Medio Biótico',
+      'Medio Perceptual',
+      'Medio Socioeconómico'
+    ];
+    factors.sort((a, b) => {
+      // 1) Sistema
+      const cmpSistema = a.sistema.localeCompare(b.sistema);
+      if (cmpSistema !== 0) return cmpSistema;
+      // 2) Subsistema según prioridad
+      const ia = prioridadSubs.indexOf(a.subsistema);
+      const ib = prioridadSubs.indexOf(b.subsistema);
+      if (ia !== ib) return ia - ib;
+      // 3) Factor y componente
+      const cmpFactor = a.factor.localeCompare(b.factor);
+      if (cmpFactor !== 0) return cmpFactor;
+      return (a.componente ?? '').localeCompare(b.componente ?? '');
+    });
+
     // 2) Etapas y acciones
     const stagesMap: Record<string, Set<string>> = {};
     items.forEach(item => {

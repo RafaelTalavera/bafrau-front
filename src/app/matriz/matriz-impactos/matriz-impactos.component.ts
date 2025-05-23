@@ -129,33 +129,29 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
 // Dentro de MatrizImpactosComponent:
+// Dentro de MatrizImpactosComponent:
 buildGrid(matriz: Matriz): void {
   // 1) Reiniciar resúmenes
   this.topThreePosIRTs = [];
   this.topThreeNegIRTs = [];
 
+  // 2) Obtener datos del servicio (ya vienen ordenados)
   const items = matriz.items;
-  // 2) Usar el servicio unificado
   const { factors, stages, valuationsMap, additionalMap } =
     this.gridBuilder.buildGrid(items);
 
-  // 3) Asignar y ordenar factores
-  this.factors = factors.sort((a, b) =>
-    a.sistema.localeCompare(b.sistema) ||
-    a.subsistema.localeCompare(b.subsistema) ||
-    (a.componente ?? '').localeCompare(b.componente ?? '') ||
-    a.factor.localeCompare(b.factor)
-  );
+  // 3) Asignar directamente (sin .sort extra)
+  this.factors       = factors;
   this.stages        = stages;
   this.valuationsMap = valuationsMap;
   this.additionalMap = additionalMap;
 
-  // 4) Inicializar expandedFactors (clave = id.toString())
+  // 4) Inicializar estado de desplegado
   this.expandedFactors = Object.fromEntries(
-    this.factors.map(f => [f.id.toString(), false])
+    this.factors.map(f => [ f.id.toString(), false ])
   );
 
-  // 5) Inyectar UIP real en additionalMap
+  // 5) Inyectar el UIP real en additionalMap
   items.forEach(item => {
     const bucket = this.additionalMap[item.factorId]?.[item.etapa]?.[item.accionTipo];
     if (bucket) bucket.uip = item.uip ?? 0;
@@ -168,6 +164,7 @@ buildGrid(matriz: Matriz): void {
     this.createBarChartActions();
   }, 100);
 }
+
 
   toggleNumericView(): void {
     this.showNumeric = !this.showNumeric;
@@ -358,7 +355,7 @@ calculateImportanciaRelativaTotalFactor(factorId: number): number {
   return this.selectedMatrix!.items
     .filter(i => i.factorId === factorId)
     .reduce((sum, i) =>
-      sum + this.calculateImpact(factorId, i.etapa, i.accionTipo) * (i.uip / 1000)
+      sum + this.calculateImpact(factorId, i.etapa, i.accionTipo) * (i.uip! / 1000)
     , 0);
 }
   

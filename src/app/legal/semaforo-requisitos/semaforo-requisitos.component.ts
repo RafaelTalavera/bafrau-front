@@ -47,7 +47,7 @@ export class SemaforoRequisitosComponent implements OnInit {
             const venc = new Date(it.vencimiento);
             const dias = Math.ceil((venc.getTime() - hoy.getTime()) / (1000*60*60*24));
             const sem: 'green'|'yellow'|'red' = dias >= 100 ? 'green'
-              : dias > 45      ? 'yellow'
+              : dias > 60      ? 'yellow'
                                : 'red';
             return {
               organizacionId: ctrl.organizacionId,

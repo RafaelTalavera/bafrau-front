@@ -53,7 +53,7 @@ interface FactorItem {
 export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   @Input() matrix!: Matriz;
   @Input() editMode = false;
-@Output() saved = new EventEmitter<Matriz>();
+  @Output() saved = new EventEmitter<Matriz>();
 
   informe = {
     fecha: '',
@@ -101,80 +101,80 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   }
 
 
-ngOnChanges(changes: SimpleChanges): void {
-  if ((changes['matrix'] || changes['editMode']) && this.matrix && this.editMode) {
-    // 1) Prefill del informe
-    this.informe = {
-      fecha: this.matrix.fecha,
-      organizacionId: this.matrix.organizacionId,
-      direccion: this.matrix.direccion,
-      rubro: this.matrix.rubro,
-      razonSocial: this.matrix.razonSocial
-    };
-
-    // 2) Mapear originalItemIds
-    const origMap: Record<string, Record<string, Record<string, number>>> = {};
-    this.matrix.items.forEach(item => {
-      const key = [
-        item.factorSistema,
-        item.factorSubsistema,
-        item.factorFactor,
-        item.factorComponente || ''
-      ].join('|');
-      origMap[key] ||= {};
-      origMap[key][item.etapa] ||= {};
-      origMap[key][item.etapa][item.accionTipo] = item.id;
-    });
-
-    // 3) Llamada unificada
-    const { factors, stages, valuationsMap, additionalMap } =
-      this.gridBuilder.buildGrid(this.matrix.items);
-
-    // 4) Crear mapa key→id
-    const keyIdMap: Record<string, number> = {};
-    factors.forEach(fv => {
-      const key = [fv.sistema, fv.subsistema, fv.factor, fv.componente || ''].join('|');
-      keyIdMap[key] = fv.id;
-    });
-
-    // 5) Construir this.factors
-    this.factors = factors.map(fv => {
-      const key = [fv.sistema, fv.subsistema, fv.factor, fv.componente || ''].join('|');
-      return {
-        sistema:        fv.sistema,
-        subsistema:     fv.subsistema,
-        factor:         fv.factor,
-        componente:     fv.componente || '',
-        key,
-        valuations:     {} as Record<string, Record<string, string>>,
-        originalItemIds: origMap[key] || {},
-        additional:     additionalMap[fv.id] || {}
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['matrix'] || changes['editMode']) && this.matrix && this.editMode) {
+      // 1) Prefill del informe
+      this.informe = {
+        fecha: this.matrix.fecha,
+        organizacionId: this.matrix.organizacionId,
+        direccion: this.matrix.direccion,
+        rubro: this.matrix.rubro,
+        razonSocial: this.matrix.razonSocial
       };
-    });
 
-    // 6) Construir this.stages
-    this.stages = stages.map(s => ({
-      name: s.name,
-      actions: s.actions,
-      nuevaAccion: ''
-    }));
+      // 2) Mapear originalItemIds
+      const origMap: Record<string, Record<string, Record<string, number>>> = {};
+      this.matrix.items.forEach(item => {
+        const key = [
+          item.factorSistema,
+          item.factorSubsistema,
+          item.factorFactor,
+          item.factorComponente || ''
+        ].join('|');
+        origMap[key] ||= {};
+        origMap[key][item.etapa] ||= {};
+        origMap[key][item.etapa][item.accionTipo] = item.id;
+      });
 
-    // 7) Rellenar las valoraciones usando keyIdMap
-    this.factors.forEach(fi => {
-      const id = keyIdMap[fi.key];
-      this.stages.forEach(st => {
-        fi.valuations[st.name] = {};
-        st.actions.forEach(act => {
-          fi.valuations[st.name][act] =
-            valuationsMap[id]?.[st.name]?.[act] || '';
+      // 3) Llamada unificada
+      const { factors, stages, valuationsMap, additionalMap } =
+        this.gridBuilder.buildGrid(this.matrix.items);
+
+      // 4) Crear mapa key→id
+      const keyIdMap: Record<string, number> = {};
+      factors.forEach(fv => {
+        const key = [fv.sistema, fv.subsistema, fv.factor, fv.componente || ''].join('|');
+        keyIdMap[key] = fv.id;
+      });
+
+      // 5) Construir this.factors
+      this.factors = factors.map(fv => {
+        const key = [fv.sistema, fv.subsistema, fv.factor, fv.componente || ''].join('|');
+        return {
+          sistema: fv.sistema,
+          subsistema: fv.subsistema,
+          factor: fv.factor,
+          componente: fv.componente || '',
+          key,
+          valuations: {} as Record<string, Record<string, string>>,
+          originalItemIds: origMap[key] || {},
+          additional: additionalMap[fv.id] || {}
+        };
+      });
+
+      // 6) Construir this.stages
+      this.stages = stages.map(s => ({
+        name: s.name,
+        actions: s.actions,
+        nuevaAccion: ''
+      }));
+
+      // 7) Rellenar las valoraciones usando keyIdMap
+      this.factors.forEach(fi => {
+        const id = keyIdMap[fi.key];
+        this.stages.forEach(st => {
+          fi.valuations[st.name] = {};
+          st.actions.forEach(act => {
+            fi.valuations[st.name][act] =
+              valuationsMap[id]?.[st.name]?.[act] || '';
+          });
         });
       });
-    });
 
-    // 8) Agrupar factores para la vista
-    this.updateGroupedFactors();
+      // 8) Agrupar factores para la vista
+      this.updateGroupedFactors();
+    }
   }
-}
 
   obtenerOrganizaciones() {
     this.organizacionService.getOrganizacionesAuditoriaAmbiental().subscribe(
@@ -316,16 +316,16 @@ ngOnChanges(changes: SimpleChanges): void {
     return a?.id || 0;
   }
 
-getFactorId(fi: FactorItem): number {
-  const f = this.availableFactors.find(
-    x =>
-      x.sistema.trim()      === fi.sistema.trim() &&
-      x.subsistema.trim()   === fi.subsistema.trim() &&
-      x.factor.trim()       === fi.factor.trim() &&
-      (x.componente || '').trim() === fi.componente.trim()
-  );
-  return f?.id ?? 0;
-}
+  getFactorId(fi: FactorItem): number {
+    const f = this.availableFactors.find(
+      x =>
+        x.sistema.trim() === fi.sistema.trim() &&
+        x.subsistema.trim() === fi.subsistema.trim() &&
+        x.factor.trim() === fi.factor.trim() &&
+        (x.componente || '').trim() === fi.componente.trim()
+    );
+    return f?.id ?? 0;
+  }
 
   private resetForm(): void {
     // Salir de modo edición
@@ -345,102 +345,96 @@ getFactorId(fi: FactorItem): number {
     this.updateGroupedFactors();
   }
 
-onSubmit() {
+  onSubmit() {
 
     console.log("📥 Items originales (matrix.items):", this.matrix.items);
 
-  if (!this.informe.organizacionId) {
-    Swal.fire('Error', 'Debes seleccionar una organización', 'error');
-    return;
-  }
-
-  // aviso de carga
-  Swal.fire({
-    title: 'Cargando…',
-    allowOutsideClick: false,
-    showConfirmButton: false,
-    didOpen: () => (Swal as any).showLoading()
-  });
-
-  // armo el payload
-  const payload: Matriz = {
-    id: this.editMode ? this.matrix.id : 0,
-    fecha: this.informe.fecha,
-    organizacionId: this.informe.organizacionId!,
-    direccion: this.informe.direccion,
-    rubro: this.informe.rubro,
-    razonSocial: this.informe.razonSocial,
-    items: [],
-    informe: JSON.stringify(this.informe)
-  };
-  this.groupedFactors.forEach(group =>
-    group.factors.forEach(fi =>
-      this.stages.forEach(st =>
-        st.actions.forEach(a => {
-          const val = fi.valuations[st.name][a] || '';
-          const itemId = this.editMode
-            ? (fi.originalItemIds[st.name]?.[a] ?? 0)
-            : 0;
-          payload.items.push({
-            id: itemId,
-            fechaAlta: this.informe.fecha,
-            organizacionId: this.informe.organizacionId!,
-            razonSocial: this.informe.razonSocial,
-            etapa: st.name,
-            naturaleza: val,
-            intensidad: 0, extension: 0, momento: 0,
-            persistencia: 0, reversivilidad: 0,
-            sinergia: 0, acumulacion: 0,
-            efecto: 0, periodicidad: 0,
-            recuperacion: 0, uip: 0,
-            accionId: this.getAccionId(a),
-            factorId: this.getFactorId(fi),
-            matrizId: payload.id,
-            factorSistema: fi.sistema,
-            factorSubsistema: fi.subsistema,
-            factorFactor: fi.factor,
-            factorComponente: fi.componente,
-            accionTipo: a,
-            magnitude: 0, importance: 0
-          });
-        })
-      )
-    )
-  );
-
-  console.log("📤 Payload.items a enviar:", payload.items);
-  
-  // llamada HTTP
-  const req$ = this.editMode
-    ? this.matrizService.updateMatriz(payload.id, payload)  // <— dos args
-    : this.matrizService.createMatriz(payload);
-
-  req$.subscribe({
-    next: () => {
-      Swal.close();
-      Swal.fire(
-        'Éxito',
-        this.editMode
-          ? 'Matriz actualizada correctamente'
-          : 'Matriz guardada correctamente',
-        'success'
-      ).then(() => {
-        if (this.editMode) this.saved.emit(payload);
-        else this.resetForm();
-      });
-    },
-    error: () => {
-      Swal.close();
-      Swal.fire(
-        'Error',
-        this.editMode
-          ? 'No se pudo actualizar la matriz'
-          : 'No se pudo guardar la matriz',
-        'error'
-      );
+    if (!this.informe.organizacionId) {
+      Swal.fire('Error', 'Debes seleccionar una organización', 'error');
+      return;
     }
-  });
-}
+
+    // aviso de carga
+    Swal.fire({
+      title: 'Cargando…',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => (Swal as any).showLoading()
+    });
+
+    // armo el payload
+    const payload: Matriz = {
+      id: this.editMode ? this.matrix.id : 0,
+      fecha: this.informe.fecha,
+      organizacionId: this.informe.organizacionId!,
+      direccion: this.informe.direccion,
+      rubro: this.informe.rubro,
+      razonSocial: this.informe.razonSocial,
+      items: [],
+      informe: JSON.stringify(this.informe)
+    };
+    this.groupedFactors.forEach(group =>
+      group.factors.forEach(fi =>
+        this.stages.forEach(st =>
+          st.actions.forEach(a => {
+            const val = fi.valuations[st.name][a] || '';
+            const itemId = this.editMode
+              ? (fi.originalItemIds[st.name]?.[a] ?? 0)
+              : 0;
+            payload.items.push({
+              id: itemId,
+              fechaAlta: this.informe.fecha,
+              organizacionId: this.informe.organizacionId!,
+              razonSocial: this.informe.razonSocial,
+              etapa: st.name,
+              naturaleza: val,           // aquí usamos tu variable original
+              accionId: this.getAccionId(a),
+              factorId: this.getFactorId(fi),
+              matrizId: payload.id,
+              factorSistema: fi.sistema,
+              factorSubsistema: fi.subsistema,
+              factorFactor: fi.factor,  
+              factorComponente: fi.componente,
+              accionTipo: a
+            });
+          })
+        )
+      )
+    );
+
+    console.log("📤 Payload.items a enviar:", payload.items);
+
+    // llamada HTTP
+    const req$ = this.editMode
+      ? this.matrizService.updateMatriz(payload.id, payload)  // <— dos args
+      : this.matrizService.createMatriz(payload);
+
+    req$.subscribe({
+      next: () => {
+        Swal.close();
+        Swal.fire(
+          'Éxito',
+          this.editMode
+            ? 'Matriz actualizada correctamente'
+            : 'Matriz guardada correctamente',
+          'success'
+        ).then(() => {
+          if (this.editMode) this.saved.emit(payload);
+          else this.resetForm();
+        });
+      },
+      error: () => {
+        Swal.close();
+        Swal.fire(
+          'Error',
+          this.editMode
+            ? 'No se pudo actualizar la matriz'
+            : 'No se pudo guardar la matriz',
+          'error'
+        );
+      }
+    });
+  }
 
 
   getStageClass(name: string) {
@@ -467,18 +461,18 @@ onSubmit() {
   }
 
   // al final de la clase MatrizCausaEfectoV1Component
-shouldShowClasificacion(index: number): boolean {
-  return index === 0 || this.factors[index].sistema !== this.factors[index - 1].sistema;
-}
-
-getRowSpan(index: number): number {
-  let count = 1;
-  const current = this.factors[index].sistema;
-  for (let i = index + 1; i < this.factors.length; i++) {
-    if (this.factors[i].sistema === current) count++;
-    else break;
+  shouldShowClasificacion(index: number): boolean {
+    return index === 0 || this.factors[index].sistema !== this.factors[index - 1].sistema;
   }
-  return count;
-}
+
+  getRowSpan(index: number): number {
+    let count = 1;
+    const current = this.factors[index].sistema;
+    for (let i = index + 1; i < this.factors.length; i++) {
+      if (this.factors[i].sistema === current) count++;
+      else break;
+    }
+    return count;
+  }
 
 }

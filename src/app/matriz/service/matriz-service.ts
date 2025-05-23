@@ -6,8 +6,6 @@ import { catchError } from 'rxjs/operators';
 import { ItemUIPUpdateDTO } from '../matriz-ponderacion/ponderacion-matriz.component';
 import { environment } from '../../../environments/environment';
 import { Matriz } from '../models/matriz';
-import { Organizacion } from '../../organizacion/models/organizacion.model';
-
 
 @Injectable({
   providedIn: 'root'

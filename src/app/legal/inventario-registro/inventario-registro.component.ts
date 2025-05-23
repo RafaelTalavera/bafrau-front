@@ -46,6 +46,8 @@ export class InventarioRegistroComponent implements OnInit {
   editMode = false;
   currentControlId: number | null = null;
 
+   filterRazon: string = '';
+
   constructor(
     private controlService: ControlService,
     private organizacionService: OrganizacionService,
@@ -61,6 +63,17 @@ export class InventarioRegistroComponent implements OnInit {
         this.juridiccionesUnicas = Array.from(new Set(docs.map(d => d.juridiccion)));
       },
       error: err => console.error('Error al cargar documentos', err)
+    });
+  }
+
+   get filteredControles(): ControlDTO[] {
+    if (!this.filterRazon) {
+      return this.controles;
+    }
+    const term = this.filterRazon.toLowerCase();
+    return this.controles.filter(c => {
+      const org = this.organizaciones.find(o => o.id === c.organizacionId);
+      return org?.razonSocial.toLowerCase().includes(term);
     });
   }
 
@@ -88,6 +101,7 @@ export class InventarioRegistroComponent implements OnInit {
       documentoId: 0,
       controlId: this.controlForm.id,
       vencimiento: '',
+      diasNotificacion: 60,
       listMail: [],
       observaciones: null,
       nombre: '',
@@ -130,6 +144,7 @@ export class InventarioRegistroComponent implements OnInit {
       items: this.controlForm.items.map(i => ({
         documentoId: i.documentoId,
         vencimiento: i.vencimiento,
+        diasNotificacion: i.diasNotificacion,
         listMail: i.listMail,
         observaciones: i.observaciones ?? '',
         nombre: i.nombre,
@@ -210,9 +225,9 @@ export class InventarioRegistroComponent implements OnInit {
           <strong>Nombre:</strong> ${i.nombre}<br>
           <strong>Jurisdicción:</strong> ${i.juridiccion}<br>
           <strong>Vencimiento:</strong> ${i.vencimiento}<br>
+           <strong>Aviso:</strong> ${i.diasNotificacion}<br>
           <strong>Mails:</strong> ${i.listMail.join(', ')}<br>
           <strong>Observaciones:</strong> ${i.observaciones ?? '–'}<br>
-          <strong>Obs. Documento:</strong> ${i.observacionesDocumento ?? '–'}
         </div>
       `).join('');
 
