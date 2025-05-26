@@ -2,8 +2,10 @@
 import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
   EventEmitter,
-  OnInit
+  OnInit,
+  ViewChild
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -15,6 +17,7 @@ import { MatrizService } from '../service/matriz-service';
 import { Matriz } from '../models/matriz';
 import { FactorView, MatrizBuilderUnifiedService, Stage } from '../service/matriz-builder-unified.service';
 import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
+import html2canvas from 'html2canvas';
 
 
 
@@ -38,6 +41,7 @@ import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-c
   styleUrls: ['./matriz-causa-efecto-v1-visualizacion.component.css']
 })
 export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
+  @ViewChild('matrizVisualizacion') matrizVisualizacion!: ElementRef<HTMLDivElement>;
   matrices: Matriz[] = [];
   selectedMatrix: Matriz | null = null;
   factors: FactorView[] = [];
@@ -54,6 +58,22 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     private matrizService: MatrizService,
     private http: HttpClient
   ) {}
+
+    /** Descarga la visualización como JPG */
+  downloadAsJpg(): void {
+    if (!this.matrizVisualizacion) return;
+    html2canvas(this.matrizVisualizacion.nativeElement, { scale: 2 })
+      .then(canvas => {
+        const link = document.createElement('a');
+        link.download = `matriz-${this.selectedMatrix?.id || 'view'}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+      })
+      .catch(err => {
+        console.error('Error capturando la imagen:', err);
+        Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+      });
+  }
 
   ngOnInit(): void {
     this.loadMatrices();

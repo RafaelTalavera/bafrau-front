@@ -11,6 +11,8 @@ import { MatrizService } from '../service/matriz-service';
 import { AdditionalFieldOptions } from '../constants/additional-flied-options';
 import { Router } from '@angular/router';
 import { AdditionalFields, FactorView, MatrizBuilderUnifiedService, Stage } from '../service/matriz-builder-unified.service';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 Chart.register(...registerables);
 
@@ -30,6 +32,9 @@ interface FactorSummary {
 export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   matrices: Matriz[] = [];
   selectedMatrix: Matriz | null = null;
+
+  @ViewChild('matrizVisualizacion', { static: false })
+  matrizVisualizacion!: ElementRef<HTMLDivElement>;
 
   factors: FactorView[] = [];
   stages: Stage[] = [];
@@ -57,10 +62,10 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   irtChart?: Chart;
   actionsChart?: Chart;
 
-   // ← Banderas de carga
-   loadingList: boolean = false;
-   loadingDetail: boolean = false;
- 
+  // ← Banderas de carga
+  loadingList: boolean = false;
+  loadingDetail: boolean = false;
+
 
   @ViewChild('irtBarChart') irtBarChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('irtActionsChart') irtActionsChartRef!: ElementRef<HTMLCanvasElement>;
@@ -70,6 +75,59 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     private matrizService: MatrizService,
     private gridBuilder: MatrizBuilderUnifiedService
   ) { }
+
+
+  downloadAsJpg(): void {
+    if (!this.matrizVisualizacion) return;
+    const el = this.matrizVisualizacion.nativeElement;
+
+    // Guardar estilos originales
+    const orig = {
+      height: el.style.height,
+      width: el.style.width,
+      overflow: el.style.overflow
+    };
+
+    // Expandir para mostrar todo contenido
+    el.style.height = el.scrollHeight + 'px';
+    el.style.width = el.scrollWidth + 'px';
+    el.style.overflow = 'visible';
+
+    html2canvas(el, { scale: 2 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `matriz-${this.selectedMatrix?.id || 'view'}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.click();
+    }).catch(err => {
+      console.error('Error generando imagen:', err);
+      Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+    }).finally(() => {
+      // Restaurar estilos
+      el.style.height = orig.height;
+      el.style.width = orig.width;
+      el.style.overflow = orig.overflow;
+    });
+  }
+
+  /** Descarga el gráfico IRT como JPG */
+  downloadIrtChart(): void {
+    if (!this.irtChart) return;
+    const url = this.irtChart.toBase64Image('image/jpeg', 0.9);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `irt-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
+    link.click();
+  }
+
+  /** Descarga el gráfico de Acciones como JPG */
+  downloadActionsChart(): void {
+    if (!this.actionsChart) return;
+    const url = this.actionsChart.toBase64Image('image/jpeg', 0.9);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `actions-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
+    link.click();
+  }
 
   ngOnInit(): void {
     this.loadMatrices();
@@ -98,21 +156,21 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     );
   }
 
- // matriz-impactos.component.ts
- viewDetails(matrix: Matriz): void {
-  this.loadingDetail = true;  // inicia spinner detalle
-  this.matrizService.getMatrizById(matrix.id).subscribe(
-    fullMatrix => {
-      this.selectedMatrix = fullMatrix;
-      this.buildGrid(fullMatrix);
-      this.loadingDetail = false;  // detiene spinner detalle
-    },
-    err => {
-      console.error('No pudo cargar detalle:', err);
-      this.loadingDetail = false;  // detiene spinner detalle
-    }
-  );
-}
+  // matriz-impactos.component.ts
+  viewDetails(matrix: Matriz): void {
+    this.loadingDetail = true;  // inicia spinner detalle
+    this.matrizService.getMatrizById(matrix.id).subscribe(
+      fullMatrix => {
+        this.selectedMatrix = fullMatrix;
+        this.buildGrid(fullMatrix);
+        this.loadingDetail = false;  // detiene spinner detalle
+      },
+      err => {
+        console.error('No pudo cargar detalle:', err);
+        this.loadingDetail = false;  // detiene spinner detalle
+      }
+    );
+  }
 
   backToList(): void {
     this.selectedMatrix = null;
@@ -128,42 +186,41 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     this.irtChart = this.actionsChart = undefined;
   }
 
-// Dentro de MatrizImpactosComponent:
-// Dentro de MatrizImpactosComponent:
-buildGrid(matriz: Matriz): void {
-  // 1) Reiniciar resúmenes
-  this.topThreePosIRTs = [];
-  this.topThreeNegIRTs = [];
+  // Dentro de MatrizImpactosComponent:
+  buildGrid(matriz: Matriz): void {
+    // 1) Reiniciar resúmenes
+    this.topThreePosIRTs = [];
+    this.topThreeNegIRTs = [];
 
-  // 2) Obtener datos del servicio (ya vienen ordenados)
-  const items = matriz.items;
-  const { factors, stages, valuationsMap, additionalMap } =
-    this.gridBuilder.buildGrid(items);
+    // 2) Obtener datos del servicio (ya vienen ordenados)
+    const items = matriz.items;
+    const { factors, stages, valuationsMap, additionalMap } =
+      this.gridBuilder.buildGrid(items);
 
-  // 3) Asignar directamente (sin .sort extra)
-  this.factors       = factors;
-  this.stages        = stages;
-  this.valuationsMap = valuationsMap;
-  this.additionalMap = additionalMap;
+    // 3) Asignar directamente (sin .sort extra)
+    this.factors = factors;
+    this.stages = stages;
+    this.valuationsMap = valuationsMap;
+    this.additionalMap = additionalMap;
 
-  // 4) Inicializar estado de desplegado
-  this.expandedFactors = Object.fromEntries(
-    this.factors.map(f => [ f.id.toString(), false ])
-  );
+    // 4) Inicializar estado de desplegado
+    this.expandedFactors = Object.fromEntries(
+      this.factors.map(f => [f.id.toString(), false])
+    );
 
-  // 5) Inyectar el UIP real en additionalMap
-  items.forEach(item => {
-    const bucket = this.additionalMap[item.factorId]?.[item.etapa]?.[item.accionTipo];
-    if (bucket) bucket.uip = item.uip ?? 0;
-  });
+    // 5) Inyectar el UIP real en additionalMap
+    items.forEach(item => {
+      const bucket = this.additionalMap[item.factorId]?.[item.etapa]?.[item.accionTipo];
+      if (bucket) bucket.uip = item.uip ?? 0;
+    });
 
-  // 6) Calcular resúmenes y dibujar gráficas
-  this.computeSummaryIRTs();
-  setTimeout(() => {
-    this.createBarChart();
-    this.createBarChartActions();
-  }, 100);
-}
+    // 6) Calcular resúmenes y dibujar gráficas
+    this.computeSummaryIRTs();
+    setTimeout(() => {
+      this.createBarChart();
+      this.createBarChartActions();
+    }, 100);
+  }
 
 
   toggleNumericView(): void {
@@ -175,122 +232,228 @@ buildGrid(matriz: Matriz): void {
       return [];
     }
     return this.selectedMatrix.items.map(item => ({
-      id:               item.id,
-      etapa:            item.etapa,
-      intensidad:       item.intensidad,
-      extension:        item.extension,
-      momento:          item.momento,
-      persistencia:     item.persistencia,
-      reversivilidad:   item.reversivilidad,
-      sinergia:         item.sinergia,
-      acumulacion:      item.acumulacion,
-      efecto:           item.efecto,
-      periodicidad:     item.periodicidad,
-      recuperacion:     item.recuperacion,
-      uip:              item.uip,
-      magnitude:        item.magnitude,
-      importance:       item.importance
+      id: item.id,
+      etapa: item.etapa,
+      intensidad: item.intensidad,
+      extension: item.extension,
+      momento: item.momento,
+      persistencia: item.persistencia,
+      reversivilidad: item.reversivilidad,
+      sinergia: item.sinergia,
+      acumulacion: item.acumulacion,
+      efecto: item.efecto,
+      periodicidad: item.periodicidad,
+      recuperacion: item.recuperacion,
+      uip: item.uip,
+      magnitude: item.magnitude,
+      importance: item.importance
     }));
   }
 
-  showNumericPopup(): void {
-    if (!this.selectedMatrix) {
-      Swal.fire('Atención', 'No hay ninguna matriz seleccionada.', 'warning');
-      return;
-    }
-  
-    const rows = this.selectedMatrix.items.map(item => `
-      <tr>
-        <td>${item.factorSistema}</td>
-        <td>${item.factorSubsistema}</td>
-        <td>${item.factorComponente ?? ''}</td>
-        <td>${item.factorFactor}</td>
-        <td>${item.etapa}</td>
-        <td>${item.accionTipo}</td>
-        <td>${item.intensidad}</td>
-        <td>${item.extension}</td>
-        <td>${item.momento}</td>
-        <td>${item.persistencia}</td>
-        <td>${item.reversivilidad}</td>
-        <td>${item.sinergia}</td>
-        <td>${item.acumulacion}</td>
-        <td>${item.efecto}</td>
-        <td>${item.periodicidad}</td>
-        <td>${item.recuperacion}</td>
-        <td>${item.uip}</td>
-        <td>${item.magnitude}</td>
-        <td>${item.importance}</td>
-      </tr>
-    `).join('');
-  
-    const htmlTable = `
-      <div style="overflow:auto; max-height:60vh; font-size:10px;">
-        <table style="width:100%; border-collapse:collapse; font-size:10px;">
-          <thead>
-            <tr>
-              <th>Sistema</th><th>Subsistema</th><th>Componente</th><th>Factor</th>
-              <th>Etapa</th><th>Acción</th>
-              <th>Int</th><th>Ext</th><th>Mo</th><th>Per</th><th>Rev</th>
-              <th>Sin</th><th>Acu</th><th>Efe</th><th>Peri</th><th>Recu</th>
-              <th>UIP</th><th>Magn</th><th>Imp</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    `;
-  
-    Swal.fire({
-      title: 'Matriz Numérica',
-      html: htmlTable,
-      width: '95%',
-      showCloseButton: true,
-      focusConfirm: false,
-      confirmButtonText: 'Cerrar'
-    });
+
+ showNumericPopup(): void {
+  if (!this.selectedMatrix) {
+    Swal.fire('Atención', 'No hay ninguna matriz seleccionada.', 'warning');
+    return;
   }
-  
-  
+
+  // 1) Orden de etapas
+  const etapaOrder = [
+    'Construcción',
+    'Operación y mantenimiento',
+    'Cierre',
+    'Comunes'
+  ];
+
+  // 2) Clonar y ordenar items
+  const sortedItems = [...this.selectedMatrix.items].sort((a, b) => {
+    const ia = etapaOrder.indexOf(a.etapa);
+    const ib = etapaOrder.indexOf(b.etapa);
+    return (ia - ib) || 0;
+  });
+
+  // 3) Generar filas
+  const rows = sortedItems.map(item => `
+    <tr>
+      <td>${item.factorSistema}</td>
+      <td>${item.factorSubsistema}</td>
+      <td>${item.factorComponente ?? ''}</td>
+      <td>${item.factorFactor}</td>
+      <td>${item.etapa}</td>
+      <td>${item.accionTipo}</td>
+      <td>${item.intensidad}</td>
+      <td>${item.extension}</td>
+      <td>${item.momento}</td>
+      <td>${item.persistencia}</td>
+      <td>${item.reversivilidad}</td>
+      <td>${item.sinergia}</td>
+      <td>${item.acumulacion}</td>
+      <td>${item.efecto}</td>
+      <td>${item.periodicidad}</td>
+      <td>${item.recuperacion}</td>
+      <td>${item.uip}</td>
+      <td>${item.magnitude}</td>
+      <td>${item.importance}</td>
+    </tr>
+  `).join('');
+
+  const htmlTable = `
+    <div id="numericTable"
+         style="overflow:auto; max-height:60vh; max-width:95vw; font-size:10px;">
+      <table style="width:100%; border-collapse:collapse; font-size:10px;">
+        <thead>
+          <tr>
+            <th>Sistema</th><th>Subsistema</th><th>Componente</th><th>Factor</th>
+            <th>Etapa</th><th>Acción</th>
+            <th>Int</th><th>Ext</th><th>Mo</th><th>Per</th><th>Rev</th>
+            <th>Sin</th><th>Acu</th><th>Efe</th><th>Peri</th><th>Recu</th>
+            <th>UIP</th><th>Magn</th><th>Imp</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+
+  Swal.fire({
+    title: 'Matriz Numérica',
+    html: htmlTable,
+    width: '95%',
+    showCloseButton: true,
+    focusConfirm: false,
+    confirmButtonText: 'Cerrar',
+    footer: '<button id="downloadPdf" class="swal2-confirm swal2-styled">Descargar PDF</button>',
+    didRender: () => {
+      document.getElementById('downloadPdf')?.addEventListener('click', () => {
+        const el = document.getElementById('numericTable')!;
+        // Guardar estilos originales
+        const orig = {
+          height:    el.style.height,
+          width:     el.style.width,
+          maxHeight: el.style.maxHeight,
+          maxWidth:  el.style.maxWidth,
+          overflow:  el.style.overflow
+        };
+        // Expandir contenido
+        el.style.height    = el.scrollHeight + 'px';
+        el.style.width     = el.scrollWidth  + 'px';
+        el.style.maxHeight = 'none';
+        el.style.maxWidth  = 'none';
+        el.style.overflow  = 'visible';
+
+        html2canvas(el, { scale: 2 }).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          const pdf     = new jsPDF('l', 'pt', 'a4');
+          const pdfW    = pdf.internal.pageSize.getWidth();
+          const pdfH    = pdf.internal.pageSize.getHeight();
+          const margin  = 40;                  // margen en pts
+          const pageH   = pdfH - margin * 2;   // altura útil en pts
+          const imgW    = pdfW - margin * 2;
+          const imgH    = (canvas.height * imgW) / canvas.width;
+          const pxPerPt = canvas.width / imgW; // ratio px/pt
+          const slicePx = pageH * pxPerPt;
+
+          const logo = new Image();
+          logo.src   = 'assets/dist/img/logo-letras.png';
+          logo.onload = () => {
+            const logoW = 60; // ancho en pts
+            const logoH = (logo.height / logo.width) * logoW;
+            let remainingPt = imgH;
+            let srcYpx      = 0;
+
+            while (remainingPt > 0) {
+              // 1) Logo arriba a la derecha
+              pdf.addImage(
+                logo,
+                'PNG',
+                pdfW - margin - logoW,
+                margin / 2,
+                logoW,
+                logoH
+              );
+              // 2) Slice de tabla
+              const hPx = Math.min(slicePx, canvas.height - srcYpx);
+              const sliceCanv = document.createElement('canvas');
+              sliceCanv.width  = canvas.width;
+              sliceCanv.height = hPx;
+              const ctx = sliceCanv.getContext('2d')!;
+              ctx.drawImage(canvas, 0, srcYpx, canvas.width, hPx, 0, 0, canvas.width, hPx);
+              const sliceData = sliceCanv.toDataURL('image/png');
+              const slicePt   = hPx / pxPerPt;
+
+              // 3) Pintar slice debajo del logo
+              pdf.addImage(
+                sliceData,
+                'PNG',
+                margin,
+                margin + logoH + 10,
+                imgW,
+                slicePt
+              );
+
+              remainingPt -= pageH;
+              srcYpx      += hPx;
+              if (remainingPt > 0) pdf.addPage();
+            }
+
+            pdf.save(`matriz-numerica-${this.selectedMatrix!.id}.pdf`);
+          };
+        }).catch(err => {
+          console.error(err);
+          Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+        }).finally(() => {
+          // Restaurar estilos originales
+          el.style.height    = orig.height;
+          el.style.width     = orig.width;
+          el.style.maxHeight = orig.maxHeight;
+          el.style.maxWidth  = orig.maxWidth;
+          el.style.overflow  = orig.overflow;
+        });
+      });
+    }
+  });
+}
+
 
   toggleFactor(key: string): void {
     this.expandedFactors[key] = !this.expandedFactors[key];
   }
 
-updateAdditionalValues(): void {
-  if (!this.selectedMatrix?.id) return;
+  updateAdditionalValues(): void {
+    if (!this.selectedMatrix?.id) return;
 
-  this.factors.forEach(f => {
-    this.stages.forEach(st => {
-      st.actions.forEach(action => {
-        const add = this.additionalMap[f.id]?.[st.name]?.[action];
-        if (!add) return;
+    this.factors.forEach(f => {
+      this.stages.forEach(st => {
+        st.actions.forEach(action => {
+          const add = this.additionalMap[f.id]?.[st.name]?.[action];
+          if (!add) return;
 
-        const item = this.selectedMatrix!.items.find(i =>
-          i.factorId  === f.id &&
-          i.etapa      === st.name &&
-          i.accionTipo === action
-        );
-        if (!item) return;
+          const item = this.selectedMatrix!.items.find(i =>
+            i.factorId === f.id &&
+            i.etapa === st.name &&
+            i.accionTipo === action
+          );
+          if (!item) return;
 
-        // asignar valores…
-        item.intensidad     = add.intensidad;
-        item.extension      = add.extension;
-        item.momento        = add.momento;
-        item.persistencia   = add.persistencia;
-        item.reversivilidad = add.reversibilidad;
-        item.sinergia       = add.sinergia;
-        item.acumulacion    = add.acumulacion;
-        item.efecto         = add.efecto;
-        item.periodicidad   = add.periodicidad;
-        item.recuperacion   = add.recuperacion;
-        item.uip            = add.uip;
+          // asignar valores…
+          item.intensidad = add.intensidad;
+          item.extension = add.extension;
+          item.momento = add.momento;
+          item.persistencia = add.persistencia;
+          item.reversivilidad = add.reversibilidad;
+          item.sinergia = add.sinergia;
+          item.acumulacion = add.acumulacion;
+          item.efecto = add.efecto;
+          item.periodicidad = add.periodicidad;
+          item.recuperacion = add.recuperacion;
+          item.uip = add.uip;
 
-        // recalcular usando f.id (number)
-        item.magnitude  = this.calculateImpact(f.id, st.name, action);
-        item.importance = this.calculateImportanciaRelativaTotal(f.id, st.name, action);
+          // recalcular usando f.id (number)
+          item.magnitude = this.calculateImpact(f.id, st.name, action);
+          item.importance = this.calculateImportanciaRelativaTotal(f.id, st.name, action);
+        });
       });
     });
-  });
 
 
     this.matrizService.updateMatriz(this.selectedMatrix.id, this.selectedMatrix)
@@ -309,182 +472,202 @@ updateAdditionalValues(): void {
       );
   }
 
-// En tu componente, cambia la firma para usar factorId: number
-calculateImpact(factorId: number, stage: string, action: string): number {
-  const val = this.valuationsMap[factorId]?.[stage]?.[action]?.toLowerCase() || '';
-  const sign = val === 'positivo' 
-    ? 1 
-    : val === 'negativo' 
-      ? -1 
-      : 0;
-  const a = this.getAdditional(factorId, stage, action);
-  return sign * (
-    3 * a.intensidad +
-    2 * a.extension +
-    a.momento +
-    a.persistencia +
-    a.reversibilidad +
-    a.sinergia +
-    a.acumulacion +
-    a.efecto +
-    a.periodicidad +
-    a.recuperacion
-  );
-}
+  // En tu componente, cambia la firma para usar factorId: number
+  calculateImpact(factorId: number, stage: string, action: string): number {
+    const val = this.valuationsMap[factorId]?.[stage]?.[action]?.toLowerCase() || '';
+    const sign = val === 'positivo'
+      ? 1
+      : val === 'negativo'
+        ? -1
+        : 0;
+    const a = this.getAdditional(factorId, stage, action);
+    return sign * (
+      3 * a.intensidad +
+      2 * a.extension +
+      a.momento +
+      a.persistencia +
+      a.reversibilidad +
+      a.sinergia +
+      a.acumulacion +
+      a.efecto +
+      a.periodicidad +
+      a.recuperacion
+    );
+  }
 
 
-calculateImportanciaRelativaTotal(factorId: number, stage: string, action: string): number {
-  const impact = this.calculateImpact(factorId, stage, action);
-  const uip    = this.getAdditional(factorId, stage, action).uip;
-  return impact * (uip/1000);
-}
+  calculateImportanciaRelativaTotal(factorId: number, stage: string, action: string): number {
+    const impact = this.calculateImpact(factorId, stage, action);
+    const uip = this.getAdditional(factorId, stage, action).uip;
+    return impact * (uip / 1000);
+  }
 
-calculateImportanciaAbsolutaTotal(factorId: number): number {
-  let total = 0;
-  this.stages.forEach(st => {
-    Object
-      .keys(this.valuationsMap[factorId]?.[st.name] || {})
-      .forEach(ac => {
-        total += this.calculateImpact(factorId, st.name, ac);
-      });
-  });
-  return total;
-}
+  calculateImportanciaAbsolutaTotal(factorId: number): number {
+    let total = 0;
+    this.stages.forEach(st => {
+      Object
+        .keys(this.valuationsMap[factorId]?.[st.name] || {})
+        .forEach(ac => {
+          total += this.calculateImpact(factorId, st.name, ac);
+        });
+    });
+    return total;
+  }
 
-calculateImportanciaRelativaTotalFactor(factorId: number): number {
-  return this.selectedMatrix!.items
-    .filter(i => i.factorId === factorId)
-    .reduce((sum, i) =>
-      sum + this.calculateImpact(factorId, i.etapa, i.accionTipo) * (i.uip! / 1000)
-    , 0);
-}
-  
-
-getAdditional(factorId: number, stage: string, action: string): AdditionalFields {
-  this.additionalMap[factorId]          ||= {};
-  this.additionalMap[factorId][stage]   ||= {};
-  this.additionalMap[factorId][stage][action] ||= {
-    intensidad:   0,
-    extension:    0,
-    momento:      0,
-    persistencia: 0,
-    reversibilidad: 0,
-    sinergia:     0,
-    acumulacion:  0,
-    efecto:       0,
-    periodicidad: 0,
-    recuperacion: 0,
-    uip:          0
-  };
-  return this.additionalMap[factorId][stage][action];
-}
+  calculateImportanciaRelativaTotalFactor(factorId: number): number {
+    return this.selectedMatrix!.items
+      .filter(i => i.factorId === factorId)
+      .reduce((sum, i) =>
+        sum + this.calculateImpact(factorId, i.etapa, i.accionTipo) * (i.uip! / 1000)
+        , 0);
+  }
 
 
-getUIPValue(factorId: number): number {
-  const vals = Object.values(this.additionalMap[factorId] || {})
-    .flatMap(v => Object.values(v).map(a => a.uip));
-  return vals.length > 0 ? vals[0] : 0;
-}
-
-computeSummaryIRTs(): void {
-  const summary = this.factors.map(f => ({
-    factor: f.factor,
-    irt: this.calculateImportanciaRelativaTotalFactor(f.id),
-    actions: Object
-      .keys(this.valuationsMap[f.id] || {})
-      .flatMap(stage =>
-        Object.keys(this.valuationsMap[f.id][stage] || {})
-      )
-  }));
-
-  this.topThreePosIRTs = summary
-    .filter(i => i.irt >= 0)
-    .sort((a, b) => b.irt - a.irt)
-    .slice(0, 3);
-
-  this.topThreeNegIRTs = summary
-    .filter(i => i.irt < 0)
-    .sort((a, b) => a.irt - b.irt)
-    .slice(0, 3);
-}
+  getAdditional(factorId: number, stage: string, action: string): AdditionalFields {
+    this.additionalMap[factorId] ||= {};
+    this.additionalMap[factorId][stage] ||= {};
+    this.additionalMap[factorId][stage][action] ||= {
+      intensidad: 0,
+      extension: 0,
+      momento: 0,
+      persistencia: 0,
+      reversibilidad: 0,
+      sinergia: 0,
+      acumulacion: 0,
+      efecto: 0,
+      periodicidad: 0,
+      recuperacion: 0,
+      uip: 0
+    };
+    return this.additionalMap[factorId][stage][action];
+  }
 
 
-createBarChart(): void {
-  const labels: string[] = [];
-  const pos: number[] = [];
-  const neg: number[] = [];
+  getUIPValue(factorId: number): number {
+    const vals = Object.values(this.additionalMap[factorId] || {})
+      .flatMap(v => Object.values(v).map(a => a.uip));
+    return vals.length > 0 ? vals[0] : 0;
+  }
 
-  this.factors.forEach(f => {
-    // 1) Usamos f.id en lugar de f.key
-    const v = this.calculateImportanciaRelativaTotalFactor(f.id);
-    labels.push(f.factor);
-    if (v >= 0) {
-      pos.push(v);
-      neg.push(0);
+  computeSummaryIRTs(): void {
+    const summary = this.factors.map(f => ({
+      factor: f.factor,
+      irt: this.calculateImportanciaRelativaTotalFactor(f.id),
+      actions: Object
+        .keys(this.valuationsMap[f.id] || {})
+        .flatMap(stage =>
+          Object.keys(this.valuationsMap[f.id][stage] || {})
+        )
+    }));
+
+    this.topThreePosIRTs = summary
+      .filter(i => i.irt >= 0)
+      .sort((a, b) => b.irt - a.irt)
+      .slice(0, 3);
+
+    this.topThreeNegIRTs = summary
+      .filter(i => i.irt < 0)
+      .sort((a, b) => a.irt - b.irt)
+      .slice(0, 3);
+  }
+
+
+  createBarChart(): void {
+    const labels: string[] = [];
+    const pos: number[] = [];
+    const neg: number[] = [];
+
+    this.factors.forEach(f => {
+      const v = this.calculateImportanciaRelativaTotalFactor(f.id);
+      labels.push(f.factor);
+      if (v >= 0) { pos.push(v); neg.push(0); }
+      else { pos.push(0); neg.push(v); }
+    });
+
+    const ctx = this.irtBarChartRef.nativeElement.getContext('2d')!;
+    if (this.irtChart) {
+      this.irtChart.data.labels = labels;
+      this.irtChart.data.datasets![0].data = pos;
+      this.irtChart.data.datasets![1].data = neg;
+      this.irtChart.update();
     } else {
-      pos.push(0);
-      neg.push(v);
+      this.irtChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'IRT Positivos', data: pos },
+            { label: 'IRT Negativos', data: neg }
+          ]
+        },
+        // 1) Plugin local para fondo blanco
+        plugins: [{
+          id: 'whiteBackground',
+          beforeDraw: (chart) => {
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            ctx.restore();
+          }
+        }],
+        options: {
+          responsive: true
+        }
+      });
     }
-  });
-
-  const ctx = this.irtBarChartRef.nativeElement.getContext('2d')!;
-  if (this.irtChart) {
-    this.irtChart.data.labels = labels;
-    this.irtChart.data.datasets[0].data = pos;
-    this.irtChart.data.datasets[1].data = neg;
-    this.irtChart.update();
-  } else {
-    this.irtChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: 'IRT Positivos', data: pos },
-          { label: 'IRT Negativos', data: neg }
-        ]
-      },
-      options: { responsive: true }
-    });
   }
-}
 
+  createBarChartActions(): void {
+    const actions = Array.from(new Set(this.stages.flatMap(s => s.actions)));
+    const labels = this.factors.map(f => f.factor);
+    const datasets = actions.map(a => ({
+      label: a,
+      data: this.factors.map(f =>
+        this.stages.reduce((sum, st) =>
+          sum + (this.valuationsMap[f.id]?.[st.name]?.[a] !== undefined
+            ? this.calculateImpact(f.id, st.name, a)
+            : 0)
+          , 0)
+      )
+    }));
 
-createBarChartActions(): void {
-  const actions = Array.from(new Set(this.stages.flatMap(s => s.actions)));
-  const labels = this.factors.map(f => f.factor);
-  const datasets = actions.map(a => ({
-    label: a,
-    data: this.factors.map(f =>
-      this.stages.reduce((sum, st) =>
-        sum + (this.valuationsMap[f.id]?.[st.name]?.[a] !== undefined
-          ? this.calculateImpact(f.id, st.name, a)
-          : 0)
-      , 0)
-    )
-  }));
-
-  const ctx = this.irtActionsChartRef.nativeElement.getContext('2d')!;
-  if (this.actionsChart) {
-    this.actionsChart.data.labels = labels;
-    this.actionsChart.data.datasets = datasets;
-    this.actionsChart.update();
-  } else {
-    this.actionsChart = new Chart(ctx, {
-      type: 'bar',
-      data: { labels, datasets },
-      options: { responsive: true }
-    });
+    const ctx = this.irtActionsChartRef.nativeElement.getContext('2d')!;
+    if (this.actionsChart) {
+      this.actionsChart.data.labels = labels;
+      this.actionsChart.data.datasets = datasets;
+      this.actionsChart.update();
+    } else {
+      this.actionsChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        plugins: [{
+          id: 'whiteBackground',
+          beforeDraw: (chart) => {
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            ctx.restore();
+          }
+        }],
+        options: {
+          responsive: true
+        }
+      });
+    }
   }
-}
 
 
-getGroupUIPSum(sistema: string): number {
-  return this.factors
-    .filter(f => f.sistema === sistema)
-    .reduce((acc, f) =>
-      acc + this.getUIPValue(f.id)
-    , 0);
-}
+  getGroupUIPSum(sistema: string): number {
+    return this.factors
+      .filter(f => f.sistema === sistema)
+      .reduce((acc, f) =>
+        acc + this.getUIPValue(f.id)
+        , 0);
+  }
 
   getGroupImpactSum(sistema: string, st: string, ac: string): number {
     return this.factors.filter(f => f.sistema === sistema)
@@ -554,22 +737,22 @@ getGroupUIPSum(sistema: string): number {
   shouldShowTopThreePosIRTs(): boolean {
     return this.topThreePosIRTs.some(item => item.irt > 0);
   }
-  
-shouldShowIrtBarChart(): boolean {
-  return this.factors.some(f =>
-    this.calculateImportanciaRelativaTotalFactor(f.id) !== 0
-  );
-}
+
+  shouldShowIrtBarChart(): boolean {
+    return this.factors.some(f =>
+      this.calculateImportanciaRelativaTotalFactor(f.id) !== 0
+    );
+  }
 
 
-shouldShowIrtActionsChart(): boolean {
-  return this.factors.some(f =>
-    this.stages.some(st =>
-      st.actions.some(ac =>
-        this.calculateImpact(f.id, st.name, ac) !== 0
+  shouldShowIrtActionsChart(): boolean {
+    return this.factors.some(f =>
+      this.stages.some(st =>
+        st.actions.some(ac =>
+          this.calculateImpact(f.id, st.name, ac) !== 0
+        )
       )
-    )
-  );
-  
-}
+    );
+
+  }
 }

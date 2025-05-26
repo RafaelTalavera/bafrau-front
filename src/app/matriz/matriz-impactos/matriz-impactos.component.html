@@ -87,8 +87,15 @@
               {{ selectedMatrix.items[0].razonSocial || '—' }}
             </p>
 
+            <!-- Botón de descarga -->
+            <div class="mb-2">
+              <button class="btn btn-primary btn-sm" (click)="downloadAsJpg()">
+                <i class="fa-solid fa-download me-1"></i> Descargar JPG
+              </button>
+            </div>
+
             <!-- Tabla de Factores/Etapas/Acciones -->
-            <div *ngIf="factors.length > 0 && stages.length > 0" class="table-container">
+            <div #matrizVisualizacion *ngIf="factors.length > 0 && stages.length > 0" class="table-container">
               <style>
                 table thead th.stage-construccion {
                   background-color: #add8e6 !important;
@@ -419,12 +426,19 @@
             <div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
               <h3>Gráfico de Barras - IRT de cada Factor</h3>
               <canvas id="irtBarChart" #irtBarChart style="width: 100%; height: 400px;"></canvas>
+              <button class="btn btn-primary btn-sm mt-2" (click)="downloadIrtChart()">
+                <i class="fa-solid fa-download me-1"></i> Descargar JPG
+              </button>
+
             </div>
 
             <!-- Gráfico de Barras - IRT por Acciones y Factores -->
             <div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
               <h3>Gráfico de Barras - IRT por Acciones y Factores</h3>
               <canvas id="irtActionsChart" #irtActionsChart style="width: 100%; height: 400px;"></canvas>
+              <button class="btn btn-primary btn-sm mt-2" (click)="downloadActionsChart()">
+                <i class="fa-solid fa-download me-1"></i> Descargar JPG
+              </button>
             </div>
           </div>
         </div>

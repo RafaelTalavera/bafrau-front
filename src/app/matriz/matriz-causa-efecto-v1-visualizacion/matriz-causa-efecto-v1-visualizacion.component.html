@@ -1,5 +1,4 @@
 <!-- src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.html -->
-
 <body class="layout-fixed">
   <div class="wrapper">
     <app-nav></app-nav>
@@ -9,14 +8,11 @@
 
         <!-- LISTADO DE MATRICES -->
         <ng-container *ngIf="!selectedMatrix">
-          <!-- Spinner mientras carga la lista -->
           <div *ngIf="loadingList" class="d-flex justify-content-center my-4">
             <div class="spinner-border" role="status">
               <span class="visually-hidden">Cargando matrices...</span>
             </div>
           </div>
-
-          <!-- Filtro y tabla cuando termine de cargar -->
           <div *ngIf="!loadingList">
             <div class="filter-wrapper">
               <div class="input-row filter-container">
@@ -27,7 +23,6 @@
                 </div>
               </div>
             </div>
-
             <div *ngIf="filteredMatrices.length === 0">
               <p class="small-text">No hay matrices registradas.</p>
             </div>
@@ -69,14 +64,11 @@
 
         <!-- DETALLE DE UNA MATRIZ -->
         <ng-container *ngIf="selectedMatrix">
-          <!-- Spinner mientras carga el detalle -->
           <div *ngIf="loadingDetail" class="d-flex justify-content-center my-4">
             <div class="spinner-border" role="status">
               <span class="visually-hidden">Cargando detalle...</span>
             </div>
           </div>
-
-          <!-- Contenido de detalle cuando termine de cargar -->
           <div *ngIf="!loadingDetail">
             <div class="input-row mb-2">
               <button *ngIf="!editMode" class="btn btn-warning btn-sm me-2" (click)="enableEdit()">
@@ -92,30 +84,32 @@
             </app-matriz-causa-efecto-v1>
 
             <div *ngIf="!editMode">
-              <!-- Datos generales -->
               <p class="small-text">
                 <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
               </p>
               <p class="small-text">
-                <strong>Organización:</strong>
-                {{ getOrganization(selectedMatrix) }}
+                <strong>Organización:</strong> {{ getOrganization(selectedMatrix) }}
               </p>
 
-              <!-- Grilla de la matriz -->
-              <div *ngIf="factors.length && stages.length" class="table-container">
+              <!-- Botón de descarga -->
+              <div class="mb-2">
+                <button class="btn btn-primary btn-sm" (click)="downloadAsJpg()">
+                  <i class="fa-solid fa-download me-1"></i> Descargar JPG
+                </button>
+              </div>
+
+              <!-- Grilla de la matriz con referencia para html2canvas -->
+              <div #matrizVisualizacion *ngIf="factors.length && stages.length" class="table-container">
                 <style>
                   table thead th.stage-construccion {
                     background-color: #add8e6 !important;
                   }
-
                   table thead th.stage-funcionamiento {
                     background-color: #ffa500 !important;
                   }
-
                   table thead th.stage-abandono {
                     background-color: #ff0000 !important;
                   }
-
                   table thead th.stage-comunes {
                     background-color: #ee82ee !important;
                   }
@@ -134,9 +128,7 @@
                     </tr>
                     <tr>
                       <ng-container *ngFor="let st of stages">
-                        <th *ngFor="let action of st.actions">
-                          {{ action }}
-                        </th>
+                        <th *ngFor="let action of st.actions">{{ action }}</th>
                       </ng-container>
                     </tr>
                   </thead>
@@ -148,20 +140,16 @@
                       <td>{{ factor.subsistema }}</td>
                       <td>{{ factor.factor }}</td>
                       <td>{{ factor.componente }}</td>
-   <ng-container *ngFor="let st of stages">
-  <td *ngFor="let action of st.actions"
-      [ngClass]="{
-        'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
-        'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
-        'cell-neutral' : valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
-      }">
-    <!-- valoración o “—” -->
-    {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
-    <!-- si existe, muestro el ID -->
-
-  </td>
-</ng-container>
-
+                      <ng-container *ngFor="let st of stages">
+                        <td *ngFor="let action of st.actions"
+                            [ngClass]="{
+                              'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
+                              'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
+                              'cell-neutral': valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
+                            }">
+                          {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+                        </td>
+                      </ng-container>
                     </tr>
                   </tbody>
                 </table>
