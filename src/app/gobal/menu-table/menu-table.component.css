@@ -1,0 +1,63 @@
+/* Aplica la imagen al contenedor completo */
+.content-wrapper {
+  position: relative;
+  overflow: hidden;
+  /* quitamos cualquier background-image directo aquí */
+  background: none;
+}
+
+/* Pseudo‐elemento como “marca de agua” */
+.content-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;                             /* top/right/bottom/left = 0 */
+  background-image: url("/assets/dist/img/fondo.jpg");
+
+
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.30;                         /* 10% opaco, 90% transparente */
+  pointer-events: none;                 /* no bloquea clicks */
+  z-index: -1;                          /* detrás de todo */
+}
+
+
+/* Tarjetas sin imagen de fondo */
+.dashboard-card {
+  background-color: rgba(255,255,255,0.3);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0.5rem 0;
+  opacity: 0.9;
+    backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
+  
+}
+.dashboard-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+}
+
+/* Espaciado del icono */
+.nav-icon {
+  margin-right: 0.75rem;
+}
+
+/* Ajustes de texto */
+.card-body h5 {
+  font-weight: 600;
+}
+.list-unstyled li a {
+  font-size: 0.95rem;
+}
+
+/* Utilería de margen */
+.m-8 {
+  margin: 6rem !important;
+}
+

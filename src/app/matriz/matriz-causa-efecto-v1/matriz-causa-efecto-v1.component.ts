@@ -6,7 +6,8 @@ import {
   SimpleChanges,
   Input,
   Output,
-  EventEmitter
+  EventEmitter,
+  ChangeDetectorRef
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -25,6 +26,9 @@ import { Router } from '@angular/router';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
 
 import { MatrizBuilderUnifiedService } from '../service/matriz-builder-unified.service';
+import { SpinnerComponent } from '../../utils/spinner/spinner.component';
+import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 interface Stage {
   name: string;
@@ -46,12 +50,29 @@ interface FactorItem {
   selector: 'app-matriz-causa-efecto-v1',
   standalone: true,
   providers: [MatrizService],
-  imports: [CommonModule, FormsModule, HttpClientModule, NavComponent, FooterComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    HttpClientModule,
+    NavComponent,
+    FooterComponent,
+    SpinnerComponent
+  ],
   templateUrl: './matriz-causa-efecto-v1.component.html',
   styleUrls: ['./matriz-causa-efecto-v1.component.css']
 })
 export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
-  @Input() matrix!: Matriz;
+  @Input() matrix: Matriz = {
+    id: 0,
+    fecha: '',
+    organizacionId: 0,
+    direccion: '',
+    rubro: '',
+    razonSocial: '',
+    items: [],
+    informe: ''
+  };
+
   @Input() editMode = false;
   @Output() saved = new EventEmitter<Matriz>();
 
@@ -84,6 +105,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   nuevoComponente = '';
   nuevaEtapa = '';
   gridService2: any;
+  loading = false;
 
   constructor(
     private router: Router,
@@ -92,14 +114,32 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     private matrizService: MatrizService,
     private factorService: FactorService,
     private accionService: AccionService,
+      private cd: ChangeDetectorRef   
   ) { }
 
-  ngOnInit() {
-    this.factorService.findAll().subscribe(f => this.availableFactors = f);
-    this.accionService.findAll().subscribe(a => this.availableActions = a);
-    this.obtenerOrganizaciones();
-  }
 
+  ngOnInit(): void {
+    this.loading = true;
+
+    // 2) ForkJoin de los tres observables
+    forkJoin({
+      factors: this.factorService.findAll(),
+      acciones: this.accionService.findAll(),
+      orgs: this.organizacionService.getOrganizacionesAuditoriaAmbiental()
+    }).subscribe({
+      next: ({ factors, acciones, orgs }) => {
+        // 3) Asignás directamente arrays no indefinidos
+        this.availableFactors = factors;
+        this.availableActions = acciones;
+        this.organizaciones = orgs;
+        this.loading = false;
+      },
+      error: err => {
+        console.error('Error al cargar datos:', err);
+        this.loading = false;
+      }
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if ((changes['matrix'] || changes['editMode']) && this.matrix && this.editMode) {
@@ -345,73 +385,83 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
     this.updateGroupedFactors();
   }
 
-  onSubmit() {
+onSubmit() {
+  const originalItems = this.matrix?.items ?? [];
+  if (!this.informe.organizacionId) {
+    Swal.fire('Error', 'Debes seleccionar una organización', 'error');
+    return;
+  }
 
-    console.log("📥 Items originales (matrix.items):", this.matrix.items);
+  // 1) Arranco el spinner
+  this.loading = true;
 
-    if (!this.informe.organizacionId) {
-      Swal.fire('Error', 'Debes seleccionar una organización', 'error');
-      return;
-    }
+  // 2) Armo el payload
+  const payload: Matriz = {
+    id: this.editMode ? this.matrix.id : 0,
+    fecha: this.informe.fecha,
+    organizacionId: this.informe.organizacionId!,
+    direccion: this.informe.direccion,
+    rubro: this.informe.rubro,
+    razonSocial: this.informe.razonSocial,
+    items: [],
+    informe: JSON.stringify(this.informe)
+  };
 
-    // aviso de carga
-    Swal.fire({
-      title: 'Cargando…',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => (Swal as any).showLoading()
-    });
+  this.groupedFactors.forEach(group =>
+    group.factors.forEach(fi =>
+      this.stages.forEach(st =>
+        st.actions.forEach(a => {
+          const val = fi.valuations[st.name][a] || '';
+          const itemId = this.editMode
+            ? (fi.originalItemIds[st.name]?.[a] ?? 0)
+            : 0;
+          const original = this.editMode
+            ? this.matrix.items.find(it => it.id === itemId)
+            : undefined;
 
-    // armo el payload
-    const payload: Matriz = {
-      id: this.editMode ? this.matrix.id : 0,
-      fecha: this.informe.fecha,
-      organizacionId: this.informe.organizacionId!,
-      direccion: this.informe.direccion,
-      rubro: this.informe.rubro,
-      razonSocial: this.informe.razonSocial,
-      items: [],
-      informe: JSON.stringify(this.informe)
-    };
-    this.groupedFactors.forEach(group =>
-      group.factors.forEach(fi =>
-        this.stages.forEach(st =>
-          st.actions.forEach(a => {
-            const val = fi.valuations[st.name][a] || '';
-            const itemId = this.editMode
-              ? (fi.originalItemIds[st.name]?.[a] ?? 0)
-              : 0;
-            payload.items.push({
-              id: itemId,
-              fechaAlta: this.informe.fecha,
-              organizacionId: this.informe.organizacionId!,
-              razonSocial: this.informe.razonSocial,
-              etapa: st.name,
-              naturaleza: val,           // aquí usamos tu variable original
-              accionId: this.getAccionId(a),
-              factorId: this.getFactorId(fi),
-              matrizId: payload.id,
-              factorSistema: fi.sistema,
-              factorSubsistema: fi.subsistema,
-              factorFactor: fi.factor,  
-              factorComponente: fi.componente,
-              accionTipo: a
-            });
-          })
-        )
+          const newItem: ItemMatriz = {
+            ...(original ?? {} as ItemMatriz),
+            id: itemId,
+            fechaAlta: this.informe.fecha,
+            organizacionId: this.informe.organizacionId!,
+            razonSocial: this.informe.razonSocial,
+            etapa: st.name,
+            naturaleza: val,
+            accionId: this.getAccionId(a),
+            factorId: this.getFactorId(fi),
+            matrizId: payload.id,
+            factorSistema: fi.sistema,
+            factorSubsistema: fi.subsistema,
+            factorFactor: fi.factor,
+            factorComponente: fi.componente,
+            accionTipo: a
+          };
+
+          payload.items.push(newItem);
+        })
       )
-    );
+    )
+  );
 
-    console.log("📤 Payload.items a enviar:", payload.items);
+  // 3) Llamada al servicio
+  const req$ = this.editMode
+    ? this.matrizService.updateMatriz(payload.id, payload)
+    : this.matrizService.createMatriz(payload);
 
-    // llamada HTTP
-    const req$ = this.editMode
-      ? this.matrizService.updateMatriz(payload.id, payload)  // <— dos args
-      : this.matrizService.createMatriz(payload);
-
-    req$.subscribe({
+  req$
+    .pipe(
+      finalize(() => {
+        // En caso de error o after complete, aseguro spinner false
+        this.loading = false;
+        this.cd.detectChanges();
+      })
+    )
+    .subscribe({
       next: () => {
-        Swal.close();
+        // 4) Corto el spinner YA antes de mostrar el Swal
+        this.loading = false;
+        this.cd.detectChanges();
+
         Swal.fire(
           'Éxito',
           this.editMode
@@ -424,7 +474,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
         });
       },
       error: () => {
-        Swal.close();
+        // spinner ya cortado en finalize()
         Swal.fire(
           'Error',
           this.editMode
@@ -434,8 +484,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
         );
       }
     });
-  }
-
+}
 
   getStageClass(name: string) {
     const l = name.toLowerCase();

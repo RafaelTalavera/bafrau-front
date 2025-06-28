@@ -7,10 +7,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   standalone: true,
-  imports: [RouterModule, 
-           MatProgressBarModule,  
-          ]
+  imports: [RouterModule,
+    MatProgressBarModule,
+  ]
 })
 export class AppComponent {
   title = 'bafrau';
 }
+[]

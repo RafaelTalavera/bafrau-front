@@ -25,6 +25,7 @@ export class ResiduoInventarioComponent implements OnInit {
   inventarioForm: Inventario = {
     fecha: '',
     organizacionId: 0,
+    contrato: '',
     razonSocial:'',
     items: []
   };
@@ -41,6 +42,7 @@ export class ResiduoInventarioComponent implements OnInit {
   editMode = false;
   currentInventarioId: number|null = null;
   errorMessage = '';
+  rrppList: string[] = [];
 
   constructor(
     private inventarioService: InventarioService,
@@ -79,7 +81,6 @@ export class ResiduoInventarioComponent implements OnInit {
     this.residuoService.findAll().subscribe(
       data => {
         this.allCorrientes = data;
-        console.log('Corrientes cargadas:', this.allCorrientes);
       },
       error => console.error('Error al obtener corrientes:', error)
     );
@@ -119,7 +120,7 @@ export class ResiduoInventarioComponent implements OnInit {
       c.juridiccion === this.selectedJuridiccion
     );
     this.selectedCorrienteId = corriente?.id ?? null;
-    console.log('Corriente seleccionada:', this.selectedCorrienteId);
+
   }
 
   addItemToInventario(): void {
@@ -155,12 +156,14 @@ export class ResiduoInventarioComponent implements OnInit {
       Swal.fire('Error', 'Debe agregar al menos un item al inventario.', 'error');
       return;
     }
-    const payload: InventarioPayload = {
-      fecha: this.inventarioForm.fecha,
-      organizacionId: this.inventarioForm.organizacionId,
-      items: this.inventarioForm.items.map(item => ({ residuo: { id: item.residuo!.id }}))
-    };
-    console.log('Payload enviado:', JSON.stringify(payload));
+  const payload: InventarioPayload = {
+    fecha: this.inventarioForm.fecha,
+    organizacionId: this.inventarioForm.organizacionId,
+    contrato: this.inventarioForm.contrato,  // aquí incluimos RRPP como "contrato"
+    items: this.inventarioForm.items.map(item => ({
+      residuo: { id: item.residuo!.id }
+    }))
+  };
     if (this.editMode && this.currentInventarioId !== null) {
       this.inventarioService.updateInventario(this.currentInventarioId, payload).subscribe(
         () => { Swal.fire('Actualizado', 'Inventario actualizado correctamente.', 'success'); this.getInventarios(); this.resetForm(); },
@@ -175,7 +178,7 @@ export class ResiduoInventarioComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.inventarioForm = { fecha: '', organizacionId: 0, razonSocial: '', items: [] };
+    this.inventarioForm = { fecha: '', organizacionId: 0, razonSocial: '',contrato : '', items: [] };
     this.editMode = false;
     this.currentInventarioId = null;
     this.selectedJuridiccion = '';
@@ -209,10 +212,8 @@ export class ResiduoInventarioComponent implements OnInit {
   }
 
   verDetallesInventario(inventario: Inventario): void {
-    console.log('Ver detalles del inventario:', inventario);
     this.inventarioService.getItemsByInventario(inventario.id!).subscribe(
       items => { inventario.items = items; this.inventarioSeleccionado = inventario; this.mostrarDetalles = true; },
-      error => { console.error('Error al obtener items:', error); Swal.fire('Error', 'No se pudieron obtener los detalles del inventario.', 'error'); }
     );
   }
 
@@ -224,4 +225,10 @@ export class ResiduoInventarioComponent implements OnInit {
   getOrgName(id: number): string {
     return this.organizacionMap[id] || '–';
   }
+
+  onOrganizacionChange(orgId: number): void {
+  const org = this.organizaciones.find(o => o.id === orgId);
+  this.rrppList = org?.rrpp ?? [];
+}
+
 }

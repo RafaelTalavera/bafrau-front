@@ -1,0 +1,234 @@
+<!-- src/app/seccion/seccion.component.html -->
+<app-nav></app-nav>
+
+<div class="content-wrapper">
+
+  <!-- Formulario para crear o editar sección -->
+  <form [formGroup]="seccionForm" (ngSubmit)="onSubmit()" class="container custom-wid mt-2 custom-form">
+    <div class="card w-100">
+      <div class="card-header bg-primary text-white">
+        <h5 class="custom-h5">
+          {{ editarId == null ? 'Nueva Sección' : 'Editar Sección' }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <!-- FILA 1: Textarea autoajustable -->
+        <div class="row mb-3">
+          <div class="col-12">
+            <label for="contenido" class="small-text mb-1">Contenido:</label>
+            <textarea id="contenido" formControlName="contenido" class="form-control form-control-sm uniform-field"
+              rows="4" style="font-size:14px;line-height:1.2;min-height: calc(1.2em * 4);overflow:hidden; resize:none; "
+              (input)="adjustTextarea($event)"></textarea>
+
+            <!-- Errores de validación -->
+            <div
+              *ngIf="seccionForm.get('contenido')?.invalid && (seccionForm.get('contenido')?.dirty || seccionForm.get('contenido')?.touched)"
+              class="text alert-danger small-text mt-1">
+              <div *ngIf="seccionForm.get('contenido')?.errors?.['required']">
+                El contenido es obligatorio.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILA 2: Orden, Plantilla y Adjuntos en una sola línea -->
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label for="orden" class="small-text mb-1">Orden:</label>
+            <input type="number" id="orden" formControlName="orden" min="1"
+              class="form-control form-control-sm uniform-field" />
+            <div *ngIf="seccionForm.get('orden')?.invalid && (seccionForm.get('orden')?.touched)"
+              class="text alert-danger small-text mt-1">
+              <div *ngIf="seccionForm.get('orden')?.errors?.['required']">
+                El orden es obligatorio.
+              </div>
+              <div *ngIf="seccionForm.get('orden')?.errors?.['min']">
+                El orden debe ser mínimo 1.
+              </div>
+              <div *ngIf="seccionForm.get('orden')?.errors?.['ordenExists']">
+                El orden ya está en uso.
+              </div>
+            </div>
+
+          </div>
+          <div class="col-md-4">
+            <label for="styleTemplateId" class="small-text mb-1">Formato:</label>
+            <select id="styleTemplateId" formControlName="styleTemplateId"
+              class="form-control form-control-sm uniform-field">
+              <option value="" disabled>-- Seleccionar plantilla --</option>
+              <option *ngFor="let tmpl of styleTemplates" [value]="tmpl.id">
+                {{ tmpl.nombre }}
+              </option>
+            </select>
+            <div
+              *ngIf="seccionForm.get('styleTemplateId')?.invalid && (seccionForm.get('styleTemplateId')?.dirty || seccionForm.get('styleTemplateId')?.touched)"
+              class="text alert-danger small-text mt-1">
+              <div *ngIf="seccionForm.get('styleTemplateId')?.errors?.['required']">
+                La plantilla de estilo es obligatoria.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary btn-sm mx-2">
+            <i class="fas fa-save me-1"></i>
+            {{ editarId == null ? 'Guardar' : 'Actualizar' }}
+          </button>
+          <button *ngIf="editarId != null" type="button" class="btn btn-success btn-sm mx-2"
+            (click)="cancelarEdicion()">
+            <i class="fas fa-eraser me-1"></i> Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Botón de previsualización -->
+  <div class="container mt-3">
+    <button class="btn btn-success btn-sm" (click)="previewCapitulo()">
+      <i class="fas fa-eye me-1"></i> Previsualizar capítulo
+    </button>
+  </div>
+
+  <!-- Listado de secciones con botón para modal -->
+  <div class="container mt-3 mb-5">
+    <div class="card w-100">
+      <div class="card-body">
+
+        <!-- Secciones con spinner hasta cargar -->
+        <ng-container *ngIf="loading; else seccionesList">
+          <div class="text-center my-4">
+            <app-spinner [isVisible]="true"></app-spinner>
+          </div>
+        </ng-container>
+
+        <ng-template #seccionesList>
+          <h5 class="text-center" style="font-size: 18px; color: #200cd3;">
+            <strong>
+              Secciones de "{{ informeTitulo }} - {{ informeRazonSocial }}", "{{ capituloTitulo }}"
+            </strong>
+          </h5>
+          <div class="table-container">
+            <table class="table table-striped mb-0">
+              <thead class="table-light sticky-header">
+                <tr>
+                  <th style="width:85px; font-size:13px">Orden</th>
+                  <th style="width:800px; font-size:13px">Contenido</th>
+                  <th style="width:85px; font-size:13px">Formato</th>
+                  <th style="font-size:13px; width:130px">Anexos</th>
+                  <th style="font-size:13px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody cdkDropList [cdkDropListData]="secciones" (cdkDropListDropped)="drop($event)">
+                <tr *ngFor="let s of secciones; let i = index" cdkDrag>
+                  <td>{{ s.orden }}</td>
+                  <td>{{ s.contenido }}</td>
+                  <td>{{ s.styleTemplateNombre }}</td>
+                  <td>
+                    <div class="d-flex flex-column align-items-stretch" style="width: 120px;">
+                      <input #fileInput type="file" accept="image/*" class="d-none"
+                        (change)="onFileSelected($event, s.id!)" />
+                      <button type="button" class="btn btn-info btn-sm mb-1 w-100" [disabled]="!s.id"
+                        (click)="openImagenOptions(s, fileInput)">
+                        <i class="fas fa-image"></i> Imagen
+                      </button>
+                      <button class="btn btn-info btn-sm mb-1 w-100" (click)="openOpcionesTabla(s)">
+                        <i class="fas fa-table"></i> Tabla
+                      </button>
+                      <button class="btn btn-info btn-sm w-100" (click)="openOpcionesMatriz(s)">
+                        <i class="fas fa-bolt"></i> Matriz
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex flex-column align-items-start" style="width: 120px;">
+                      <button class="btn btn-secondary btn-sm mb-1 w-100" (click)="editarSeccion(s)">
+                        <i class="fas fa-edit"></i> Editar
+                      </button>
+                      <button class="btn btn-danger btn-sm w-100" (click)="eliminarSeccion(s.id!)">
+                        <i class="fas fa-trash"></i> Eliminar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="secciones.length === 0">
+                  <td colspan="5" class="text-center">No hay secciones.</td>
+                </tr>
+              </tbody>
+            </table>
+
+
+          </div>
+        </ng-template>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Bootstrap para edición de tabla -->
+  <div class="modal fade" tabindex="-1" [class.show]="showTableModal"
+    [ngStyle]="{ 'display': showTableModal ? 'block' : 'none' }">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+
+
+        <div class="modal-header">
+          <h5 class="modal-title">{{ selectedTabla?.nombre }}</h5>
+          <button type="button" class="btn-close" (click)="closeTableModal()"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 1) Spinner -->
+          <app-spinner *ngIf="loading" [isVisible]="true"></app-spinner>
+
+          <!-- 2) Contenido sólo cuando ya cargó -->
+          <ng-container *ngIf="!loading">
+            <!-- Tabla si hay filas -->
+            <div class="table-responsive" *ngIf="selectedTabla?.filas?.length">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <!-- Casilla superior izquierda vacía -->
+                    <th style="width:30px"></th>
+                    <!-- Letras de columnas -->
+                    <th *ngFor="let _ of selectedTabla!.filas[0].celdas; let col = index" style="font-size:13px">
+                      {{ getColumnName(col) }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let fila of selectedTabla!.filas; let row = index">
+                    <!-- Número de fila -->
+                    <th scope="row">{{ row + 1 }}</th>
+                    <!-- Celdas editables -->
+                    <td *ngFor="let celda of fila.celdas; let col = index">
+                      <input type="text" class="form-control form-control-sm" [(ngModel)]="celda.contenido"
+                        name="cell-{{row}}-{{col}}" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Mensaje si NO hay filas -->
+            <div *ngIf="!selectedTabla?.filas?.length" class="text-center">
+              No hay datos para esta tabla.
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-sm" (click)="saveModal()">
+            <i class="fas fa-save me-1"></i> Guardar
+          </button>
+          <button class="btn btn-secondary btn-sm" (click)="closeTableModal()">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="showTableModal" class="modal-backdrop fade show"></div>
+</div>
+
+<app-footer></app-footer>

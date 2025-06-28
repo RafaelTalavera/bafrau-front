@@ -7,6 +7,7 @@ import { FooterComponent } from '../../gobal/footer/footer.component';
 import Swal from 'sweetalert2';
 import { OrganizacionService } from '../service/organizacion-service';
 import { Organizacion } from '../models/organizacion.model';
+import { SpinnerComponent } from "../../utils/spinner/spinner.component";
 
 @Component({
   selector: 'app-organizacion-form',
@@ -16,7 +17,8 @@ import { Organizacion } from '../models/organizacion.model';
     ReactiveFormsModule,
     FormsModule,
     NavComponent,
-    FooterComponent
+    FooterComponent,
+    SpinnerComponent
   ],
   templateUrl: './organizacion-form.component.html',
   styleUrls: ['./organizacion-form.component.css']
@@ -27,29 +29,27 @@ export class OrganizacionFormComponent implements OnInit {
   organizacion: Organizacion[] = [];
   organizacionIdEnEdicion: number | null = null;
   filtroRazon: string = '';
-  loading: boolean = false;  // ← indicador de carga
+  loading = false;
 
-  // Opciones de RRPP
   rrppOptions = ['Generador', 'Operador', 'Transportista'];
 
   constructor(
     private fb: FormBuilder,
     private organizacionService: OrganizacionService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.organizacionForm = this.fb.group({
-      fechaAlta:              ['', Validators.required],
-      tipoDeContrato:         ['', Validators.required],
-      nombreDelProponente:    ['', Validators.required],
-      razonSocial:            ['', Validators.required],
-      cuit:                   ['', [Validators.required, Validators.maxLength(11), Validators.pattern('^[0-9]*$')]],
-      domicilioRealProyecto:  ['', Validators.required],
+      fechaAlta: ['', Validators.required],
+      tipoDeContrato: ['', Validators.required],
+      nombreDelProponente: ['', Validators.required],
+      razonSocial: ['', Validators.required],
+      cuit: ['', [Validators.required, Validators.maxLength(11), Validators.pattern('^[0-9]*$')]],
+      domicilioRealProyecto: ['', Validators.required],
       domicilioLegalProyecto: ['', Validators.required],
-      rrpp:                   [[]]  // array de RRPP
+      rrpp: [[]]  
     });
     this.loadOrganizaciones();
-    
   }
 
   get filteredOrganizaciones(): Organizacion[] {
@@ -61,17 +61,18 @@ export class OrganizacionFormComponent implements OnInit {
   }
 
   loadOrganizaciones(): void {
-    this.loading = true;  // ← comienza a cargar
+    this.loading = true;  
     this.organizacionService.getAllOrganizaciones().subscribe({
       next: data => {
         this.organizacion = data;
-        this.loading = false;  // ← terminó de cargar
+        this.loading = false;  
       },
       error: () => {
         Swal.fire('Error', 'No se pudieron cargar las organizaciones.', 'error');
-        this.loading = false;  // ← asegurar que desaparezca el spinner
+        this.loading = false;  
       }
     });
+    
   }
 
   onRrppChange(event: Event): void {
@@ -86,31 +87,41 @@ export class OrganizacionFormComponent implements OnInit {
     this.organizacionForm.get('rrpp')!.setValue(list);
   }
 
-  onSubmit(): void {
-    if (this.organizacionForm.invalid) return;
-    const datos = this.organizacionForm.value as Organizacion & { rrpp: string[] };
-    console.log('Enviando:', datos);
-    if (this.organizacionIdEnEdicion) {
-      this.organizacionService.updateOrganizacion(this.organizacionIdEnEdicion, datos).subscribe({
-        next: resp => {
-          Swal.fire('Éxito', 'Organización actualizada.', 'success');
-          const idx = this.organizacion.findIndex(o => o.id === this.organizacionIdEnEdicion);
-          if (idx !== -1) this.organizacion[idx] = resp;
-          this.resetFormulario();
-        },
-        error: () => Swal.fire('Error', 'No se pudo actualizar.', 'error')
-      });
-    } else {
-      this.organizacionService.createOrganizacion(datos).subscribe({
-        next: resp => {
-          Swal.fire('Éxito', 'Organización creado.', 'success');
-          this.organizacion.push(resp);
-          this.resetFormulario();
-        },
-        error: () => Swal.fire('Error', 'No se pudo crear.', 'error')
-      });
-    }
+onSubmit(): void {
+  if (this.organizacionForm.invalid) return;
+
+  const datos = this.organizacionForm.value as Organizacion & { rrpp: string[] };
+  this.loading = true;  // ← muestra el spinner
+
+  if (this.organizacionIdEnEdicion) {
+    this.organizacionService.updateOrganizacion(this.organizacionIdEnEdicion, datos).subscribe({
+      next: resp => {
+        this.loading = false;  // ← oculta el spinner
+        Swal.fire('Éxito', 'Organización actualizada.', 'success');
+        const idx = this.organizacion.findIndex(o => o.id === this.organizacionIdEnEdicion);
+        if (idx !== -1) this.organizacion[idx] = resp;
+        this.resetFormulario();
+      },
+      error: () => {
+        this.loading = false;  // ← oculta el spinner
+        Swal.fire('Error', 'No se pudo actualizar.', 'error');
+      }
+    });
+  } else {
+    this.organizacionService.createOrganizacion(datos).subscribe({
+      next: resp => {
+        this.loading = false;  // ← oculta el spinner
+        Swal.fire('Éxito', 'Organización creada.', 'success');
+        this.organizacion.push(resp);
+        this.resetFormulario();
+      },
+      error: () => {
+        this.loading = false;  // ← oculta el spinner
+        Swal.fire('Error', 'No se pudo crear.', 'error');
+      }
+    });
   }
+}
 
   editarInforme(org: Organizacion): void {
     this.organizacionForm.patchValue(org);
@@ -118,30 +129,36 @@ export class OrganizacionFormComponent implements OnInit {
     this.scrollToFormulario();
   }
 
-  eliminarInforme(org: Organizacion): void {
-    if (!org.id) {
-      Swal.fire('Error', 'ID inválido.', 'error');
-      return;
-    }
-    Swal.fire({
-      title: '¿Seguro?',
-      text: 'Esta acción es irreversible.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar'
-    }).then(res => {
-      if (res.isConfirmed) {
-        this.organizacionService.deleteOrganizacion(org.id!).subscribe({
-          next: () => {
-            Swal.fire('Eliminado', 'Organización eliminado.', 'success');
-            this.organizacion = this.organizacion.filter(o => o.id !== org.id);
-          },
-          error: () => Swal.fire('Error', 'No se pudo eliminar.', 'error')
-        });
-      }
-    });
+eliminarInforme(org: Organizacion): void {
+  if (!org.id) {
+    Swal.fire('Error', 'ID inválido.', 'error');
+    return;
   }
+  Swal.fire({
+    title: '¿Seguro?',
+    text: 'Esta acción es irreversible.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then(res => {
+    if (res.isConfirmed) {
+      this.loading = true;  // ← muestra el spinner
+      this.organizacionService.deleteOrganizacion(org.id!).subscribe({
+        next: () => {
+          this.loading = false;  // ← oculta el spinner
+          Swal.fire('Eliminado', 'Organización eliminada.', 'success');
+          this.organizacion = this.organizacion.filter(o => o.id !== org.id);
+        },
+        error: () => {
+          this.loading = false;  // ← oculta el spinner
+          Swal.fire('Error', 'No se pudo eliminar.', 'error');
+        }
+      });
+    }
+  });
+}
+
 
   resetFormulario(): void {
     this.organizacionForm.reset();

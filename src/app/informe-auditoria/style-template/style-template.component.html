@@ -1,0 +1,252 @@
+<body class="hold-transition sidebar-mini layout-fixed">
+  <div class="wrapper">
+    <app-nav></app-nav>
+
+    <div class="content-wrapper">
+      <form #styleForm="ngForm" (ngSubmit)="onSubmit(styleForm)" class="container mt-2 custom-form">
+        <div class="card w-100">
+          <div class="card-header bg-info text-white">
+            <h5 class="custom-h5">
+              {{ styleSelected.id > 0 ? 'Editar Estilo' : 'Crear Estilo' }}
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+
+              <!-- Font Family -->
+              <div class="col-md-3 mb-3">
+                <label for="nombre" class="small-text">Indentificación:</label>
+                <input id="nombre" name="nombre" class="form-control" [(ngModel)]="styleSelected.nombre"
+                  #nombre="ngModel" required placeholder="e.g. Titulo" />
+                <div *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)" class="text alert-danger">
+                  <div *ngIf="nombre.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+
+              <!-- Font Family -->
+              <div class="col-md-3 mb-3">
+                <label for="fontFamily" class="small-text">Font Family:</label>
+                <input id="fontFamily" name="fontFamily" class="form-control" [(ngModel)]="styleSelected.fontFamily"
+                  #fontFamily="ngModel" required placeholder="e.g. Arial" />
+                <div *ngIf="fontFamily.invalid && (fontFamily.dirty || fontFamily.touched)" class="text alert-danger">
+                  <div *ngIf="fontFamily.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Font Size -->
+              <div class="col-md-3 mb-3">
+                <label for="fontSize" class="small-text">Font Size:</label>
+                <input id="fontSize" name="fontSize" class="form-control" [(ngModel)]="styleSelected.fontSize"
+                  #fontSize="ngModel" required placeholder="e.g. 14px" />
+                <div *ngIf="fontSize.invalid && (fontSize.dirty || fontSize.touched)" class="text alert-danger">
+                  <div *ngIf="fontSize.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Font Weight -->
+              <div class="col-md-3 mb-3">
+                <label for="fontWeight" class="small-text">Font Weight:</label>
+                <input id="fontWeight" name="fontWeight" class="form-control" [(ngModel)]="styleSelected.fontWeight"
+                  #fontWeight="ngModel" required placeholder="e.g. bold" />
+                <div *ngIf="fontWeight.invalid && (fontWeight.dirty || fontWeight.touched)" class="text alert-danger">
+                  <div *ngIf="fontWeight.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Font Style -->
+              <div class="col-md-3 mb-3">
+                <label for="fontStyle" class="small-text">Font Style:</label>
+                <input id="fontStyle" name="fontStyle" class="form-control" [(ngModel)]="styleSelected.fontStyle"
+                  #fontStyle="ngModel" required placeholder="e.g. italic" />
+                <div *ngIf="fontStyle.invalid && (fontStyle.dirty || fontStyle.touched)" class="text alert-danger">
+                  <div *ngIf="fontStyle.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Color -->
+              <div class="col-md-3 mb-3">
+                <label for="color" class="small-text">Color:</label>
+                <input id="color" name="color" type="color" class="form-control form-control-color"
+                  [(ngModel)]="styleSelected.color" #color="ngModel" required />
+                <div *ngIf="color.invalid && (color.dirty || color.touched)" class="text alert-danger">
+                  <div *ngIf="color.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Background Color -->
+              <div class="col-md-3 mb-3">
+                <label for="backgroundColor" class="small-text">Background Color:</label>
+                <input id="backgroundColor" name="backgroundColor" type="color" class="form-control form-control-color"
+                  [(ngModel)]="styleSelected.backgroundColor" #backgroundColor="ngModel" required />
+                <div *ngIf="backgroundColor.invalid && (backgroundColor.dirty || backgroundColor.touched)"
+                  class="text alert-danger">
+                  <div *ngIf="backgroundColor.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Line Height -->
+              <div class="col-md-3 mb-3">
+                <label for="lineHeight" class="small-text">Line Height:</label>
+                <input id="lineHeight" name="lineHeight" class="form-control" [(ngModel)]="styleSelected.lineHeight"
+                  #lineHeight="ngModel" required placeholder="e.g. 1.5" />
+                <div *ngIf="lineHeight.invalid && (lineHeight.dirty || lineHeight.touched)" class="text alert-danger">
+                  <div *ngIf="lineHeight.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Text Align -->
+              <div class="col-md-3 mb-3">
+                <label for="textAlign" class="small-text">Text Align:</label>
+                <select id="textAlign" name="textAlign" class="form-select" [(ngModel)]="styleSelected.textAlign"
+                  #textAlign="ngModel" required>
+                  <option value="" disabled>Seleccione...</option>
+                  <option value="left">left</option>
+                  <option value="center">center</option>
+                  <option value="right">right</option>
+                  <option value="justify">justify</option>
+                </select>
+                <div *ngIf="textAlign.invalid && (textAlign.dirty || textAlign.touched)" class="text alert-danger">
+                  <div *ngIf="textAlign.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Text Decoration -->
+              <div class="col-md-3 mb-3">
+                <label for="textDecoration" class="small-text">Text Decoration:</label>
+                <input id="textDecoration" name="textDecoration" class="form-control"
+                  [(ngModel)]="styleSelected.textDecoration" #textDecoration="ngModel" required
+                  placeholder="e.g. underline" />
+                <div *ngIf="textDecoration.invalid && (textDecoration.dirty || textDecoration.touched)"
+                  class="text alert-danger">
+                  <div *ngIf="textDecoration.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Margin Top -->
+              <div class="col-md-3 mb-3">
+                <label for="marginTop" class="small-text">Margin Top:</label>
+                <input id="marginTop" name="marginTop" class="form-control" [(ngModel)]="styleSelected.marginTop"
+                  #marginTop="ngModel" required placeholder="e.g. 10px" />
+                <div *ngIf="marginTop.invalid && (marginTop.dirty || marginTop.touched)" class="text alert-danger">
+                  <div *ngIf="marginTop.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Margin Bottom -->
+              <div class="col-md-3 mb-3">
+                <label for="marginBottom" class="small-text">Margin Bottom:</label>
+                <input id="marginBottom" name="marginBottom" class="form-control"
+                  [(ngModel)]="styleSelected.marginBottom" #marginBottom="ngModel" required placeholder="e.g. 10px" />
+                <div *ngIf="marginBottom.invalid && (marginBottom.dirty || marginBottom.touched)"
+                  class="text alert-danger">
+                  <div *ngIf="marginBottom.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Margin Left -->
+              <div class="col-md-3 mb-3">
+                <label for="marginLeft" class="small-text">Margin Left:</label>
+                <input id="marginLeft" name="marginLeft" class="form-control" [(ngModel)]="styleSelected.marginLeft"
+                  #marginLeft="ngModel" required placeholder="e.g. 10px" />
+                <div *ngIf="marginLeft.invalid && (marginLeft.dirty || marginLeft.touched)" class="text alert-danger">
+                  <div *ngIf="marginLeft.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+
+              <!-- Margin Right -->
+              <div class="col-md-3 mb-3">
+                <label for="marginRight" class="small-text">Margin Right:</label>
+                <input id="marginRight" name="marginRight" class="form-control" [(ngModel)]="styleSelected.marginRight"
+                  #marginRight="ngModel" required placeholder="e.g. 10px" />
+                <div *ngIf="marginRight.invalid && (marginRight.dirty || marginRight.touched)"
+                  class="text alert-danger">
+                  <div *ngIf="marginRight.errors?.['required']">Requerido</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center">
+              <button [disabled]="!styleForm.valid" type="submit" class="btn btn-primary btn-sm mx-2">
+                <i class="fas fa-save me-1"></i> Guardar
+              </button>
+              <button type="button" class="btn btn-success btn-sm mx-2"
+                (click)="styleForm.resetForm(); styleSelected = resetStyle()">
+                <i class="fas fa-eraser me-1"></i> Limpiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- Lista de estilos -->
+      <div class="mt-4">
+        <h5 class="custom-h5 text-center">Lista de Estilos</h5>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ident</th>
+              <th>Font Family</th>
+              <th>Font Size</th>
+              <th>Font Weight</th>
+              <th>Font Style</th>
+              <th>Color</th>
+              <th>Background</th>
+              <th>Line Height</th>
+              <th>Text Align</th>
+              <th>Text Decoration</th>
+              <th>Margin (T/B/L/R)</th>
+              <th>Padding (T/B/L/R)</th>
+              <th>Border</th>
+              <th>Border Radius</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of styles">
+              <td>{{ s.id }}</td>
+              <td>{{ s.nombre }}</td>
+              <td>{{ s.fontFamily }}</td>
+              <td>{{ s.fontSize }}</td>
+              <td>{{ s.fontWeight }}</td>
+              <td>{{ s.fontStyle }}</td>
+              <td>
+                <span [style.background]="s.color" class="badge">&nbsp;&nbsp;</span>
+                {{ s.color }}
+              </td>
+              <td>
+                <span [style.background]="s.backgroundColor" class="badge">&nbsp;&nbsp;</span>
+                {{ s.backgroundColor }}
+              </td>
+              <td>{{ s.lineHeight }}</td>
+              <td>{{ s.textAlign }}</td>
+              <td>{{ s.textDecoration }}</td>
+              <td>
+                {{ s.marginTop }} /
+                {{ s.marginBottom }} /
+                {{ s.marginLeft }} /
+                {{ s.marginRight }}
+              </td>
+              <td>
+                {{ s.paddingTop }} /
+                {{ s.paddingBottom }} /
+                {{ s.paddingLeft }} /
+                {{ s.paddingRight }}
+              </td>
+              <td>{{ s.border }}</td>
+              <td>{{ s.borderRadius }}</td>
+              <td>
+                <button (click)="edit(s)" class="btn btn-sm btn-secondary">Editar</button>
+                <button (click)="remove(s.id)" class="btn btn-sm btn-danger">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <app-footer></app-footer>
+    </div>
+  </div>
+</body>

@@ -299,4 +299,27 @@ text-align: center;
   background-color: #f2f2f2; /* gris claro */
 }
 
+/* Compatible (blanco) */
+.impact-compatible {
+  background-color: #fff;
+}
 
+/* Moderado (verde claro) */
+.impact-moderado {
+  background-color: #c8e6c9;
+}
+
+/* Severo (amarillo claro) */
+.impact-severo {
+  background-color: #fff9c4;
+}
+
+/* Crítico (rojo claro) */
+.impact-critico {
+  background-color: #ffcdd2;
+}
+
+
+.custom-input.small-text {
+  width: 250px !important;
+}

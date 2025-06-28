@@ -2,8 +2,10 @@
   <div class="wrapper">
     <app-nav></app-nav>
     <div class="content-wrapper">
-      <div class="content">
 
+      <app-spinner [isVisible]="loading"></app-spinner>
+
+      <div class="content">
         <form (ngSubmit)="onSubmit()" #informeForm="ngForm">
           <h1 class="matriz-title">
             Matriz de causa y efecto

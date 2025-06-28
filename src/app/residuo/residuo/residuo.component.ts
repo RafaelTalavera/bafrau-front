@@ -39,7 +39,6 @@ export class ResiduoComponent implements OnInit {
   refreshResiduos(): void {
     this.service.findAll().pipe(
       catchError(error => {
-        console.error('Error fetching documentos:', error);
         this.showError = true;
         return of([]);
       })
@@ -50,16 +49,15 @@ export class ResiduoComponent implements OnInit {
   }
 
   addResiduo(residuo: Residuo): void {
-    console.log('Recibido en padre:', residuo);
     if (residuo.id > 0) {
       this.service.updateResiduo(residuo).subscribe(() => {
-        Swal.fire('Residuo Actualizado', 'El resiudo se ha actualizado con éxito', 'success');
+        Swal.fire('Residuo Actualizado', 'El residuo se ha actualizado con éxito', 'success');
         this.refreshResiduos();
         this.residuoSelected = new Residuo(); 
       });
     } else {
       this.service.create(residuo).subscribe(() => {
-        Swal.fire('Documento Creado', 'El Documento se ha creado con éxito', 'success');
+        Swal.fire('Residuo Creado', 'El residuo se ha creado con éxito', 'success');
         this.refreshResiduos();
         this.residuoSelected = new Residuo();
       });
@@ -94,7 +92,7 @@ export class ResiduoComponent implements OnInit {
       this.residuosFiltrados = this.residuos;
     } else {
       this.residuosFiltrados = this.residuos.filter(f =>
-        f.corriente?.toLowerCase().includes(this.tipoBusqueda.toLowerCase()) // Evita error si es undefined
+        f.corriente?.toLowerCase().includes(this.tipoBusqueda.toLowerCase()) 
       );
     }
   }

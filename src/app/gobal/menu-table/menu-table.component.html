@@ -1,0 +1,32 @@
+<div class="d-flex flex-column min-vh-100">
+  <app-nav class="flex-shrink-0"></app-nav>
+
+  <div class="content-wrapper d-flex flex-column flex-fill">
+    <main class="flex-fill container m-8">
+      <div class="row gx-5 gy-5">
+        <div *ngFor="let g of groups" class="col-12 col-sm-6 col-lg-4 mb-2">
+          <div class="dashboard-card text-white" [style.background-color]="g.color">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <i class="bi {{ g.icon }} fs-3 me-2"></i>
+                <h5 class="mb-0">{{ g.title }}</h5>
+              </div>
+              <ul class="list-unstyled">
+                <li *ngFor="let i of g.items" class="mb-2 d-flex align-items-center">
+                  <i class="{{ i.icon }} nav-icon"></i>
+                  <a [routerLink]="i.path" class="text-white text-decoration-none flex-fill">
+                    {{ i.label }}
+                  </a>
+                  <i class="bi bi-chevron-right"></i>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+
+  </div>
+  <app-footer></app-footer>
+</div>

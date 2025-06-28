@@ -33,8 +33,6 @@ export class InventarioService {
   }
 
   createInventario(payload: InventarioPayload): Observable<Inventario> {
-    // Imprime el objeto como JSON
-    console.log('JSON enviado al backend:', JSON.stringify(payload));
     return this.http.post<Inventario>(this.apiUrl, payload, { headers: this.getAuthHeaders() });
   }
 

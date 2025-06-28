@@ -1,9 +1,9 @@
 // src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.ts
 import {
+  ChangeDetectorRef,
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   ElementRef,
-  EventEmitter,
   OnInit,
   ViewChild
 } from '@angular/core';
@@ -18,7 +18,9 @@ import { Matriz } from '../models/matriz';
 import { FactorView, MatrizBuilderUnifiedService, Stage } from '../service/matriz-builder-unified.service';
 import { MatrizCausaEfectoV1Component } from '../matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
 import html2canvas from 'html2canvas';
-
+import { ActivatedRoute } from '@angular/router';
+import { AdjuntosService } from '../../utils/adjuntos.service';
+import { SpinnerComponent } from '../../utils/spinner/spinner.component';
 
 
 @Component({
@@ -30,10 +32,10 @@ import html2canvas from 'html2canvas';
     HttpClientModule,
     NavComponent,
     FooterComponent,
-    MatrizCausaEfectoV1Component 
-,
+    MatrizCausaEfectoV1Component,
+    SpinnerComponent
   ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA],  
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
     MatrizService
   ],
@@ -52,33 +54,76 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   editMode = false;
   loadingList: boolean = false;
   loadingDetail: boolean = false;
+  razonSocial?: string;
+  sectionId?: number;
+  loading: boolean = true;
 
   constructor(
     private gridService: MatrizBuilderUnifiedService,
     private matrizService: MatrizService,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private route: ActivatedRoute,
+    private adjuntosService: AdjuntosService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
-    /** Descarga la visualización como JPG */
-  downloadAsJpg(): void {
-    if (!this.matrizVisualizacion) return;
-    html2canvas(this.matrizVisualizacion.nativeElement, { scale: 2 })
-      .then(canvas => {
-        const link = document.createElement('a');
-        link.download = `matriz-${this.selectedMatrix?.id || 'view'}.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.9);
-        link.click();
-      })
-      .catch(err => {
-        console.error('Error capturando la imagen:', err);
-        Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
-      });
-  }
 
   ngOnInit(): void {
-    this.loadMatrices();
-    this.loadLogo();
+    this.loading = true;
+    this.route.paramMap.subscribe(params => {
+      const rs = params.get('razonSocial');
+      this.razonSocial = rs ?? undefined;
+      this.sectionId = params.get('sectionId') ? +params.get('sectionId')! : undefined;
+
+      if (this.razonSocial) {
+        this.loadByRazonSocial(this.razonSocial);
+      } else {
+        this.loadMatrices();
+      }
+    });
   }
+
+
+  async onDownloadOrAssociate(): Promise<void> {
+    if (!this.matrizVisualizacion) return;
+
+    this.loading = true;
+    this.cdr.detectChanges();
+
+    try {
+      const canvas = await html2canvas(this.matrizVisualizacion.nativeElement, { scale: 2 });
+      const blob: Blob | null = await new Promise(resolve =>
+        canvas.toBlob(b => resolve(b), 'image/png')
+      );
+      if (!blob) throw new Error('No se generó el blob');
+      const file = new File([blob], `matriz-${this.sectionId ?? 'full'}.png`, { type: 'image/png' });
+
+      if (this.sectionId) {
+        // Asociación al informe
+        await this.adjuntosService.ploadAdjuntoSeccion(file, 'Matriz Causa Efecto', this.sectionId).toPromise();
+        // <-- Ocultar spinner antes de la alerta
+        this.loading = false;
+        this.cdr.detectChanges();
+        await Swal.fire('Listo', 'Imagen asociada correctamente', 'success');
+      } else {
+        // <-- Ocultar spinner antes de la descarga
+        this.loading = false;
+        this.cdr.detectChanges();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'matriz.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error(err);
+      this.loading = false;
+      this.cdr.detectChanges();
+      await Swal.fire('Error', 'No se pudo generar la imagen', 'error');
+    }
+  }
+
 
   getOrganization(matrix: Matriz): string {
     return matrix.items?.length
@@ -86,32 +131,45 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
       : '—';
   }
 
+  private loadByRazonSocial(razon: string): void {
+    this.matrizService.getAllMatrices().subscribe({
+      next: data => {
+        this.matrices = data
+          .filter(m =>
+            (m.razonSocial ?? '').toLowerCase() === razon.toLowerCase()
+          )
+          .map(m => ({
+            ...m,
+            razonSocial: m.razonSocial ?? m.organizacionId
+          }));
+        this.loading = false;
+      },
+      error: err => {
+        console.error(err);
+        this.loading = false;
+      }
+    });
+  }
+
   private logJSON(obj: any, mensaje?: string): void {
     console.log(mensaje ?? '', JSON.stringify(obj, null, 2));
   }
 
-  private loadLogo(): void {
-    this.http.get('assets/logo_bafrau.base64', { responseType: 'text' }).subscribe({
-      next: data => {
-        this.logoBase64 = 'data:image/png;base64,' + data;
-        this.logJSON(this.logoBase64, 'Logo cargado:');
-      },
-      error: err => console.error('Error al cargar el logo:', err)
-    });
-  }
 
-  loadMatrices(): void {
-    this.loadingList = true;  // ← comienza
-    this.matrizService.getAllMatrices().subscribe(
-      data => {
-        this.matrices = data.map(m => ({ ...m, razonSocial: m.razonSocial ?? m.organizacionId }));
-        this.loadingList = false;  // ← termina
+  private loadMatrices(): void {
+    this.matrizService.getAllMatrices().subscribe({
+      next: data => {
+        this.matrices = data.map(m => ({
+          ...m,
+          razonSocial: m.razonSocial ?? m.organizacionId
+        }));
+        this.loading = false;
       },
-      err => {
-        console.error('Error al cargar matrices:', err);
-        this.loadingList = false;  // ← asegurar fin
+      error: err => {
+        console.error(err);
+        this.loading = false;
       }
-    );
+    });
   }
 
 
@@ -125,30 +183,30 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     );
   }
 
-viewDetails(matrix: Matriz): void {
-  this.loadingDetail = true;
-  this.matrizService.getMatrizById(matrix.id).subscribe(
-    full => {
-      this.selectedMatrix = full;
+  viewDetails(matrix: Matriz): void {
+    this.loadingDetail = true;
+    this.matrizService.getMatrizById(matrix.id).subscribe(
+      full => {
+        this.selectedMatrix = full;
 
-      // — DEBUG: filtrar ítems con IDs 149-194 —
-      const idsProblema = Array.from({ length: 194 - 149 + 1 }, (_, i) => i + 149);
-      const faulty = full.items
-        .filter(i => idsProblema.includes(i.id))
-        .map(({ id, factorSistema, factorSubsistema, factorFactor, factorComponente, etapa, accionTipo, naturaleza }) => ({
-          id, factorSistema, factorSubsistema, factorFactor, factorComponente, etapa, accionTipo, naturaleza
-        }));
-      console.table(faulty);
+        // — DEBUG: filtrar ítems con IDs 149-194 —
+        const idsProblema = Array.from({ length: 194 - 149 + 1 }, (_, i) => i + 149);
+        const faulty = full.items
+          .filter(i => idsProblema.includes(i.id))
+          .map(({ id, factorSistema, factorSubsistema, factorFactor, factorComponente, etapa, accionTipo, naturaleza }) => ({
+            id, factorSistema, factorSubsistema, factorFactor, factorComponente, etapa, accionTipo, naturaleza
+          }));
+        console.table(faulty);
 
-      this.buildGrid(full);
-      this.loadingDetail = false;
-    },
-    err => {
-      console.error('Error al cargar matriz por ID:', err);
-      this.loadingDetail = false;
-    }
-  );
-}
+        this.buildGrid(full);
+        this.loadingDetail = false;
+      },
+      err => {
+        console.error('Error al cargar matriz por ID:', err);
+        this.loadingDetail = false;
+      }
+    );
+  }
 
   backToList(): void {
     this.selectedMatrix = null;
@@ -162,33 +220,33 @@ viewDetails(matrix: Matriz): void {
     this.editMode = true;
   }
 
-onMatrixSaved(updated: Matriz): void {
-  this.matrizService.updateMatriz(updated.id, updated).subscribe(
-    () => {
-      // 1) Traer la matriz UNA VEZ ACTUALIZADA
-      this.matrizService.getMatrizById(updated.id).subscribe(full => {
-        this.selectedMatrix = full;
-        this.editMode = false;
-        this.buildGrid(full);
-        Swal.fire('Éxito', 'Matriz actualizada correctamente.', 'success');
-      });
-    },
-    () => Swal.fire('Error', 'No se pudo actualizar la matriz.', 'error')
-  );
-}
+  onMatrixSaved(updated: Matriz): void {
+    this.matrizService.updateMatriz(updated.id, updated).subscribe(
+      () => {
+        // 1) Traer la matriz UNA VEZ ACTUALIZADA
+        this.matrizService.getMatrizById(updated.id).subscribe(full => {
+          this.selectedMatrix = full;
+          this.editMode = false;
+          this.buildGrid(full);
+          Swal.fire('Éxito', 'Matriz actualizada correctamente.', 'success');
+        });
+      },
+      () => Swal.fire('Error', 'No se pudo actualizar la matriz.', 'error')
+    );
+  }
 
 
   private buildGrid(matriz: Matriz): void {
     this.logJSON(matriz, 'Ejecutando buildGrid con matriz:');
     const grid = this.gridService.buildGrid(matriz.items);
-  
+
     // **Ahora usamos los factors agrupados**, no volvemos a mapear matriz.items
-    this.factors      = grid.factors;
-    this.stages       = grid.stages;
-    this.valuationsMap= grid.valuationsMap;
-  
+    this.factors = grid.factors;
+    this.stages = grid.stages;
+    this.valuationsMap = grid.valuationsMap;
+
     this.logJSON(this.factors, 'Factores finales:');
-   
+
     this.logJSON(this.valuationsMap, 'Mapa de valoraciones:');
   }
 
@@ -216,13 +274,38 @@ onMatrixSaved(updated: Matriz): void {
   }
 
   // Dentro de MatrizCausaEfectoV1VisualizacionComponent
-getItemId(factorId: number, etapa: string, accion: string): number | null {
-  const found = this.selectedMatrix?.items.find(i =>
-    i.factorId === factorId &&
-    i.etapa     === etapa    &&
-    i.accionTipo=== accion
-  );
-  return found ? found.id : null;
-}
+  getItemId(factorId: number, etapa: string, accion: string): number | null {
+    const found = this.selectedMatrix?.items.find(i =>
+      i.factorId === factorId &&
+      i.etapa === etapa &&
+      i.accionTipo === accion
+    );
+    return found ? found.id : null;
+  }
+
+  /** Descarga la visualización como JPG */
+  downloadAsJpg(): void {
+    if (!this.matrizVisualizacion) return;
+    // 1) Arranca el spinner
+
+    html2canvas(this.matrizVisualizacion.nativeElement, { scale: 2 })
+      .then(canvas => {
+        // 2) Descarga la imagen
+        const link = document.createElement('a');
+        link.download = `matriz-${this.selectedMatrix?.id || 'view'}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+        // 3) Para el spinner
+  
+      })
+      .catch(err => {
+        console.error('Error capturando la imagen:', err);
+              // 4) Para el spinner y mensaje de error
+
+        Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+      });
+  }
+
+  
 
 }

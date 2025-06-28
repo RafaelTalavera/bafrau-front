@@ -1,0 +1,89 @@
+<!-- src/app/encabezado/encabezado.component.html -->
+<app-nav></app-nav>
+<div class="content-wrapper">
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="container custom-form mt-3">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="custom-h5">
+          {{ editarId==null ? 'Nuevo Encabezado' : 'Editar Encabezado' }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="small-text">Titulo:</label>
+          <textarea formControlName="contenido" class="form-control form-control-sm"
+                    rows="3"></textarea>
+          <div *ngIf="form.get('contenido')?.invalid && form.get('contenido')?.touched"
+               class="text alert-danger small-text mt-1">
+            El contenido es obligatorio.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="small-text">Formato (plantilla):</label>
+          <input type="number" formControlName="styleTemplateId"
+                 class="form-control form-control-sm" />
+          <div *ngIf="form.get('styleTemplateId')?.invalid && form.get('styleTemplateId')?.touched"
+               class="text alert-danger small-text mt-1">
+            El formato es obligatorio.
+          </div>
+        </div>
+        <div class="text-center">
+          <button class="btn btn-primary btn-sm me-2" type="submit">
+            {{ editarId==null ? 'Guardar' : 'Actualizar' }}
+          </button>
+          <button *ngIf="editarId!=null" class="btn btn-secondary btn-sm" type="button"
+                  (click)="cancelar()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="container mt-4">
+    <h5 class="text-center mb-3"> Encabezados del Informe: {{ informeTitulo }}</h5>
+    <app-spinner *ngIf="loading" [isVisible]="true"></app-spinner>
+    <table *ngIf="!loading" class="table table-striped custom-table">
+      <thead class="table-light">
+        <tr>
+          <th style="width:60px">ID</th>
+          <th>Titulo</th>
+          <th style="width:120px">Formato</th>
+          <th style="width:100px">Anexos</th>
+          <th style="width:100px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of encabezados">
+          <td>{{ e.id }}</td>
+          <td>{{ e.contenido }}</td>
+          <td>{{ e.styleTemplateId }}</td>
+          <td>
+            <input #fileInput type="file" accept="image/*" class="d-none"
+                   (change)="onFileSelected($event, e.id!)" />
+            <div class="d-flex flex-column">
+              <button class="btn btn-info btn-sm mb-1 w-100" [disabled]="!e.id"
+                      (click)="openImagenOptions(e, fileInput)">
+                <i class="fas fa-image"></i> Imagen
+              </button>
+            </div>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-secondary me-1" (click)="editar(e)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="borrar(e.id!)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="encabezados.length===0">
+          <td colspan="5" class="text-center">No hay encabezados.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+<app-footer></app-footer>

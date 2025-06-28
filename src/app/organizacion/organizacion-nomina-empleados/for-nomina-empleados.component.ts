@@ -41,7 +41,6 @@ export class ForNominaEmpleadosComponent implements OnInit {
       cantidad: ['', [Validators.required, Validators.min(1)]],
       informeId: [this.informeId]
     });
-
     this.cargarEmpleados();
   }
 
@@ -99,8 +98,7 @@ export class ForNominaEmpleadosComponent implements OnInit {
     return this.empleados.reduce((total, empleado) => total + empleado.cantidad, 0);
   }
 
-  // Método para volver a la página de informes
   volver(): void {
-    this.router.navigate(['/form-informe']); // Cambia la ruta según tu configuración
+    this.router.navigate(['/form-informe']); 
   }
 }

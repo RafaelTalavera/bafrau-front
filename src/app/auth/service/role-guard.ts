@@ -8,13 +8,10 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot): boolean
   const authService = inject(AuthService);
 
   const expectedRoles: string[] = (route.data['roles'] as string[]) ?? [];
-  console.log('[roleGuard] expectedRoles →', expectedRoles);
 
   const userRoles = authService.getUserRoles();
-  console.log('[roleGuard] userRoles →', userRoles);
 
   const hasAccess = userRoles.some(role => expectedRoles.includes(role));
-  console.log('[roleGuard] hasAccess →', hasAccess);
 
   if (!hasAccess) {
     router.navigate(['/login']);

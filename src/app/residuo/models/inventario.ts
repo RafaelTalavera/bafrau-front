@@ -1,12 +1,12 @@
 
-import { Organizacion } from "../../organizacion/models/organizacion.model";
 import { ItemInventario } from "./ItemInventario";
 
 export class Inventario {
   id?: number;
-  fecha!: string;              // LocalDate mapeado a ISO-8601 (yyyy-MM-dd)
+  fecha!: string;             
   organizacionId!: number;  
   razonSocial!: string;
+  contrato!:string;
   items!: ItemInventario[];
 
   constructor(init?: Partial<Inventario>) {

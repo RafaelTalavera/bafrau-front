@@ -9,7 +9,7 @@
       <div class="input-row filter-container">
         <div class="input-group">
           <label class="small-text">Filtrar por Organización:</label>
-          <input type="text" [(ngModel)]="organizationFilter" placeholder="Escriba para filtrar..."
+          <input type="text" [(ngModel)]="organizationFilter" placeholder="🔎 Escriba para filtrar..."
             class="custom-input small-text">
         </div>
       </div>
@@ -44,11 +44,7 @@
                   {{ matriz.razonSocial || '—' }}
                 </td>
                 <td class="small-text" style="text-align: center;">
-                  <button
-                    type="button"
-                    class="btn btn-success btn-sm"
-                    (click)="viewDetails(matriz)"
-                  >
+                  <button type="button" class="btn btn-success btn-sm" (click)="viewDetails(matriz)">
                     <i class="fa-solid fa-eye me-1"></i> Ver Detalles
                   </button>
                 </td>
@@ -60,80 +56,82 @@
     </div>
 
     <!-- Detalle y edición de UIP -->
-    <div *ngIf="selectedMatrix">
-      <p class="small-text">
-        <strong>Fecha:</strong>
-        {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
-      </p>
-      <p class="small-text">
-        <strong>Organización:</strong>
-        {{ selectedMatrix.items[0].razonSocial || '—' }}
-      </p>
-
-      <!-- Resumen de UIP -->
-      <div class="summary-container">
+    <div *ngIf="selectedMatrix" class="card mt-3">
+      <div class="card-body">
         <p class="small-text">
-          Suma Total UIP:
-          <strong>{{ totalUIP | number:'1.0-0' }}</strong>
-          (Debe ser {{ TOTAL_DISTRIBUCION }})
+          <strong>Fecha:</strong>
+          {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
         </p>
-        <p *ngIf="totalUIP !== TOTAL_DISTRIBUCION" class="small-text">
-          {{ getUIPAdjustmentMessage() }}
+        <p class="small-text">
+          <strong>Organización:</strong>
+          {{ selectedMatrix.items[0].razonSocial || '—' }}
         </p>
-      </div>
 
-      <!-- Tabla de factores y UIP -->
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th class="small-text">Sistema</th>
-              <th class="small-text">Subsistema</th>
-              <th class="small-text">Factor</th>
-              <th class="small-text">Componente</th>
-              <th class="small-text">UIP</th>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngFor="let factor of factors; let i = index">
-              <tr class="small-text">
-                <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)" class="small-text text-center">
-                  {{ factor.sistema }}
-                </td>
-                <td class="small-text">{{ factor.subsistema }}</td>
-                <td class="small-text">{{ factor.factor }}</td>
-                <td class="small-text">{{ factor.Componente }}</td>
-                <td class="small-text">
-                  <input type="number" name="uip-{{ i }}" step="any" [(ngModel)]="factor.uip"
-                    (ngModelChange)="onFactorUIPChange(factor, $event)" class="custom-input small-text"
-                    style="width: 100px;" />
-                </td>
-              </tr>
-              <tr *ngIf="isLastFactor(i)" class="small-text" style="background-color: #e0e0e0;">
-                <td colspan="4" class="text-right font-weight-bold">
-                  Total {{ factor.sistema }}
-                </td>
-                <td class="font-weight-bold">
-                  {{ getFactorClassificationSum(factor.sistema) | number:'1.0-0' }}
-                </td>
-              </tr>
-            </ng-container>
-          </tbody>
-        </table>
-      </div>
+        <!-- Resumen de UIP -->
+        <div class="summary-container">
+          <p class="small-text">
+            Suma Total UIP:
+            <strong>{{ totalUIP | number:'1.0-0' }}</strong>
+            (Debe ser {{ TOTAL_DISTRIBUCION }})
+          </p>
+          <p *ngIf="totalUIP !== TOTAL_DISTRIBUCION" class="small-text">
+            {{ getUIPAdjustmentMessage() }}
+          </p>
+        </div>
 
-      <div class="button-group">
-        <button class="btn-primary btn-sm" (click)="updateUIP()">
-          <i class="fa-solid fa-floppy-disk"></i>
-          Guardar Valor UIP
-        </button>
-        
-        <button class="btn-secondary btn-sm" (click)="backToList()">
-          <i class="fa-solid fa-arrow-left"></i>
-          Volver al listado
-        </button>
+        <!-- Tabla de factores y UIP -->
+        <div class="table-container mt-3">
+          <table>
+            <thead>
+              <tr>
+                <th class="small-text" style="width: 100px;">Sistema</th>
+                <th class="small-text" style="width: 100px;">Subsistema</th>
+                <th class="small-text" style="width: 100px;">Factor</th>
+                <th class="small-text" style="width: 100px;">Componente</th>
+                <th class="small-text" style="width: 100px;">UIP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let factor of factors; let i = index">
+                <tr class="small-text">
+                  <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)" class="small-text text-center">
+                    {{ factor.sistema }}
+                  </td>
+                  <td class="small-text">{{ factor.subsistema }}</td>
+                  <td class="small-text">{{ factor.factor }}</td>
+                  <td class="small-text">{{ factor.Componente }}</td>
+                  <td class="small-text">
+                    <input type="number" name="uip-{{ i }}" step="any" [(ngModel)]="factor.uip"
+                      (ngModelChange)="onFactorUIPChange(factor, $event)" class="custom-input small-text"
+                      style="width: 100px;" />
+                  </td>
+                </tr>
+                <tr *ngIf="isLastFactor(i)" class="small-text" style="background-color: #e0e0e0;">
+                  <td colspan="4" class="text-right font-weight-bold">
+                    Total {{ factor.sistema }}
+                  </td>
+                  <td class="font-weight-bold">
+                    {{ getFactorClassificationSum(factor.sistema) | number:'1.0-0' }}
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="button-group mt-3">
+          <button class="btn-primary btn-sm" (click)="updateUIP()">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Guardar Valor UIP
+          </button>
+          <button class="btn-secondary btn-sm" (click)="backToList()">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver al listado
+          </button>
+        </div>
       </div>
     </div>
+
 
   </div>
   <app-footer></app-footer>

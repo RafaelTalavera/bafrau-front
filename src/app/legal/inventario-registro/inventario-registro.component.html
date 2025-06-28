@@ -29,7 +29,7 @@
           Agregar requisito
         </button>
 
- 
+
         <div *ngFor="let item of controlForm.items; let i = index" class="input-row item-row"
           style="margin-bottom: 8px;">
           <!-- Jurisdicción -->
@@ -63,11 +63,19 @@
               class="custom-input narrow" />
           </div>
 
+          <!-- Presentación -->
+          <div class="input-group fecha-group">
+            <label for="presentacion{{ i }}">Presentación:</label>
+            <input [name]="'presentacion' + i" [(ngModel)]="item.presentacion" id="presentacion{{ i }}" required
+              type="date" class="custom-input narrow" />
+          </div>
+
+
           <!-- Dias de aviso -->
           <div class="input-group">
             <label for="diasNotificacion{{ i }}">Dias Notificación:</label>
-            <input type="number" id="diasNotificacion{{ i }}" required [(ngModel)]="item.diasNotificacion" name="diasNotificacion{{ i }}"
-              class="custom-input" />
+            <input type="number" id="diasNotificacion{{ i }}" required [(ngModel)]="item.diasNotificacion"
+              name="diasNotificacion{{ i }}" class="custom-input" />
           </div>
 
           <!-- Observaciones -->
@@ -84,6 +92,18 @@
               placeholder="Mails (separados por coma)" class="custom-input"
               (ngModelChange)="onListMailChange(item, $event)" />
           </div>
+
+          <div class="input-group align-items-center">
+            <label for="estado{{i}}" class="me-2">Estado:</label>
+            <i id="estado{{i}}" class="fa-solid" [ngClass]="{
+      'fa-toggle-on text-success': item.estado,
+      'fa-toggle-off text-danger': !item.estado
+    }" (click)="item.estado = !item.estado" style="font-size: 1.5rem; cursor: pointer;"
+              [attr.title]="item.estado ? 'Abierto' : 'Cerrado'" [attr.aria-label]="item.estado ? 'Abierto' : 'Cerrado'"
+              role="button"></i>
+            <span class="ms-2">{{ item.estado ? 'Abierto' : 'Cerrado' }}</span>
+          </div>
+
 
           <!-- Eliminar ítem -->
 
@@ -112,15 +132,10 @@
 
       <!-- Listado de Controles Existentes -->
       <h2 class="matriz-title">Controles Existentes</h2>
-                      <div class="col-sm-6">
-                  <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Buscar por razón social"
-                    [(ngModel)]="filterRazon"
-                    [ngModelOptions]="{standalone: true}"
-                  />
-                </div>
+      <div class="col-sm-6">
+        <input type="text" class="form-control" placeholder="Buscar por razón social" [(ngModel)]="filterRazon"
+          [ngModelOptions]="{standalone: true}" />
+      </div>
       <div class="table-container">
         <table class="matriz">
           <thead>
@@ -133,7 +148,7 @@
           <tbody>
             <tr *ngFor="let c of filteredControles">
               <td>{{ c.fecha }}</td>
-               <td>{{ getRazonSocial(c.organizacionId) }}</td>
+              <td>{{ getRazonSocial(c.organizacionId) }}</td>
               <td class="col-acciones">
                 <button class="btn-sm btn-success" (click)="viewDetails(c)">
                   <i class="fas fa-eye" style="margin-right: 6px;"></i>

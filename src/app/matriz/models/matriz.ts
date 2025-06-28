@@ -19,11 +19,11 @@ export class ItemMatriz {
   uip?: number;
   accionId?: number;
   factorId!: number;
-  matrizId?: number;           // Agregado para enviar el ID de la matriz
+  matrizId?: number;         
   factorSistema!: string;
-  factorSubsistema!: string;        // Agregado para mapear tu DTO Java
-  factorFactor!: string;       // Agregado para mapear tu DTO Java
-  factorComponente?: string;   // Agregado para mapear tu DTO Java
+  factorSubsistema!: string;        
+  factorFactor!: string;       
+  factorComponente?: string;   
   accionTipo!: string;
   magnitude?: number;
   importance?: number;

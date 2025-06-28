@@ -1,0 +1,29 @@
+/* src/app/legal/reporte-legal-organizacion/reporte-legal-organizacion.component.css */
+.container {
+  max-width: 900px;
+  padding: 2rem; /* o el valor que desees, como 20px */
+}
+
+.card {
+  border: none;
+}
+.card:hover {
+  transform: translateY(-4px);
+  transition: transform 0.2s ease-in-out;
+}
+
+.table-responsive {
+  overflow: auto;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+}
+
+.badge.rounded-circle {
+  transition: transform 0.2s;
+}
+.badge.rounded-circle:hover {
+  transform: scale(1.2);
+}

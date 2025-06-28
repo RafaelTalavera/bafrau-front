@@ -31,6 +31,13 @@ export interface ItemUIPUpdateDTO {
   uip: number;
 }
 
+interface ActionIRTSummary {
+  etapa: string;
+  accion: string;
+  irt: number;
+}
+
+
 @Component({
   selector: 'app-ponderacion-matriz',
   standalone: true,
@@ -226,4 +233,6 @@ export class PonderacionMatrizComponent implements OnInit {
     return this.factors.filter(f => f.sistema === sistema)
       .reduce((sum, f) => sum + f.uip, 0);
   }
+
+  
 }

@@ -32,7 +32,6 @@ export class OrganizacionService {
   }
 
   createOrganizacion(organizacion: Organizacion): Observable<Organizacion> {
-    console.log('Datos enviados al backend:', organizacion);
     const headers = this.getAuthHeaders();
     return this.http.post<Organizacion>(this.apiUrl, organizacion, { headers })
       .pipe(
@@ -50,7 +49,6 @@ export class OrganizacionService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    console.error('Error recibido del backend:', error);
     return throwError('Ocurrió un error; intenta de nuevo más tarde.');
   }
 
@@ -58,10 +56,6 @@ export class OrganizacionService {
     const headers = this.getAuthHeaders();
     const url = `${this.apiUrl}/${id}`;
     
-    console.log('Actualizando de la organizacion con ID:', id);
-    console.log('Datos del informe a enviar:', organizacion);
-    console.log('Encabezados de la solicitud:', headers);
-  
     return this.http.put<Organizacion>(url, organizacion, { headers })
       .pipe(
         catchError(this.handleError)
@@ -71,26 +65,22 @@ export class OrganizacionService {
   getOrganizacionById(id: number): Observable<Organizacion> {
     return this.http.get<Organizacion>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() }).pipe(
       catchError((err) => {
-        console.error('Error obteniendo la organizacion por ID:', err);
         return throwError(err);
       })
     );
   }
 
-    /** Obtiene organizaciones de Auditoría Ambiental */
     getOrganizacionesAuditoriaAmbiental(): Observable<Organizacion[]> {
       const url = `${this.apiUrl}/auditorias-ambientales`;
       return this.http
         .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
         .pipe(
           catchError(err => {
-            console.error('Error al cargar organizaciones:', err);
             return throwError(() => err);
           })
         );
     }
     
-        /** Obtiene organizaciones de Representacion Tecnica */
         getOrganizacionesRepresentacionTecnica(): Observable<Organizacion[]> {
           const url = `${this.apiUrl}/representacion-tecnica`;
           return this.http
@@ -103,5 +93,4 @@ export class OrganizacionService {
             );
         }
         
-  
 }

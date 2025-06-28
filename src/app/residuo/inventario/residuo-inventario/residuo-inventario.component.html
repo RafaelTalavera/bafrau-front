@@ -1,192 +1,239 @@
+<!-- residuo-inventario.component.html -->
 <div class="wrapper">
-    <app-nav></app-nav>
-    <div class="content-wrapper">
-        <div class="content">
-            <form (ngSubmit)="onSubmit()">
-                <h1 class="matriz-title">Gestión de Inventarios de Residuos</h1>
+  <app-nav></app-nav>
+  <div class="content-wrapper">
+    <div class="content">
+      <form (ngSubmit)="onSubmit()">
+        <h1 class="matriz-title">Gestión de Inventarios de Residuos</h1>
 
-                <!-- Formulario -->
-                <div class="input-row">
-                    <div class="input-group">
-                      <label for="fecha">Fecha:</label>
-                      <input
-                        type="date"
-                        id="fecha"
-                        required
-                        [(ngModel)]="inventarioForm.fecha"
-                        name="fecha"
-                        class="custom-input"
-                      />
-                    </div>
-                  
-                    <div class="input-group">
-                      <label for="organizacion">Organización:</label>
-                      <select
-                        id="organizacion"
-                        required
-                        [(ngModel)]="inventarioForm.organizacionId"
-                        name="organizacionId"
-                        class="custom-input"
-                      >
-                        <option [ngValue]="0" disabled>-- Seleccione --</option>
-                        <option
-                          *ngFor="let org of organizaciones"
-                          [ngValue]="org.id"
-                        >
-                          {{ org.razonSocial }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  
+        <!-- Card: Datos e Ítems del Inventario -->
+        <div class="card mb-2">
+          <div class="card-header">
+            Datos e Ítems del Inventario
+          </div>
+          <div class="card-body">
+            <!-- Datos básicos -->
+            <div class="input-row mb-2">
+              <div class="input-group">
+                <label for="fecha">Fecha:</label>
+                <input
+                  type="date"
+                  id="fecha"
+                  required
+                  [(ngModel)]="inventarioForm.fecha"
+                  name="fecha"
+                  class="custom-input"
+                />
+              </div>
 
-                <!-- Selección de Corriente -->
-                <h2 class="matriz-title">Seleccionar Corriente</h2>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label for="juridiccionSelect">Juridicción:</label>
-                        <select id="juridiccionSelect" [(ngModel)]="selectedJuridiccion" name="juridiccion"
-                            class="custom-input" (change)="updateCorrienteSeleccionada()">
-                            <option value="" disabled selected>-- Seleccione --</option>
-                            <option *ngFor="let a of getJuridiccion()" [value]="a">{{ a }}</option>
-                        </select>
-                    </div>
+              <div class="input-group">
+                <label for="organizacion">Organización:</label>
+                <select
+                  id="organizacion"
+                  required
+                  [(ngModel)]="inventarioForm.organizacionId"
+                  (ngModelChange)="onOrganizacionChange($event)"
+                  name="organizacionId"
+                  class="custom-input"
+                >
+                  <option [ngValue]="0" disabled>-- Seleccione --</option>
+                  <option *ngFor="let org of organizaciones" [ngValue]="org.id">
+                    {{ org.razonSocial }}
+                  </option>
+                </select>
+              </div>
 
-                    <div class="input-group">
-                        <label for="corrienteSelect">Categoría:</label>
-                        <select id="corienteSelect" [(ngModel)]="selectedCorriente" name="corriente"
-                            class="custom-input" [disabled]="!selectedJuridiccion"
-                            (change)="updateCorrienteSeleccionada()">
-                            <option value="" disabled selected>-- Seleccione --</option>
-                            <option *ngFor="let c of getCorriente()" [value]="c">{{ c }}</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="detalleSelect">Descripción:</label>
-                        <select id="detalleSelect" [(ngModel)]="selectedDetalle" name="detalle" class="custom-input"
-                            [disabled]="!selectedJuridiccion || !selectedCorriente"
-                            (change)="updateCorrienteSeleccionada()">
-                            <option value="" disabled selected>-- Seleccione --</option>
-                            <option *ngFor="let d of getDescripciones()" [value]="d">{{ d }}</option>
-                        </select>
-                    </div>
-                </div>
-
-
-                <button type="button" class="btn-primary" (click)="addItemToInventario()">
-                    <i class="fas fa-plus" style="margin-right: 6px;"></i>
-                    Agregar Item
-                  </button>
-                  
-
-                <!-- Tabla de Items del Inventario -->
-                <h2 class="matriz-title">Items del Inventario</h2>
-                <div class="table-container">
-                    <table class="matriz">
-                        <thead>
-                            <tr>
-                                <th>Categoría</th>
-                                <th>Alcance</th>
-                                <th>Descripción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let item of inventarioForm.items">
-                                <td>{{ item.residuo!.corriente }}</td>
-                                <td>{{ item.residuo!.juridiccion }}</td>
-                                <td>{{ item.residuo!.detalle }}</td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="input-row" style="padding: 8px 24px;">
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-save" style="margin-right: 6px;"></i>
-                        {{ editMode ? 'Actualizar' : 'Crear' }} Inventario
-                      </button>
-                      
-                    <button type="button" class="btn-secondary" (click)="resetForm()">
-                        <i class="fas fa-times" style="margin-right: 6px;"></i>
-                        Cancelar</button>
-                </div>
-            </form>
-
-            <hr>
-
-            <!-- Listado de Inventarios -->
-            <h2 class="matriz-title">Listado de Inventarios</h2>
-            <div class="table-container">
-                <table class="matriz">
-                    <thead>
-                        <tr>
-                            <th class="col-fecha">Fecha</th>
-                            <th class="col-fecha">Organización</th>
-                            <th class="col-acciones">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let inv of inventarios">
-                            <td>{{ inv.fecha }}</td>
-                            <td>{{ getOrgName(inv.organizacionId) }}</td>
-                            <td class="col-acciones">
-                                <button class="btn-sm btn-primary" (click)="verDetallesInventario(inv)">
-                                    <i class="fas fa-eye" style="margin-right: 6px;"></i>
-                                    Ver Detalles
-                                  </button>
-                                  
-                                  <button class="btn-sm btn-info" (click)="editInventario(inv)">
-                                    <i class="fas fa-edit" style="margin-right: 6px;"></i>
-                                    Editar
-                                  </button>
-                                  
-                                  <button class="btn-sm btn-danger" (click)="deleteInventario(inv.id!)">
-                                    <i class="fas fa-trash" style="margin-right: 6px;"></i>
-                                    Eliminar
-                                  </button>
-                                  
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+              <div class="input-group">
+                <label for="rrpp">RRPP (Contrato):</label>
+                <select
+                  id="rrpp"
+                  class="custom-input"
+                  [(ngModel)]="inventarioForm.contrato"
+                  name="contrato"
+                  [disabled]="rrppList.length === 0"
+                  required
+                >
+                  <option [ngValue]="''" disabled selected>-- Seleccione RRPP --</option>
+                  <option *ngFor="let rep of rrppList" [ngValue]="rep">
+                    {{ rep }}
+                  </option>
+                </select>
+              </div>
             </div>
 
-            <div class="modal" *ngIf="mostrarDetalles">
-                <div class="modal-content">
-                    <span class="close" (click)="cerrarDetalles()">&times;</span>
-                    <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
-                        Detalles del Inventario
-                      </h2>
-                    <p><strong>Fecha:</strong> {{ inventarioSeleccionado?.fecha }}</p>
-                    <p><strong>Organización:</strong> {{ getOrgName(inventarioSeleccionado!.organizacionId) }}</p>
+            <!-- Selección de Corriente e Ítems -->
+            <h2 class="matriz-title">Seleccionar Corriente</h2>
+            <div class="input-row mb-2">
+              <div class="input-group">
+                <label for="juridiccionSelect">Juridicción:</label>
+                <select
+                  id="juridiccionSelect"
+                  [(ngModel)]="selectedJuridiccion"
+                  name="juridiccion"
+                  class="custom-input"
+                  (change)="updateCorrienteSeleccionada()"
+                >
+                  <option value="" disabled selected>-- Seleccione --</option>
+                  <option *ngFor="let a of getJuridiccion()" [value]="a">
+                    {{ a }}
+                  </option>
+                </select>
+              </div>
 
-                    <div class="table-container">
-                        <table class="matriz">
-                            <thead>
-                                <tr>
-                                    <th>Categoría</th>
-                                    <th>Alcance</th>
-                                    <th>Descripción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let item of inventarioSeleccionado?.items">
-                                    <td>{{ item.residuo!.corriente }}</td>
-                                    <td>{{ item.residuo!.juridiccion }}</td>
-                                    <td>{{ item.residuo!.detalle }}</td>
-                                </tr>
-                                <tr *ngIf="(inventarioSeleccionado?.items?.length || 0) === 0">
-                                    <td colspan="3" style="text-align: center;">No hay items asociados.</td>
-                                </tr>
+              <div class="input-group">
+                <label for="corrienteSelect">Categoría:</label>
+                <select
+                  id="corrienteSelect"
+                  [(ngModel)]="selectedCorriente"
+                  name="corriente"
+                  class="custom-input"
+                  [disabled]="!selectedJuridiccion"
+                  (change)="updateCorrienteSeleccionada()"
+                >
+                  <option value="" disabled selected>-- Seleccione --</option>
+                  <option *ngFor="let c of getCorriente()" [value]="c">
+                    {{ c }}
+                  </option>
+                </select>
+              </div>
 
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+              <div class="input-group">
+                <label for="detalleSelect">Descripción:</label>
+                <select
+                  id="detalleSelect"
+                  [(ngModel)]="selectedDetalle"
+                  name="detalle"
+                  class="custom-input"
+                  [disabled]="!selectedJuridiccion || !selectedCorriente"
+                  (change)="updateCorrienteSeleccionada()"
+                >
+                  <option value="" disabled selected>-- Seleccione --</option>
+                  <option *ngFor="let d of getDescripciones()" [value]="d">
+                    {{ d }}
+                  </option>
+                </select>
+              </div>
             </div>
+
+            <button type="button" class="btn-primary mb-3" (click)="addItemToInventario()">
+              <i class="fas fa-plus" style="margin-right: 6px;"></i>
+              Agregar Item
+            </button>
+
+            <!-- Tabla de Ítems del Inventario -->
+            <h2 class="matriz-title">Items del Inventario</h2>
+            <div class="table-container mb-3">
+              <table class="matriz">
+                <thead>
+                  <tr>
+                    <th>Categoría</th>
+                    <th>Alcance</th>
+                    <th>Descripción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of inventarioForm.items">
+                    <td>{{ item.residuo!.corriente }}</td>
+                    <td>{{ item.residuo!.juridiccion }}</td>
+                    <td>{{ item.residuo!.detalle }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="input-row" style="padding: 8px 24px;">
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-save" style="margin-right: 6px;"></i>
+                {{ editMode ? 'Actualizar' : 'Crear' }} Inventario
+              </button>
+              <button type="button" class="btn-secondary" (click)="resetForm()">
+                <i class="fas fa-times" style="margin-right: 6px;"></i>
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
+
+      </form>
+
+      <hr />
+
+      <!-- Listado de Inventarios -->
+      <h2 class="matriz-title">Listado de Inventarios</h2>
+      <div class="table-container">
+        <table class="matriz">
+          <thead>
+            <tr>
+              <th class="col-fecha">Fecha</th>
+              <th class="col-fecha">Organización</th>
+              <th class="col-fecha">Contrato</th>
+              <th class="col-acciones">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of inventarios">
+              <td>{{ inv.fecha }}</td>
+              <td>{{ getOrgName(inv.organizacionId) }}</td>
+              <td>{{ inv.contrato }}</td>
+              <td class="col-acciones">
+                <button class="btn-sm btn-primary" (click)="verDetallesInventario(inv)">
+                  <i class="fas fa-eye" style="margin-right: 6px;"></i>
+                  Ver Detalles
+                </button>
+                <button class="btn-sm btn-info" (click)="editInventario(inv)">
+                  <i class="fas fa-edit" style="margin-right: 6px;"></i>
+                  Editar
+                </button>
+                <button class="btn-sm btn-danger" (click)="deleteInventario(inv.id!)">
+                  <i class="fas fa-trash" style="margin-right: 6px;"></i>
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal de detalles -->
+      <div class="modal" *ngIf="mostrarDetalles">
+        <div class="modal-content">
+          <span class="close" (click)="cerrarDetalles()">&times;</span>
+          <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
+            Detalles del Inventario
+          </h2>
+          <p><strong>Fecha:</strong> {{ inventarioSeleccionado?.fecha }}</p>
+          <p>
+            <strong>Organización:</strong>
+            {{ getOrgName(inventarioSeleccionado!.organizacionId) }}
+          </p>
+          <div class="table-container">
+            <table class="matriz">
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th>Alcance</th>
+                  <th>Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of inventarioSeleccionado?.items">
+                  <td>{{ item.residuo!.corriente }}</td>
+                  <td>{{ item.residuo!.juridiccion }}</td>
+                  <td>{{ item.residuo!.detalle }}</td>
+                </tr>
+                <tr *ngIf="(inventarioSeleccionado?.items?.length || 0) === 0">
+                  <td colspan="3" style="text-align: center;">
+                    No hay items asociados.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <app-footer></app-footer>
+  </div>
+  <app-footer></app-footer>
 </div>

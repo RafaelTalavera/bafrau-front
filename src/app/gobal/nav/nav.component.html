@@ -36,7 +36,7 @@
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
-        <!-- Primer opción Informe inicial -->
+        <!-- Primer opción Alta de organización -->
         <li class="nav-item">
           <a [routerLink]="['/organizacion-form']" class="nav-link">
             <i class="nav-icon fas fa-square-plus"></i>
@@ -46,6 +46,37 @@
             </p>
           </a>
         </li>
+
+
+        <!-- Segundo opción Informe inicial -->
+        <li class="nav-item">
+          <a class="nav-link">
+            <i class="nav-icon fas fa-leaf"></i>
+            <p>
+              Auditoria Ambiental
+              <i class="fas fa-angle-left right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a [routerLink]="['/informe']" class="nav-link">
+                <i class="nav-icon fa-solid fa-pen"></i>
+                <p>Informe</p>
+              </a>
+            </li>
+          </ul>
+
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a [routerLink]="['/informe-formato']" class="nav-link">
+                <i class="nav-icon fa-solid fa-brush"></i>
+                <p>Formato</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+
 
         <!-- Segunda opción Crear matriz-->
         <li class="nav-item">
@@ -105,6 +136,7 @@
             </li>
           </ul>
         </li>
+
         <!-- cuarta opción Crear legal -->
         <li class="nav-item has-treeview">
           <a href="#" class="nav-link">
@@ -120,6 +152,13 @@
               <a [routerLink]="['/registro-semaforo']" class="nav-link">
                 <i class="nav-icon fas fa-traffic-light"></i>
                 <p>Semaforo de Requisitos</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a [routerLink]="['/reporte-legal-organizacion']" class="nav-link">
+                <i class="nav-icon fas fa-clipboard"></i>
+                <p>Reporte legal</p>
               </a>
             </li>
 

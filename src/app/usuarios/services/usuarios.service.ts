@@ -37,15 +37,10 @@ export class UsuariosService {
   }
 
   updateUsuario(usuario: Usuario): Observable<Usuario> {
-    // Muestra en consola el objeto Usuario y su representación JSON
-    console.log('Objeto Usuario a enviar:', usuario);
-    console.log('Payload JSON:', JSON.stringify(usuario));
-    
     return this.http
       .put<Usuario>(`${this.baseUrl}/${usuario.id}`, usuario);
   }
   
-
   remove(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

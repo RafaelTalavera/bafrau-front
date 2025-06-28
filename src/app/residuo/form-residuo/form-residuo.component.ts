@@ -25,7 +25,6 @@ export class FormResiduoComponent implements AfterContentInit {
 
  onSubmit(residuoForm: NgForm): void {
   if (residuoForm.valid){
-    console.log('Enviado para editar:', this.residuo);
     this.newResiduoEvent.emit({...this.residuo});
     residuoForm.resetForm();
   }
@@ -37,7 +36,6 @@ export class FormResiduoComponent implements AfterContentInit {
     corriente: '',
     juridiccion: '',
     detalle: ''
-
   }
  }
 }

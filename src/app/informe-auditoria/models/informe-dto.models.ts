@@ -1,7 +1,8 @@
 export interface InformeDTO {
     id: number;
+    titulo: string;
     razonSocial: string;
-    nombreDelProponente: string;
-    // otros campos según tu necesidad
+    fecha: string;
+    organizacionId: number;
   }
   

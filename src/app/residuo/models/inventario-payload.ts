@@ -1,6 +1,7 @@
-// src/app/residuo/models/inventario-payload.ts
+
 export interface InventarioPayload {
   fecha: string;
   organizacionId: number;
+  contrato: string;
   items: { residuo: { id: number } }[];
 }

@@ -1,0 +1,121 @@
+
+
+/* src/app/informe-auditoria/informe-auditoria.component.css */
+
+html, body {
+  height: 100%;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.custom-form .form-control {
+  font-size: 12px;
+}
+
+.custom-form .small-text {
+  font-size: 12px;
+}
+
+/* Título de la tarjeta */
+.custom-h5 {
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Mensajes de error */
+.text.alert-danger {
+  font-size: 10px;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.content-wrapper {
+  margin-top: 80px; 
+  margin-bottom: 80px;
+}
+.custom-form .uniform-field {
+  height: calc(1.5em + 0.5rem + 2px); 
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.custom-form .small-text.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.table-container {
+  max-height: 300px; /* o lo que necesites */
+  overflow-y: auto;
+  display: block;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa; /* mismo color que .table-light */
+  z-index: 1;
+}
+.miniatura {
+  max-width: 100px;
+  max-height: 100px;
+  width: auto;
+  height: auto;
+}
+
+/* Basado en la documentación de Bootstrap 5 y ajustes estándares de CSS */
+.btn-xs {
+  padding: 0.2rem 0.4rem;    /* Menos que btn-sm (0.25rem 0.5rem) */
+  font-size: 0.75rem;        /* Más pequeño que 0.875rem (btn-sm) */
+  line-height: 1.2;          /* Ajusta a tu gusto */
+}
+
+/* Si quieres también reducir el tamaño del ícono: */
+.btn-xs i {
+  font-size: 0.85em;         /* Un poco más pequeño que el texto */
+}
+
+.modal-xl {
+  max-width: 90%; /* o el % / px que necesites */
+}
+
+/* Limita altura del body y activa scroll */
+.modal-body {
+  max-height: calc(100vh - 200px); /* 200px ≈ alto header+footer */
+  overflow-y: auto;
+}
+
+.swal2-titulo-16px {
+  font-size: 16px !important;
+}
+
+/* En tu componente (ej. seccion.component.css) */
+.images-wrapper {
+  display: grid;
+  /* Dos columnas iguales; ajusta el gap */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5mm;
+  width: 190mm; /* el ancho A4 */
+  margin: 0 auto;
+}
+
+.images-wrapper img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* ancho de los card */
+.custom-wide {
+  max-width: 1600px; /* ajusta a tu gusto */
+  width: 100%;
+}
+
+.wrapper {
+  min-height: 100vh;
+}

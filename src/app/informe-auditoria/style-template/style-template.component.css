@@ -1,0 +1,61 @@
+/* src/app/style-template/style-template.component.css */
+.custom-form .form-control {
+  font-size: 12px;
+}
+
+.custom-form .small-text {
+  font-size: 12px;
+}
+
+.custom-h5 {
+  font-size: 16px;
+  text-align: center;
+}
+
+.text.alert-danger {
+  font-size: 10px;
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.table-striped {
+  font-size: 12px;
+}
+
+.badge {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.separated-content {
+  margin-top: 20px;
+  /* Ajusta este valor según sea necesario */
+}
+
+.separated-content {
+  max-width: 80%;
+}
+
+.wrapper {
+  min-height: 100vh;
+}
+
+/* Basado en AdminLTE v3 docs y buenas prácticas de CSS — confiabilidad: alta */
+.content-wrapper {
+  margin-left: 250px; /* ancho del sidebar (por defecto 250px en AdminLTE) */
+  margin-top: 56px;   /* alto del navbar/top header (ajusta si es distinto) */
+  padding: 20px;      /* espacio interno para que no toque los bordes */
+}
+
+/* Asegura que el header y sidebar estén por encima */
+.main-header,
+.main-sidebar {
+  position: fixed;
+  z-index: 1000;
+}

@@ -23,7 +23,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     const jwt = localStorage.getItem('jwt_token');
     if (jwt) {
-      this.router.navigate(['/organizacion-form']);
+      this.router.navigate(['/menu']);
     }
   }
 
@@ -34,7 +34,7 @@ export class LoginComponent implements OnInit {
           if (data?.jwt) {
             localStorage.setItem('jwt_token', data.jwt);
             // Navega y luego inicializa AdminLTE
-            this.router.navigate(['/organizacion-form']).then(() => {
+            this.router.navigate(['/menu']).then(() => {
               // Toggle sidebar
               ($('[data-widget="pushmenu"]') as any).PushMenu();
               // Inicializa submenús

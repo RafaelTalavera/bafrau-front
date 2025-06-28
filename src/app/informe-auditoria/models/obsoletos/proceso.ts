@@ -1,4 +1,3 @@
-import { Informe } from "../../organizacion/models/organizacion.model";
 import { Insumo } from "./insumo";
 
 export interface Proceso {
@@ -12,5 +11,4 @@ export interface Proceso {
     recipienteResiduos: string;
     residuosLiquidos: string;
     insumos: Insumo[]; 
-    informe?: Informe; 
   }

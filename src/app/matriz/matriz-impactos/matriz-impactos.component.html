@@ -12,7 +12,7 @@
           <div class="input-row filter-container">
             <div class="input-group">
               <label class="small-text">Filtrar por Organización:</label>
-              <input type="text" [(ngModel)]="organizationFilter" placeholder="Escriba para filtrar..."
+              <input type="text" [(ngModel)]="organizationFilter" placeholder="🔎 Escriba para filtrar..."
                 class="custom-input small-text" />
             </div>
           </div>
@@ -87,10 +87,11 @@
               {{ selectedMatrix.items[0].razonSocial || '—' }}
             </p>
 
-            <!-- Botón de descarga -->
+            <!-- Botón de descarga o asociación -->
             <div class="mb-2">
               <button class="btn btn-primary btn-sm" (click)="downloadAsJpg()">
-                <i class="fa-solid fa-download me-1"></i> Descargar JPG
+                <i class="fa-solid fa-download me-1"></i>
+                {{ sectionId ? 'Asociar imagen' : 'Descargar JPG' }}
               </button>
             </div>
 
@@ -317,12 +318,13 @@
                                 </tr>
                               </ng-container>
 
-                              <tr>
+                              <tr [ngClass]="getImpactClass(factor.id, st.name, action)">
                                 <td class="small-text2">Imp:</td>
                                 <td class="small-text2">
                                   {{ calculateImpact(factor.id, st.name, action) }}
                                 </td>
                               </tr>
+
                             </tbody>
                           </table>
                         </td>
@@ -394,19 +396,19 @@
               <i class="fas fa-list"></i> Ver Matriz Numérica
             </button>
 
-            <!-- Resumen - Top 3 IRT Positivos con Acciones -->
-            <div class="card summary-card" *ngIf="shouldShowTopThreePosIRTs()">
+            <!-- Resumen - Top 3 IRT Positivos (solo > 0) -->
+            <div class="card summary-card" *ngIf="topThreePosIRTsFiltered.length > 0">
               <h3>Resumen - Top 3 IRT Factores Positivos</h3>
               <ul>
-                <li *ngFor="let item of topThreePosIRTs">
+                <li *ngFor="let item of topThreePosIRTsFiltered">
                   Factor: {{ item.factor }} | IRT:
-                  <span [ngClass]="{ 'positive-value': item.irt >= 0 }">
+                  <span [ngClass]="{ 'positive-value': item.irt > 0 }">
                     {{ item.irt | number:'1.0-2' }}
                   </span>
-                  | Acciones: {{ item.actions.join(', ') }}
                 </li>
               </ul>
             </div>
+
 
             <!-- Resumen - Top 3 IRT Negativos con Acciones -->
             <div class="card summary-card" *ngIf="topThreeNegIRTs.length > 0">
@@ -417,29 +419,62 @@
                   <span [ngClass]="{ 'negative-value': item.irt < 0 }">
                     {{ item.irt | number:'1.0-2' }}
                   </span>
-                  | Acciones: {{ item.actions.join(', ') }}
+
                 </li>
               </ul>
             </div>
 
-            <!-- Gráfico de Barras - IRT de cada Factor -->
+            <!-- Top 3 IRT Positivos por Acción y Etapa -->
+            <div class="card summary-card" *ngIf="topThreeActionPosIRTs.length > 0">
+              <h3>Top 3 IRT Positivos por Acción y Etapa</h3>
+              <ul>
+                <li *ngFor="let item of topThreeActionPosIRTs">
+                  Etapa: {{ item.etapa }} | Acción: {{ item.accion }} | IRT:
+                  <span class="positive-value">
+                    {{ item.irt | number:'1.0-2' }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Top 3 IRT Negativos por Acción y Etapa -->
+            <div class="card summary-card" *ngIf="topThreeActionNegIRTs.length > 0">
+              <h3>Top 3 IRT Negativos por Acción y Etapa</h3>
+              <ul>
+                <li *ngFor="let item of topThreeActionNegIRTs">
+                  Etapa: {{ item.etapa }} | Acción: {{ item.accion }} | IRT:
+                  <span class="negative-value">
+                    {{ item.irt | number:'1.0-2' }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+
+            <!-- Gráfico IRT -->
             <div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
               <h3>Gráfico de Barras - IRT de cada Factor</h3>
               <canvas id="irtBarChart" #irtBarChart style="width: 100%; height: 400px;"></canvas>
-              <button class="btn btn-primary btn-sm mt-2" (click)="downloadIrtChart()">
-                <i class="fa-solid fa-download me-1"></i> Descargar JPG
-              </button>
-
+              <div class="mb-2">
+                <button class="btn btn-primary btn-sm" (click)="downloadIrtChart()">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar gráfico IRT' : 'Descargar JPG' }}
+                </button>
+              </div>
             </div>
 
-            <!-- Gráfico de Barras - IRT por Acciones y Factores -->
+            <!-- Gráfico de Acciones -->
             <div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
               <h3>Gráfico de Barras - IRT por Acciones y Factores</h3>
               <canvas id="irtActionsChart" #irtActionsChart style="width: 100%; height: 400px;"></canvas>
-              <button class="btn btn-primary btn-sm mt-2" (click)="downloadActionsChart()">
-                <i class="fa-solid fa-download me-1"></i> Descargar JPG
-              </button>
+              <div class="mb-2">
+                <button class="btn btn-primary btn-sm" (click)="downloadActionsChart()">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar JPG' }}
+                </button>
+              </div>
             </div>
+
           </div>
         </div>
       </div>

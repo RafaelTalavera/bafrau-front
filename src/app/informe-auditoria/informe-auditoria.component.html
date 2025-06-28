@@ -1,61 +1,151 @@
-<body class="hold-transition sidebar-mini layout-fixed">
-  <div class="wrapper">
-    <app-nav></app-nav>
+<app-nav></app-nav>
 
-    <div class="content-wrapper">
-      <div class="container-fluid my-4 d-flex justify-content-center">
-        <div class="separated-content w-100">
-          <div class="form-wrapper">
-            <form>
-              <div class="form-row mb-2">
-                <div class="form-group col-md-4">
-                  <label for="razonSocial" class="label-custom">Buscar por Razón Social</label>
-                  <input
-                    id="razonSocial"
-                    [(ngModel)]="razonSocial"
-                    name="razonSocial"
-                    (input)="onSearchChange(razonSocial || '')"
-                    class="form-control input-custom"
-                    placeholder="Ingrese razón social"
-                  />
-                </div>
-              </div>
-            </form>
+<div class="content-wrapper">
+  <form [formGroup]="informeForm" (ngSubmit)="onSubmit()" class="container mt-2 custom-form">
+    <div class="card w-100">
+      <div class="card-header bg-primary text-white">
+        <h5 class="custom-h5">
+          {{ editarId == null ? 'Crear Auditoria Ambiental' : 'Editar Auditoria Ambiental' }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <!-- Select de Organización -->
+          <div class="col-md-6 mb-3">
+            <div class="d-flex flex-column">
+              <label for="organizacion" class="small-text mb-1">Organización:</label>
+              <select #selOrg id="organizacion" formControlName="organizacionId"
+                (change)="setRazonSocial(+selOrg.value)" class="form-select form-select-sm uniform-field">
+                <option [value]="null" disabled>-- Seleccione una organización --</option>
+                <option *ngFor="let org of organizaciones" [value]="org.id">
+                  {{ org.razonSocial }}
+                </option>
+              </select>
+            </div>
+            <div *ngIf="informeForm.get('organizacionId')?.invalid && informeForm.get('organizacionId')?.touched"
+              class="text alert-danger small-text mt-1">
+              La organización es obligatoria.
+            </div>
           </div>
 
-          <!-- Tabla para mostrar los informes encontrados -->
-          <div class="card mt-4" style="width: 100%;">
-            <div class="col mt-3">
-              <h5 class="text-center">Razones Sociales Encontradas</h5>
-              <table class="table table-bordered table-hover mt-3">
-                <thead>
-                  <tr>
-                    <th class="text-center">Razón Social</th>
-                    <th class="text-center">acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let informe of filteredInformes">
-                    <td class="text-center">{{ informe.razonSocial }}</td>
-                    <td class="text-center">
-                      <!-- Botón que redirige a 'capitulos' con el ID del informe y la razón social -->
-                      <button class="btn btn-primary" (click)="irACapitulos(informe.id, informe.razonSocial)">
-                        Crear informe
-                      </button>
-                    </td>
-                    
-                  </tr>
-                </tbody>
-              </table>
-              <!-- Mensaje cuando no hay resultados -->
-              <div *ngIf="filteredInformes?.length === 0" class="text-center mt-4">
-                <p class="text-muted">No se encontraron informes para la razón social proporcionada.</p>
+          <!-- Fecha -->
+          <div class="col-md-6 mb-3">
+            <div class="d-flex flex-column">
+              <label for="fecha" class="small-text mb-1">Fecha:</label>
+              <input type="date" id="fecha" formControlName="fecha"
+                class="form-control form-control-sm uniform-field" />
+            </div>
+            <div
+              *ngIf="informeForm.get('fecha')?.invalid && (informeForm.get('fecha')?.dirty || informeForm.get('fecha')?.touched)"
+              class="text alert-danger small-text mt-1">
+              <div *ngIf="informeForm.get('fecha')?.errors?.['required']">
+                La fecha es obligatoria.
+              </div>
+            </div>
+          </div>
+
+          <!-- Titulo -->
+          <div class="col-md-12 mb-3">
+            <div class="d-flex flex-column">
+              <label for="titulo" class="small-text mb-1">Titulo:</label>
+              <input type="text" id="fecha" formControlName="titulo"
+                class="form-control form-control-sm uniform-field" />
+            </div>
+            <div
+              *ngIf="informeForm.get('titulo')?.invalid && (informeForm.get('titulo')?.dirty || informeForm.get('titulo')?.touched)"
+              class="text alert-danger small-text mt-1">
+              <div *ngIf="informeForm.get('titulo')?.errors?.['required']">
+                El titulo es obligatorio.
               </div>
             </div>
           </div>
         </div>
+
+
+
+        <!-- Botones centrados -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary btn-sm mx-2">
+            <i class="fas fa-save me-2"></i>
+            {{ editarId == null ? 'Guardar' : 'Actualizar' }}
+          </button>
+          <button *ngIf="editarId != null" type="button" class="btn btn-success btn-sm mx-2"
+            (click)="cancelarEdicion()">
+            <i class="fas fa-eraser mx-2"></i> Cancelar
+          </button>
+        </div>
       </div>
     </div>
-    <app-footer></app-footer>
+  </form>
+
+
+  <!-- FILTRO POR RAZÓN SOCIAL: dentro de un contenedor para alinear -->
+  <div class="container mt-4">
+    <div class="card w-100">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-md-4">
+            <label class="small-text mb-1">Filtrar por Organización:</label>
+            <input type="text" [(ngModel)]="organizationFilter" name="organizationFilter"
+              placeholder="🔎 Escriba para filtrar..." class="form-control form-control-sm" />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</body>
+
+  <!-- Spinner Overlay -->
+  <app-spinner [isVisible]="loading"></app-spinner>
+
+  <div class="container mt-4">
+    <div class="card w-100">
+      <div class="card-body">
+        <h3 class="container mt-0 text-center" style="font-size: 18px; color: #200cd3;">
+          <strong>Lista de Informes creados</strong>
+        </h3>
+
+        <div class="table-container">
+          <table class="table table-striped">
+            <thead class="table-light sticky-header">
+              <tr>
+                <th>Fecha</th>
+                <th>Titulo</th>
+                <th>Razón Social</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let inf of filteredInformes">
+                <td>{{ inf.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ inf.titulo }}</td>
+                <td>{{ inf.razonSocial }}</td>
+                <td style="width: 200px; white-space: nowrap;">
+
+                  <!-- botón crear capitulo -->
+                  <button class="btn btn-sm btn-info mx-2" (click)="crearCapitulos(inf)">
+                    <i class="fas fa-folder-open mx-1"></i>Crear Capítulos
+                  </button>
+
+                  <!-- botón crear encabezado -->
+                  <button class="btn btn-sm btn-secondary mx-2" (click)="crearEncabezado(inf)">
+                    <i class="fas fa-file-alt mx-1"></i> Crear Encabezado
+                  </button>
+
+                  <button class="btn btn-sm btn-danger mx-2" (click)="eliminarInforme(inf.id!)">
+                    <i class="fas fa-trash mx-1"></i>Eliminar
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredInformes.length === 0">
+                <td colspan="4" class="text-center">No hay informes que coincidan.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<app-footer></app-footer>

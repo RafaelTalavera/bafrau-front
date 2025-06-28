@@ -7,12 +7,12 @@ import Swal from 'sweetalert2';
 import { Chart, registerables } from 'chart.js';
 import { ItemMatriz, Matriz } from '../models/matriz';
 import { MatrizService } from '../service/matriz-service';
-
 import { AdditionalFieldOptions } from '../constants/additional-flied-options';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AdditionalFields, FactorView, MatrizBuilderUnifiedService, Stage } from '../service/matriz-builder-unified.service';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { AdjuntosService } from '../../utils/adjuntos.service';
 
 Chart.register(...registerables);
 
@@ -21,6 +21,13 @@ interface FactorSummary {
   irt: number;
   actions: string[];
 }
+
+interface ActionIRTSummary {
+  etapa: string;
+  accion: string;
+  irt: number;
+}
+
 
 @Component({
   selector: 'app-matriz-impactos',
@@ -59,12 +66,17 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
 
   topThreePosIRTs: FactorSummary[] = [];
   topThreeNegIRTs: FactorSummary[] = [];
+  topThreeActionPosIRTs: ActionIRTSummary[] = [];
+  topThreeActionNegIRTs: ActionIRTSummary[] = [];
   irtChart?: Chart;
   actionsChart?: Chart;
 
   // ← Banderas de carga
   loadingList: boolean = false;
   loadingDetail: boolean = false;
+
+  razonSocial?: string;
+  sectionId?: number;
 
 
   @ViewChild('irtBarChart') irtBarChartRef!: ElementRef<HTMLCanvasElement>;
@@ -73,66 +85,147 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   constructor(
     private router: Router,
     private matrizService: MatrizService,
-    private gridBuilder: MatrizBuilderUnifiedService
+    private gridBuilder: MatrizBuilderUnifiedService,
+    private route: ActivatedRoute,
+    private adjuntosService: AdjuntosService
   ) { }
 
-
+  //Botón de descarga -->
+  /** Descarga JPG o lo asocia según sectionId */
   downloadAsJpg(): void {
     if (!this.matrizVisualizacion) return;
     const el = this.matrizVisualizacion.nativeElement;
 
-    // Guardar estilos originales
-    const orig = {
-      height: el.style.height,
-      width: el.style.width,
-      overflow: el.style.overflow
-    };
+    // (Opcional) ajusta estilos si es necesario...
+    html2canvas(el, { scale: 2 })
+      .then(canvas => canvas.toBlob(blob => {
+        if (!blob) return;
+        const fileName = `matriz-${this.sectionId || 'view'}.jpg`;
+        const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-    // Expandir para mostrar todo contenido
-    el.style.height = el.scrollHeight + 'px';
-    el.style.width = el.scrollWidth + 'px';
-    el.style.overflow = 'visible';
-
-    html2canvas(el, { scale: 2 }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = `matriz-${this.selectedMatrix?.id || 'view'}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.9);
-      link.click();
-    }).catch(err => {
-      console.error('Error generando imagen:', err);
-      Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
-    }).finally(() => {
-      // Restaurar estilos
-      el.style.height = orig.height;
-      el.style.width = orig.width;
-      el.style.overflow = orig.overflow;
-    });
+        if (this.sectionId) {
+          // Modo “asociar”
+          this.adjuntosService
+            .ploadAdjuntoSeccion(file, 'Matriz Impactos', this.sectionId)
+            .subscribe({
+              next: () =>
+                Swal.fire('Éxito', 'Imagen asociada correctamente', 'success'),
+              error: () =>
+                Swal.fire('Error', 'No se pudo asociar la imagen', 'error'),
+            });
+        } else {
+          // Modo descarga
+          const a = document.createElement('a');
+          a.href = canvas.toDataURL('image/jpeg', 0.9);
+          a.download = fileName;
+          a.click();
+        }
+      }))
+      .catch(err => {
+        console.error('Error generando JPG:', err);
+        Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+      });
   }
 
-  /** Descarga el gráfico IRT como JPG */
+
+  /** Descarga o asocia el gráfico IRT como JPG */
   downloadIrtChart(): void {
     if (!this.irtChart) return;
-    const url = this.irtChart.toBase64Image('image/jpeg', 0.9);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `irt-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
-    link.click();
+    const dataUrl = this.irtChart.toBase64Image('image/jpeg', 0.9);
+    fetch(dataUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        const fileName = `irt-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
+        const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+        if (this.sectionId) {
+          this.adjuntosService
+            .ploadAdjuntoSeccion(file, 'Gráfico IRT', this.sectionId)
+            .subscribe({
+              next: () =>
+                Swal.fire('Listo', 'Gráfico IRT asociado correctamente', 'success'),
+              error: () =>
+                Swal.fire('Error', 'No se pudo asociar el gráfico IRT', 'error'),
+            });
+        } else {
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = fileName;
+          a.click();
+        }
+      })
+      .catch(err => {
+        console.error('Error generando gráfico IRT:', err);
+        Swal.fire('Error', 'No se pudo generar el gráfico IRT.', 'error');
+      });
   }
 
-  /** Descarga el gráfico de Acciones como JPG */
+  /** Descarga o asocia el gráfico de Acciones como JPG */
   downloadActionsChart(): void {
     if (!this.actionsChart) return;
-    const url = this.actionsChart.toBase64Image('image/jpeg', 0.9);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `actions-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
-    link.click();
+    const dataUrl = this.actionsChart.toBase64Image('image/jpeg', 0.9);
+    fetch(dataUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        const fileName = `actions-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
+        const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+        if (this.sectionId) {
+          this.adjuntosService
+            .ploadAdjuntoSeccion(file, 'Gráfico Acciones', this.sectionId)
+            .subscribe({
+              next: () =>
+                Swal.fire('Listo', 'Gráfico de acciones asociado correctamente', 'success'),
+              error: () =>
+                Swal.fire('Error', 'No se pudo asociar el gráfico de acciones', 'error'),
+            });
+        } else {
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = fileName;
+          a.click();
+        }
+      })
+      .catch(err => {
+        console.error('Error generando gráfico de acciones:', err);
+        Swal.fire('Error', 'No se pudo generar el gráfico de acciones.', 'error');
+      });
   }
+
 
   ngOnInit(): void {
-    this.loadMatrices();
+    this.route.paramMap.subscribe(params => {
+      const rs = params.get('razonSocial');
+      const sid = params.get('sectionId');
+      this.razonSocial = rs ?? undefined;
+      this.sectionId = sid ? +sid : undefined;
+
+      if (this.razonSocial) {
+        this.loadByRazonSocial(this.razonSocial);
+      } else {
+        this.loadMatrices();
+      }
+    });
+
   }
 
+  private loadByRazonSocial(razon: string): void {
+    console.log('▶️ loadByRazonSocial con razonSocial =', razon);
+    this.loadingList = true;
+    this.matrizService.getAllMatrices().subscribe({
+      next: data => {
+        this.matrices = data
+          .filter(m => (m.razonSocial ?? '').toLowerCase() === razon.toLowerCase())
+          .map(m => ({ ...m, razonSocial: m.razonSocial ?? m.organizacionId }));
+        console.log('📋 matrices filtradas:', this.matrices);
+        this.loadingList = false;
+      },
+      error: err => {
+        console.error('❌ Error al cargar por razonSocial:', err);
+        this.loadingList = false;
+      }
+    });
+  }
   ngAfterViewInit(): void { }
 
   loadMatrices(): void {
@@ -187,40 +280,48 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
   // Dentro de MatrizImpactosComponent:
-  buildGrid(matriz: Matriz): void {
-    // 1) Reiniciar resúmenes
-    this.topThreePosIRTs = [];
-    this.topThreeNegIRTs = [];
+buildGrid(matriz: Matriz): void {
+  // 1) Reiniciar resúmenes de factores
+  this.topThreePosIRTs = [];
+  this.topThreeNegIRTs = [];
 
-    // 2) Obtener datos del servicio (ya vienen ordenados)
-    const items = matriz.items;
-    const { factors, stages, valuationsMap, additionalMap } =
-      this.gridBuilder.buildGrid(items);
+  // 1.1) Reiniciar resúmenes de acciones
+  this.topThreeActionPosIRTs = [];  // ← NUEVO
+  this.topThreeActionNegIRTs = [];  // ← NUEVO
 
-    // 3) Asignar directamente (sin .sort extra)
-    this.factors = factors;
-    this.stages = stages;
-    this.valuationsMap = valuationsMap;
-    this.additionalMap = additionalMap;
+  // 2) Obtener datos del servicio (ya vienen ordenados)
+  const items = matriz.items;
+  const { factors, stages, valuationsMap, additionalMap } =
+    this.gridBuilder.buildGrid(items);
 
-    // 4) Inicializar estado de desplegado
-    this.expandedFactors = Object.fromEntries(
-      this.factors.map(f => [f.id.toString(), false])
-    );
+  // 3) Asignar directamente
+  this.factors = factors;
+  this.stages = stages;
+  this.valuationsMap = valuationsMap;
+  this.additionalMap = additionalMap;
 
-    // 5) Inyectar el UIP real en additionalMap
-    items.forEach(item => {
-      const bucket = this.additionalMap[item.factorId]?.[item.etapa]?.[item.accionTipo];
-      if (bucket) bucket.uip = item.uip ?? 0;
-    });
+  // 4) Inicializar desplegado
+  this.expandedFactors = Object.fromEntries(
+    this.factors.map(f => [f.id.toString(), false])
+  );
 
-    // 6) Calcular resúmenes y dibujar gráficas
-    this.computeSummaryIRTs();
-    setTimeout(() => {
-      this.createBarChart();
-      this.createBarChartActions();
-    }, 100);
-  }
+  // 5) Inyectar UIP real en additionalMap
+  items.forEach(item => {
+    const bucket = this.additionalMap[item.factorId]?.[item.etapa]?.[item.accionTipo];
+    if (bucket) bucket.uip = item.uip ?? 0;
+  });
+
+  // 6) Calcular resúmenes y dibujar gráficas
+  this.computeSummaryIRTs();
+
+  // 6.1) Calcular top 3 por acción y etapa (positivos y negativos)
+  this.computeTopThreeActionIRTs();  // este método ahora llena ambos arrays
+
+  setTimeout(() => {
+    this.createBarChart();
+    this.createBarChartActions();
+  }, 100);
+}
 
 
   toggleNumericView(): void {
@@ -251,29 +352,29 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
 
- showNumericPopup(): void {
-  if (!this.selectedMatrix) {
-    Swal.fire('Atención', 'No hay ninguna matriz seleccionada.', 'warning');
-    return;
-  }
+  showNumericPopup(): void {
+    if (!this.selectedMatrix) {
+      Swal.fire('Atención', 'No hay ninguna matriz seleccionada.', 'warning');
+      return;
+    }
 
-  // 1) Orden de etapas
-  const etapaOrder = [
-    'Construcción',
-    'Operación y mantenimiento',
-    'Cierre',
-    'Comunes'
-  ];
+    // 1) Orden de etapas
+    const etapaOrder = [
+      'Construcción',
+      'Operación y mantenimiento',
+      'Cierre',
+      'Comunes'
+    ];
 
-  // 2) Clonar y ordenar items
-  const sortedItems = [...this.selectedMatrix.items].sort((a, b) => {
-    const ia = etapaOrder.indexOf(a.etapa);
-    const ib = etapaOrder.indexOf(b.etapa);
-    return (ia - ib) || 0;
-  });
+    // 2) Clonar y ordenar items
+    const sortedItems = [...this.selectedMatrix.items].sort((a, b) => {
+      const ia = etapaOrder.indexOf(a.etapa);
+      const ib = etapaOrder.indexOf(b.etapa);
+      return (ia - ib) || 0;
+    });
 
-  // 3) Generar filas
-  const rows = sortedItems.map(item => `
+    // 3) Generar filas
+    const rows = sortedItems.map(item => `
     <tr>
       <td>${item.factorSistema}</td>
       <td>${item.factorSubsistema}</td>
@@ -297,7 +398,7 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     </tr>
   `).join('');
 
-  const htmlTable = `
+    const htmlTable = `
     <div id="numericTable"
          style="overflow:auto; max-height:60vh; max-width:95vw; font-size:10px;">
       <table style="width:100%; border-collapse:collapse; font-size:10px;">
@@ -315,104 +416,104 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     </div>
   `;
 
-  Swal.fire({
-    title: 'Matriz Numérica',
-    html: htmlTable,
-    width: '95%',
-    showCloseButton: true,
-    focusConfirm: false,
-    confirmButtonText: 'Cerrar',
-    footer: '<button id="downloadPdf" class="swal2-confirm swal2-styled">Descargar PDF</button>',
-    didRender: () => {
-      document.getElementById('downloadPdf')?.addEventListener('click', () => {
-        const el = document.getElementById('numericTable')!;
-        // Guardar estilos originales
-        const orig = {
-          height:    el.style.height,
-          width:     el.style.width,
-          maxHeight: el.style.maxHeight,
-          maxWidth:  el.style.maxWidth,
-          overflow:  el.style.overflow
-        };
-        // Expandir contenido
-        el.style.height    = el.scrollHeight + 'px';
-        el.style.width     = el.scrollWidth  + 'px';
-        el.style.maxHeight = 'none';
-        el.style.maxWidth  = 'none';
-        el.style.overflow  = 'visible';
-
-        html2canvas(el, { scale: 2 }).then(canvas => {
-          const imgData = canvas.toDataURL('image/png');
-          const pdf     = new jsPDF('l', 'pt', 'a4');
-          const pdfW    = pdf.internal.pageSize.getWidth();
-          const pdfH    = pdf.internal.pageSize.getHeight();
-          const margin  = 40;                  // margen en pts
-          const pageH   = pdfH - margin * 2;   // altura útil en pts
-          const imgW    = pdfW - margin * 2;
-          const imgH    = (canvas.height * imgW) / canvas.width;
-          const pxPerPt = canvas.width / imgW; // ratio px/pt
-          const slicePx = pageH * pxPerPt;
-
-          const logo = new Image();
-          logo.src   = 'assets/dist/img/logo-letras.png';
-          logo.onload = () => {
-            const logoW = 60; // ancho en pts
-            const logoH = (logo.height / logo.width) * logoW;
-            let remainingPt = imgH;
-            let srcYpx      = 0;
-
-            while (remainingPt > 0) {
-              // 1) Logo arriba a la derecha
-              pdf.addImage(
-                logo,
-                'PNG',
-                pdfW - margin - logoW,
-                margin / 2,
-                logoW,
-                logoH
-              );
-              // 2) Slice de tabla
-              const hPx = Math.min(slicePx, canvas.height - srcYpx);
-              const sliceCanv = document.createElement('canvas');
-              sliceCanv.width  = canvas.width;
-              sliceCanv.height = hPx;
-              const ctx = sliceCanv.getContext('2d')!;
-              ctx.drawImage(canvas, 0, srcYpx, canvas.width, hPx, 0, 0, canvas.width, hPx);
-              const sliceData = sliceCanv.toDataURL('image/png');
-              const slicePt   = hPx / pxPerPt;
-
-              // 3) Pintar slice debajo del logo
-              pdf.addImage(
-                sliceData,
-                'PNG',
-                margin,
-                margin + logoH + 10,
-                imgW,
-                slicePt
-              );
-
-              remainingPt -= pageH;
-              srcYpx      += hPx;
-              if (remainingPt > 0) pdf.addPage();
-            }
-
-            pdf.save(`matriz-numerica-${this.selectedMatrix!.id}.pdf`);
+    Swal.fire({
+      title: 'Matriz Numérica',
+      html: htmlTable,
+      width: '95%',
+      showCloseButton: true,
+      focusConfirm: false,
+      confirmButtonText: 'Cerrar',
+      footer: '<button id="downloadPdf" class="swal2-confirm swal2-styled">Descargar PDF</button>',
+      didRender: () => {
+        document.getElementById('downloadPdf')?.addEventListener('click', () => {
+          const el = document.getElementById('numericTable')!;
+          // Guardar estilos originales
+          const orig = {
+            height: el.style.height,
+            width: el.style.width,
+            maxHeight: el.style.maxHeight,
+            maxWidth: el.style.maxWidth,
+            overflow: el.style.overflow
           };
-        }).catch(err => {
-          console.error(err);
-          Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
-        }).finally(() => {
-          // Restaurar estilos originales
-          el.style.height    = orig.height;
-          el.style.width     = orig.width;
-          el.style.maxHeight = orig.maxHeight;
-          el.style.maxWidth  = orig.maxWidth;
-          el.style.overflow  = orig.overflow;
+          // Expandir contenido
+          el.style.height = el.scrollHeight + 'px';
+          el.style.width = el.scrollWidth + 'px';
+          el.style.maxHeight = 'none';
+          el.style.maxWidth = 'none';
+          el.style.overflow = 'visible';
+
+          html2canvas(el, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('l', 'pt', 'a4');
+            const pdfW = pdf.internal.pageSize.getWidth();
+            const pdfH = pdf.internal.pageSize.getHeight();
+            const margin = 40;                  // margen en pts
+            const pageH = pdfH - margin * 2;   // altura útil en pts
+            const imgW = pdfW - margin * 2;
+            const imgH = (canvas.height * imgW) / canvas.width;
+            const pxPerPt = canvas.width / imgW; // ratio px/pt
+            const slicePx = pageH * pxPerPt;
+
+            const logo = new Image();
+            logo.src = 'assets/dist/img/logo-letras.png';
+            logo.onload = () => {
+              const logoW = 60; // ancho en pts
+              const logoH = (logo.height / logo.width) * logoW;
+              let remainingPt = imgH;
+              let srcYpx = 0;
+
+              while (remainingPt > 0) {
+                // 1) Logo arriba a la derecha
+                pdf.addImage(
+                  logo,
+                  'PNG',
+                  pdfW - margin - logoW,
+                  margin / 2,
+                  logoW,
+                  logoH
+                );
+                // 2) Slice de tabla
+                const hPx = Math.min(slicePx, canvas.height - srcYpx);
+                const sliceCanv = document.createElement('canvas');
+                sliceCanv.width = canvas.width;
+                sliceCanv.height = hPx;
+                const ctx = sliceCanv.getContext('2d')!;
+                ctx.drawImage(canvas, 0, srcYpx, canvas.width, hPx, 0, 0, canvas.width, hPx);
+                const sliceData = sliceCanv.toDataURL('image/png');
+                const slicePt = hPx / pxPerPt;
+
+                // 3) Pintar slice debajo del logo
+                pdf.addImage(
+                  sliceData,
+                  'PNG',
+                  margin,
+                  margin + logoH + 10,
+                  imgW,
+                  slicePt
+                );
+
+                remainingPt -= pageH;
+                srcYpx += hPx;
+                if (remainingPt > 0) pdf.addPage();
+              }
+
+              pdf.save(`matriz-numerica-${this.selectedMatrix!.id}.pdf`);
+            };
+          }).catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+          }).finally(() => {
+            // Restaurar estilos originales
+            el.style.height = orig.height;
+            el.style.width = orig.width;
+            el.style.maxHeight = orig.maxHeight;
+            el.style.maxWidth = orig.maxWidth;
+            el.style.overflow = orig.overflow;
+          });
         });
-      });
-    }
-  });
-}
+      }
+    });
+  }
 
 
   toggleFactor(key: string): void {
@@ -571,7 +672,6 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
       .slice(0, 3);
   }
 
-
   createBarChart(): void {
     const labels: string[] = [];
     const pos: number[] = [];
@@ -660,7 +760,6 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     }
   }
 
-
   getGroupUIPSum(sistema: string): number {
     return this.factors
       .filter(f => f.sistema === sistema)
@@ -695,7 +794,6 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   getGlobalRelativeAction(st: string, ac: string): number {
     return this.factors.reduce((acc, f) => acc + this.calculateImportanciaRelativaTotal(f.id, st, ac), 0);
   }
-
 
   isFirstOfSystemFactor(i: number): boolean {
     return i === 0
@@ -738,6 +836,10 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     return this.topThreePosIRTs.some(item => item.irt > 0);
   }
 
+  get topThreePosIRTsFiltered(): FactorSummary[] {
+    return this.topThreePosIRTs.filter(i => i.irt > 0);
+  }
+
   shouldShowIrtBarChart(): boolean {
     return this.factors.some(f =>
       this.calculateImportanciaRelativaTotalFactor(f.id) !== 0
@@ -755,4 +857,38 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     );
 
   }
+
+  //calcula el top tres de acciones por etapas
+  private computeTopThreeActionIRTs(): void {
+    const summaries: ActionIRTSummary[] = [];
+
+    this.stages.forEach(stage =>
+      stage.actions.forEach(action => {
+        const irt = this.getGlobalRelativeAction(stage.name, action);
+        summaries.push({ etapa: stage.name, accion: action, irt });
+      })
+    );
+
+    // Top 3 positivos
+    this.topThreeActionPosIRTs = summaries
+      .filter(s => s.irt > 0)
+      .sort((a, b) => b.irt - a.irt)
+      .slice(0, 3);
+
+    // Top 3 negativos
+    this.topThreeActionNegIRTs = summaries
+      .filter(s => s.irt < 0)
+      .sort((a, b) => a.irt - b.irt)
+      .slice(0, 3);
+  }
+
+getImpactClass(factorId: number, stage: string, action: string): string {
+  const imp = Math.abs(this.calculateImpact(factorId, stage, action)); // valor absoluto
+  if (imp < 25)      return 'impact-compatible';
+  else if (imp < 50) return 'impact-moderado';
+  else if (imp <= 75)return 'impact-severo';
+  else               return 'impact-critico';
+}
+
+
 }

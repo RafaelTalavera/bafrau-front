@@ -39,20 +39,17 @@ export class InventarioRegistroComponent implements OnInit {
 
   organizaciones: OrganizacionDTO[] = [];
   controles: ControlDTO[] = [];
-
   documentos: Documento[] = [];
   juridiccionesUnicas: string[] = [];
-
   editMode = false;
   currentControlId: number | null = null;
-
-   filterRazon: string = '';
+  filterRazon: string = '';
 
   constructor(
     private controlService: ControlService,
     private organizacionService: OrganizacionService,
     private documentoService: DocumentoService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.cargarOrganizaciones();
@@ -66,7 +63,7 @@ export class InventarioRegistroComponent implements OnInit {
     });
   }
 
-   get filteredControles(): ControlDTO[] {
+  get filteredControles(): ControlDTO[] {
     if (!this.filterRazon) {
       return this.controles;
     }
@@ -101,12 +98,14 @@ export class InventarioRegistroComponent implements OnInit {
       documentoId: 0,
       controlId: this.controlForm.id,
       vencimiento: '',
+      presentacion: '',
       diasNotificacion: 60,
       listMail: [],
       observaciones: null,
       nombre: '',
       juridiccion: '',
-      observacionesDocumento: ''
+      observacionesDocumento: '',
+      estado: false
     });
   }
 
@@ -144,12 +143,14 @@ export class InventarioRegistroComponent implements OnInit {
       items: this.controlForm.items.map(i => ({
         documentoId: i.documentoId,
         vencimiento: i.vencimiento,
+        presentacion: i.presentacion,
         diasNotificacion: i.diasNotificacion,
         listMail: i.listMail,
         observaciones: i.observaciones ?? '',
         nombre: i.nombre,
         juridiccion: i.juridiccion,
-        observacionesDocumento: i.observacionesDocumento ?? ''
+        observacionesDocumento: i.observacionesDocumento ?? '',
+        estado: i.estado  
       }))
     };
 
@@ -178,7 +179,10 @@ export class InventarioRegistroComponent implements OnInit {
       fecha: control.fecha,
       organizacionId: control.organizacionId,
       organizacionRazonSocial: control.organizacionRazonSocial,
-      items: control.items.map(i => ({ ...i }))
+      items: control.items.map(i => ({
+        ...i,
+        estado: i.estado ?? true  // ← conservar estado existente
+      }))
     };
   }
 
@@ -224,8 +228,9 @@ export class InventarioRegistroComponent implements OnInit {
         <div style="text-align:left; margin-bottom:8px;">
           <strong>Nombre:</strong> ${i.nombre}<br>
           <strong>Jurisdicción:</strong> ${i.juridiccion}<br>
-          <strong>Vencimiento:</strong> ${i.vencimiento}<br>
-           <strong>Aviso:</strong> ${i.diasNotificacion}<br>
+     <strong>Vencimiento:</strong> ${i.vencimiento ? i.vencimiento.split('-').reverse().join('/') : ''}<br>
+      <strong>Presentación:</strong> ${i.presentacion ? i.presentacion.split('-').reverse().join('/') : ''}<br>
+          <strong>Aviso:</strong> ${i.diasNotificacion}<br>
           <strong>Mails:</strong> ${i.listMail.join(', ')}<br>
           <strong>Observaciones:</strong> ${i.observaciones ?? '–'}<br>
         </div>

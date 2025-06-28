@@ -10,12 +10,15 @@ export interface ItemControlDTO {
   documentoId: number;
   controlId: number;
   vencimiento: string;  
+ estado: boolean; 
+  presentacion:string; 
   diasNotificacion: number;           
   listMail: string[];
   observaciones: string | null;
   nombre: string;
   juridiccion: string;
   observacionesDocumento: string;
+    semaforo?: 'red' | 'yellow' | 'green';
 }
 
 export interface ControlDTO {
@@ -32,6 +35,7 @@ export interface ControlPayload {
   items: {
     documentoId: number;
     vencimiento: string;
+    presentacion: string;     
     listMail: string[];
     observaciones?: string;
     nombre: string;

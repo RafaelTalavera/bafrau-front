@@ -23,7 +23,6 @@ export class AuthService {
     const loginData = { username, password };
     return this.http.post<any>(this.apiUrl, loginData).pipe(
       tap(response => {
-        console.log('Respuesta del login:', response);
         if (response?.token) {
           this.setToken(response.token);
         } else {
@@ -34,14 +33,11 @@ export class AuthService {
   }
 
   private setToken(token: string): void {
-    console.log('Setting token:', token);
     this.localStorageService.setItem(this.tokenKey, token);
-    console.log('Token saved in localStorage:', this.getToken());
   }
 
   getToken(): string | null {
     const t = this.localStorageService.getItem(this.tokenKey);
-    console.log('[AuthService] getToken →', t);
     return t;
   }
   isLoggedIn(): boolean {
@@ -55,18 +51,14 @@ export class AuthService {
   getUserRoles(): string[] {
     const token = this.getToken();
     if (!token) {
-      console.log('[AuthService] Sin token → roles=[]');
       return [];
     }
 
     try {
       const decoded: any = jwtDecode(token);
-      console.log('[AuthService] payload decodificado →', decoded);
       const rol = decoded.role as string | undefined;
-      console.log('[AuthService] rol extraído →', rol);
       return rol ? [rol] : [];
     } catch (e) {
-      console.error('[AuthService] Error al decodificar JWT:', e);
       return [];
     }
   }

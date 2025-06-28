@@ -1,10 +1,14 @@
 <!-- src/app/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component.html -->
+
 <body class="layout-fixed">
   <div class="wrapper">
+      <app-spinner [isVisible]="loading"></app-spinner>
     <app-nav></app-nav>
     <div class="content-wrapper">
+
       <div class="matrices-container">
         <h1 class="matriz-title">Visualización Matriz de Causa y Efecto</h1>
+
 
         <!-- LISTADO DE MATRICES -->
         <ng-container *ngIf="!selectedMatrix">
@@ -18,7 +22,7 @@
               <div class="input-row filter-container">
                 <div class="input-group">
                   <label class="small-text">Filtrar por Organización:</label>
-                  <input type="text" [(ngModel)]="organizationFilter" placeholder="Escriba para filtrar..."
+                  <input type="text" [(ngModel)]="organizationFilter" placeholder="🔎 Escriba para filtrar..."
                     class="custom-input small-text">
                 </div>
               </div>
@@ -93,8 +97,9 @@
 
               <!-- Botón de descarga -->
               <div class="mb-2">
-                <button class="btn btn-primary btn-sm" (click)="downloadAsJpg()">
-                  <i class="fa-solid fa-download me-1"></i> Descargar JPG
+                <button class="btn btn-primary btn-sm" (click)="onDownloadOrAssociate()">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar a informe' : 'Descargar JPG' }}
                 </button>
               </div>
 
@@ -104,12 +109,15 @@
                   table thead th.stage-construccion {
                     background-color: #add8e6 !important;
                   }
+
                   table thead th.stage-funcionamiento {
                     background-color: #ffa500 !important;
                   }
+
                   table thead th.stage-abandono {
                     background-color: #ff0000 !important;
                   }
+
                   table thead th.stage-comunes {
                     background-color: #ee82ee !important;
                   }
@@ -141,8 +149,7 @@
                       <td>{{ factor.factor }}</td>
                       <td>{{ factor.componente }}</td>
                       <ng-container *ngFor="let st of stages">
-                        <td *ngFor="let action of st.actions"
-                            [ngClass]="{
+                        <td *ngFor="let action of st.actions" [ngClass]="{
                               'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
                               'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
                               'cell-neutral': valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'

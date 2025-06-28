@@ -10,7 +10,6 @@
         </div>
         <div class="card-body">
           <form [formGroup]="organizacionForm" (ngSubmit)="onSubmit()">
-            <!-- Fila 1 -->
             <!-- Fila 1: Fecha, Tipo de contrato y RRPP -->
             <div class="form-row mb-2">
               <!-- Fecha de alta -->
@@ -40,8 +39,9 @@
               </div>
 
               <!-- RRPP (ahora col-md-3 para igualar ancho) -->
-              <div *ngIf="['Representación Técnica', 'AA/RT'].includes(organizacionForm.get('tipoDeContrato')?.value)" class="form-group col-md-4">
-           
+              <div *ngIf="['Representación Técnica', 'AA/RT'].includes(organizacionForm.get('tipoDeContrato')?.value)"
+                class="form-group col-md-4">
+
                 <label class="label-custom">Seleccione RRPP:</label>
                 <div *ngFor="let opt of rrppOptions" class="form-check">
                   <input class="form-check-input" type="checkbox" [value]="opt" (change)="onRrppChange($event)"
@@ -132,16 +132,15 @@
 
             <!-- FILTRO RAZÓN SOCIAL -->
             <div class="form-group mb-3">
-              <input type="text" [(ngModel)]="filtroRazon" placeholder="Buscar Razón Social..."
+              <input 
+              type="text" 
+              [(ngModel)]="filtroRazon" 
+              placeholder="🔎 Buscar  Razón Social..."
                 class="form-control input-custom" />
             </div>
 
-            <!-- Spinner de carga -->
-            <div *ngIf="loading" class="d-flex justify-content-center my-4">
-              <div class="spinner-border" role="status">
-                <span class="visually-hidden">Cargando...</span>
-              </div>
-            </div>
+            <!-- Spinner Overlay -->
+            <app-spinner [isVisible]="loading"></app-spinner>
 
             <table class="table table-striped" *ngIf="filteredOrganizaciones.length; else noData">
               <thead>

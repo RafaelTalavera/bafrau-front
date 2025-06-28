@@ -32,7 +32,7 @@ export class UsuariosComponent implements OnInit {
   ngOnInit(): void {
     this.service.findAll().pipe(
       catchError((error) => {
-        console.error('Error fetching usuarios:', error);
+    
         if (error.status !== 200) {
           this.showError = true;
         }
@@ -40,7 +40,7 @@ export class UsuariosComponent implements OnInit {
       })
     ).subscribe(
       (usuarios) => {
-        console.log('Usuarios data:', usuarios);
+    
         this.usuarios = usuarios;
         this.buscarPorDNI(); // Inicializa la lista filtrada
       }
