@@ -31,6 +31,10 @@ export class ReporteLegalOrganizacionComponent implements OnInit {
   itemsLoading = false;
   filtroRazon: string = '';
 
+  // Flags para controlar la vista
+  showOrgList = true;
+  showItems = false;
+
   constructor(private controlService: ControlService) {}
 
   ngOnInit(): void {
@@ -57,19 +61,31 @@ export class ReporteLegalOrganizacionComponent implements OnInit {
   }
 
 
-  verReporte(orgId: number): void {
-    this.itemsLoading = true;
-    this.items = [];
-    this.controlService.getItemsPorOrganizacion(orgId).subscribe({
-      next: items => {
-        this.items = items;
-        this.itemsLoading = false;
-      },
-      error: err => {
-        console.error(`Error al cargar items para org ${orgId}`, err);
-        this.itemsLoading = false;
-        Swal.fire('Error', 'No se pudieron cargar los ítems', 'error');
-      }
-    });
+verReporte(orgId: number): void {
+  // ocultar listado y preparar tabla
+  this.showOrgList = false;
+  this.showItems = false;
+
+  this.itemsLoading = true;
+  this.items = [];
+
+  this.controlService.getItemsPorOrganizacion(orgId).subscribe({
+    next: items => {
+      this.items = items;
+      this.itemsLoading = false;
+      this.showItems = true;
+    },
+    error: err => {
+      console.error(`Error al cargar items para org ${orgId}`, err);
+      this.itemsLoading = false;
+      Swal.fire('Error', 'No se pudieron cargar los ítems', 'error');
+    }
+  });
+}
+
+  volverListado() {
+    this.showOrgList = true;
+    this.showItems = false;
   }
+
 }

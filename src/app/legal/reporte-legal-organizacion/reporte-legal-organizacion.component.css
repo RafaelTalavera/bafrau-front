@@ -2,6 +2,7 @@
 .container {
   max-width: 900px;
   padding: 2rem; /* o el valor que desees, como 20px */
+  padding-top: 6rem; 
 }
 
 .card {
