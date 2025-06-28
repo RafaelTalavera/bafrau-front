@@ -40,7 +40,6 @@
                         <th class="custom-tr">Semáforo</th>
                         <th class="custom-tr">Registro</th>
                         <th class="custom-tr">Jurisdicción</th>
-                        <th class="custom-tr">Observaciones</th>
                         <th class="custom-tr">Estado</th>
                         <th class="custom-tr"></th> <!-- columna para botón -->
 
@@ -59,7 +58,6 @@
                         </td>
                         <td class="custom-td">{{ r.nombre || '–' }}</td>
                         <td class="custom-td">{{ r.juridiccion || '–' }}</td>
-                        <td class="custom-td">{{ r.observacionesDocumento || '–' }}</td>
                         <td class="custom-td">
                           {{ r.estado ? 'Abierto' : 'Cerrado' }}
                         </td>

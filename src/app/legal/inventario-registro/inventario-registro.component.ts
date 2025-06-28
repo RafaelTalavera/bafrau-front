@@ -19,11 +19,12 @@ import { Documento } from '../models/documento';
 import { FooterComponent } from "../../gobal/footer/footer.component";
 import { NavComponent } from "../../gobal/nav/nav.component";
 import { FilterByJurisdiccionPipe } from "./filter-by-jurisdiccion.pipe";
+import { SpinnerComponent } from "../../utils/spinner/spinner.component";
 
 @Component({
   selector: 'app-inventario-registro',
   standalone: true,
-  imports: [FormsModule, CommonModule, FooterComponent, NavComponent, FilterByJurisdiccionPipe],
+  imports: [FormsModule, CommonModule, FooterComponent, NavComponent, FilterByJurisdiccionPipe, SpinnerComponent],
   templateUrl: './inventario-registro.component.html',
   styleUrls: ['./inventario-registro.component.css']
 })
@@ -44,6 +45,7 @@ export class InventarioRegistroComponent implements OnInit {
   editMode = false;
   currentControlId: number | null = null;
   filterRazon: string = '';
+  loading = true;
 
   constructor(
     private controlService: ControlService,
@@ -52,14 +54,20 @@ export class InventarioRegistroComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.loading = true; // ← inicia el spinner
+
     this.cargarOrganizaciones();
     this.getControles();
     this.documentoService.findAll().subscribe({
       next: docs => {
         this.documentos = docs;
         this.juridiccionesUnicas = Array.from(new Set(docs.map(d => d.juridiccion)));
+        this.checkIfLoadingCompleted(); // ← chequear carga
       },
-      error: err => console.error('Error al cargar documentos', err)
+      error: err => {
+        console.error('Error al cargar documentos', err);
+        this.checkIfLoadingCompleted();
+      }
     });
   }
 
@@ -73,22 +81,30 @@ export class InventarioRegistroComponent implements OnInit {
       return org?.razonSocial.toLowerCase().includes(term);
     });
   }
-
   cargarOrganizaciones(): void {
     this.organizacionService.getOrganizacionesRepresentacionTecnica()
       .subscribe(
-        data => this.organizaciones = data.map(o => ({
-          id: o.id!, razonSocial: o.razonSocial
-        })),
-        () => Swal.fire('Error', 'No se pudieron cargar organizaciones.', 'error')
+        data => {
+          this.organizaciones = data.map(o => ({ id: o.id!, razonSocial: o.razonSocial }));
+          this.checkIfLoadingCompleted();
+        },
+        () => {
+          Swal.fire('Error', 'No se pudieron cargar organizaciones.', 'error');
+          this.checkIfLoadingCompleted();
+        }
       );
   }
-
   getControles(): void {
     this.controlService.getControles()
       .subscribe(
-        data => this.controles = data,
-        () => Swal.fire('Error', 'No se pudieron cargar controles.', 'error')
+        data => {
+          this.controles = data;
+          this.checkIfLoadingCompleted();
+        },
+        () => {
+          Swal.fire('Error', 'No se pudieron cargar controles.', 'error');
+          this.checkIfLoadingCompleted();
+        }
       );
   }
 
@@ -150,7 +166,7 @@ export class InventarioRegistroComponent implements OnInit {
         nombre: i.nombre,
         juridiccion: i.juridiccion,
         observacionesDocumento: i.observacionesDocumento ?? '',
-        estado: i.estado  
+        estado: i.estado
       }))
     };
 
@@ -243,4 +259,9 @@ export class InventarioRegistroComponent implements OnInit {
     });
   }
 
+  private checkIfLoadingCompleted(): void {
+    if (this.organizaciones.length && this.controles.length && this.documentos.length) {
+      this.loading = false; // ← detené el spinner
+    }
+  }
 }

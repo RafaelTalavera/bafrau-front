@@ -2,6 +2,7 @@
 <div class="wrapper">
   <app-nav></app-nav>
   <div class="content-wrapper">
+    <app-spinner [isVisible]="loading"></app-spinner>
     <div class="content">
       <form (ngSubmit)="onSubmit()">
         <h1 class="matriz-title">Gestión de Inventarios de Residuos</h1>
@@ -16,26 +17,14 @@
             <div class="input-row mb-2">
               <div class="input-group">
                 <label for="fecha">Fecha:</label>
-                <input
-                  type="date"
-                  id="fecha"
-                  required
-                  [(ngModel)]="inventarioForm.fecha"
-                  name="fecha"
-                  class="custom-input"
-                />
+                <input type="date" id="fecha" required [(ngModel)]="inventarioForm.fecha" name="fecha"
+                  class="custom-input" />
               </div>
 
               <div class="input-group">
                 <label for="organizacion">Organización:</label>
-                <select
-                  id="organizacion"
-                  required
-                  [(ngModel)]="inventarioForm.organizacionId"
-                  (ngModelChange)="onOrganizacionChange($event)"
-                  name="organizacionId"
-                  class="custom-input"
-                >
+                <select id="organizacion" required [(ngModel)]="inventarioForm.organizacionId"
+                  (ngModelChange)="onOrganizacionChange($event)" name="organizacionId" class="custom-input">
                   <option [ngValue]="0" disabled>-- Seleccione --</option>
                   <option *ngFor="let org of organizaciones" [ngValue]="org.id">
                     {{ org.razonSocial }}
@@ -45,14 +34,8 @@
 
               <div class="input-group">
                 <label for="rrpp">RRPP (Contrato):</label>
-                <select
-                  id="rrpp"
-                  class="custom-input"
-                  [(ngModel)]="inventarioForm.contrato"
-                  name="contrato"
-                  [disabled]="rrppList.length === 0"
-                  required
-                >
+                <select id="rrpp" class="custom-input" [(ngModel)]="inventarioForm.contrato" name="contrato"
+                  [disabled]="rrppList.length === 0" required>
                   <option [ngValue]="''" disabled selected>-- Seleccione RRPP --</option>
                   <option *ngFor="let rep of rrppList" [ngValue]="rep">
                     {{ rep }}
@@ -66,13 +49,8 @@
             <div class="input-row mb-2">
               <div class="input-group">
                 <label for="juridiccionSelect">Juridicción:</label>
-                <select
-                  id="juridiccionSelect"
-                  [(ngModel)]="selectedJuridiccion"
-                  name="juridiccion"
-                  class="custom-input"
-                  (change)="updateCorrienteSeleccionada()"
-                >
+                <select id="juridiccionSelect" [(ngModel)]="selectedJuridiccion" name="juridiccion" class="custom-input"
+                  (change)="updateCorrienteSeleccionada()">
                   <option value="" disabled selected>-- Seleccione --</option>
                   <option *ngFor="let a of getJuridiccion()" [value]="a">
                     {{ a }}
@@ -82,14 +60,8 @@
 
               <div class="input-group">
                 <label for="corrienteSelect">Categoría:</label>
-                <select
-                  id="corrienteSelect"
-                  [(ngModel)]="selectedCorriente"
-                  name="corriente"
-                  class="custom-input"
-                  [disabled]="!selectedJuridiccion"
-                  (change)="updateCorrienteSeleccionada()"
-                >
+                <select id="corrienteSelect" [(ngModel)]="selectedCorriente" name="corriente" class="custom-input"
+                  [disabled]="!selectedJuridiccion" (change)="updateCorrienteSeleccionada()">
                   <option value="" disabled selected>-- Seleccione --</option>
                   <option *ngFor="let c of getCorriente()" [value]="c">
                     {{ c }}
@@ -99,14 +71,8 @@
 
               <div class="input-group">
                 <label for="detalleSelect">Descripción:</label>
-                <select
-                  id="detalleSelect"
-                  [(ngModel)]="selectedDetalle"
-                  name="detalle"
-                  class="custom-input"
-                  [disabled]="!selectedJuridiccion || !selectedCorriente"
-                  (change)="updateCorrienteSeleccionada()"
-                >
+                <select id="detalleSelect" [(ngModel)]="selectedDetalle" name="detalle" class="custom-input"
+                  [disabled]="!selectedJuridiccion || !selectedCorriente" (change)="updateCorrienteSeleccionada()">
                   <option value="" disabled selected>-- Seleccione --</option>
                   <option *ngFor="let d of getDescripciones()" [value]="d">
                     {{ d }}

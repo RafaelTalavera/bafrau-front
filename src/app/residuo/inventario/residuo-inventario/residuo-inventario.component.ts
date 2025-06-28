@@ -12,11 +12,18 @@ import { OrganizacionService } from '../../../organizacion/service/organizacion-
 import { ResiduoService } from '../../service/residuo.service';
 import { ItemInventario } from '../../models/ItemInventario';
 import { InventarioPayload } from '../../models/inventario-payload';
+import { SpinnerComponent } from '../../../utils/spinner/spinner.component';
 
 @Component({
   selector: 'app-inventario',
   standalone: true,
-  imports: [FormsModule, CommonModule, NavComponent, FooterComponent, HttpClientModule],
+  imports: [FormsModule,
+           CommonModule, 
+           NavComponent, 
+           FooterComponent, 
+           HttpClientModule,
+            SpinnerComponent  
+          ],
   templateUrl: './residuo-inventario.component.html',
   styleUrls: ['./residuo-inventario.component.css']
 })
@@ -43,20 +50,22 @@ export class ResiduoInventarioComponent implements OnInit {
   currentInventarioId: number|null = null;
   errorMessage = '';
   rrppList: string[] = [];
+  loading = false; 
 
   constructor(
     private inventarioService: InventarioService,
     private organizacionService: OrganizacionService,
     private residuoService: ResiduoService,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    ) {}
 
   ngOnInit(): void {
+    this.loading = true; 
     this.getOrganizacionesRepresentacionTecnica();
     this.getCorrientes();
   }
 
-  getOrganizacionesRepresentacionTecnica(): void {
+   getOrganizacionesRepresentacionTecnica(): void {
     this.organizacionService.getOrganizacionesRepresentacionTecnica().subscribe(
       data => {
         this.organizaciones = data;
@@ -64,16 +73,25 @@ export class ResiduoInventarioComponent implements OnInit {
           m[org.id!] = org.razonSocial;
           return m;
         }, {} as Record<number,string>);
-        this.getInventarios();
+        this.getInventarios();                      // ← sólo quito spinner aquí
       },
-      error => this.errorMessage = 'Error al obtener organizaciones.'
+      error => {
+        this.errorMessage = 'Error al obtener organizaciones.';
+        this.loading = false;
+      }
     );
   }
 
   getInventarios(): void {
     this.inventarioService.getInventarios().subscribe(
-      data => this.inventarios = data,
-      error => this.errorMessage = 'Error al obtener inventarios.'
+      data => {
+        this.inventarios = data;
+        this.loading = false;                       // ← detiene spinner
+      },
+      error => {
+        this.errorMessage = 'Error al obtener inventarios.';
+        this.loading = false;
+      }
     );
   }
 

@@ -2,6 +2,8 @@
 <div class="wrapper">
   <app-nav></app-nav>
   <div class="content-wrapper">
+    <app-spinner [isVisible]="loading"></app-spinner>
+
     <div class="content">
       <form (ngSubmit)="onSubmit()">
         <h1 class="matriz-title">Registro de Requisitos Legales</h1>
@@ -73,7 +75,7 @@
 
           <!-- Dias de aviso -->
           <div class="input-group">
-            <label for="diasNotificacion{{ i }}">Dias Notificación:</label>
+            <label for="diasNotificacion{{ i }}">Notificación:</label>
             <input type="number" id="diasNotificacion{{ i }}" required [(ngModel)]="item.diasNotificacion"
               name="diasNotificacion{{ i }}" class="custom-input" />
           </div>
