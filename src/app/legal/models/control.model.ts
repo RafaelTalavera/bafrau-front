@@ -10,7 +10,7 @@ export interface ItemControlDTO {
   documentoId: number;
   controlId: number;
   vencimiento: string;  
- estado: boolean; 
+  estado: boolean; 
   presentacion:string; 
   diasNotificacion: number;           
   listMail: string[];

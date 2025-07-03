@@ -105,7 +105,6 @@ body.layout-fixed {
   }
   
   .table-container table {
-    width: 100%;
     font-size: 12px;
     border-collapse: collapse;
     background-color: #fff;
@@ -261,11 +260,6 @@ body.layout-fixed {
     border-bottom: 1px solid #ccc;
   }
 
-/* 1) Fijar diseño de tabla y ancho total */
-.table-container table {
-  table-layout: auto; 
-  width: 100%;
-}
 
 
 
@@ -275,7 +269,6 @@ body.layout-fixed {
   text-align: justify;
   text-align: center;
 }
-
 
 
 .table-container th,

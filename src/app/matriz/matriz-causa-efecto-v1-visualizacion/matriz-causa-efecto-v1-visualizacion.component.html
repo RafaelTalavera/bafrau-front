@@ -2,13 +2,12 @@
 
 <body class="layout-fixed">
   <div class="wrapper">
-      <app-spinner [isVisible]="loading"></app-spinner>
+    <app-spinner [isVisible]="loading"></app-spinner>
     <app-nav></app-nav>
     <div class="content-wrapper">
 
       <div class="matrices-container">
         <h1 class="matriz-title">Visualización Matriz de Causa y Efecto</h1>
-
 
         <!-- LISTADO DE MATRICES -->
         <ng-container *ngIf="!selectedMatrix">
@@ -32,7 +31,7 @@
             </div>
             <div *ngIf="filteredMatrices.length > 0" class="table-container">
               <div class="table-wrapper">
-                <table>
+                <table [style.width.%]="100">
                   <colgroup>
                     <col class="col-fecha">
                     <col class="col-organizacion">
@@ -68,105 +67,354 @@
 
         <!-- DETALLE DE UNA MATRIZ -->
         <ng-container *ngIf="selectedMatrix">
-          <div *ngIf="loadingDetail" class="d-flex justify-content-center my-4">
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Cargando detalle...</span>
-            </div>
+          <!-- Selección de modo de visualización -->
+          <div *ngIf="!selectedViewMode" class="mb-3">
+            <h5 class="small-text">¿Cómo deseas visualizar la matriz?</h5>
+            <button class="btn btn-outline-primary btn-sm me-2" (click)="setViewMode('complete')">
+              <i class="fa-solid fa-table-list me-1"></i> Matriz completa opción de editar
+            </button>
+            <button class="btn btn-outline-secondary btn-sm me-2" (click)="setViewMode('stages')">
+              <i class="fa-solid fa-layer-group me-1"></i> Separado por etapas
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="setViewMode('combined')">
+              <i class="fa-solid fa-th-large me-1"></i> Separado por etapa y sistema
+            </button>
+
+            <button class="btn btn-outline-secondary btn-sm" (click)="setViewMode('systems')">
+              <i class="fa-solid fa-sitemap me-1"></i> Separado por sistemas
+            </button>
           </div>
-          <div *ngIf="!loadingDetail">
-            <div class="input-row mb-2">
-              <button *ngIf="!editMode" class="btn btn-warning btn-sm me-2" (click)="enableEdit()">
-                <i class="fa-solid fa-edit"></i> Editar
-              </button>
-              <button class="btn-secondary btn-sm" (click)="backToList()">
-                <i class="fa-solid fa-arrow-left"></i> Volver
-              </button>
+
+          <!-- Vista completa -->
+          <div *ngIf="selectedViewMode==='complete'">
+            <div *ngIf="loadingDetail" class="d-flex justify-content-center my-4">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando detalle...</span>
+              </div>
             </div>
-
-            <app-matriz-causa-efecto-v1 *ngIf="editMode" [matrix]="selectedMatrix" [editMode]="true"
-              (saved)="onMatrixSaved($event)">
-            </app-matriz-causa-efecto-v1>
-
-            <div *ngIf="!editMode">
-              <p class="small-text">
-                <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
-              </p>
-              <p class="small-text">
-                <strong>Organización:</strong> {{ getOrganization(selectedMatrix) }}
-              </p>
-
-              <!-- Botón de descarga -->
-              <div class="mb-2">
-                <button class="btn btn-primary btn-sm" (click)="onDownloadOrAssociate()">
-                  <i class="fa-solid fa-download me-1"></i>
-                  {{ sectionId ? 'Asociar a informe' : 'Descargar JPG' }}
+            <div *ngIf="!loadingDetail">
+              <div class="input-row mb-2">
+                <button *ngIf="!editMode" class="btn btn-warning btn-sm me-2" (click)="enableEdit()">
+                  <i class="fa-solid fa-edit"></i> Editar
+                </button>
+                <button class="btn-secondary btn-sm" (click)="backToList()">
+                  <i class="fa-solid fa-arrow-left"></i> Volver
                 </button>
               </div>
 
-              <!-- Grilla de la matriz con referencia para html2canvas -->
-              <div #matrizVisualizacion *ngIf="factors.length && stages.length" class="table-container">
-                <style>
-                  table thead th.stage-construccion {
-                    background-color: #add8e6 !important;
-                  }
+              <app-matriz-causa-efecto-v1 *ngIf="editMode" [matrix]="selectedMatrix" [editMode]="true"
+                (saved)="onMatrixSaved($event)">
+              </app-matriz-causa-efecto-v1>
 
-                  table thead th.stage-funcionamiento {
-                    background-color: #ffa500 !important;
-                  }
+              <div *ngIf="!editMode">
+                <p class="small-text">
+                  <strong>Fecha:</strong> {{ selectedMatrix.fecha | date:'dd/MM/yyyy' }}
+                </p>
+                <p class="small-text">
+                  <strong>Organización:</strong> {{ getOrganization(selectedMatrix) }}
+                </p>
 
-                  table thead th.stage-abandono {
-                    background-color: #ff0000 !important;
-                  }
+                <!-- Botón de descarga -->
+                <div class="mb-2">
+                  <button class="btn btn-primary btn-sm" (click)="onDownloadOrAssociate()">
+                    <i class="fa-solid fa-download me-1"></i>
+                    {{ sectionId ? 'Asociar a informe' : 'Descargar JPG' }}
+                  </button>
+                </div>
 
-                  table thead th.stage-comunes {
-                    background-color: #ee82ee !important;
-                  }
-                </style>
-                <table>
-                  <thead>
-                    <tr>
-                      <th rowspan="2">Sistema</th>
-                      <th rowspan="2">Subsistema</th>
-                      <th rowspan="2">Factor</th>
-                      <th rowspan="2">Componente</th>
-                      <th *ngFor="let st of stages" [attr.colspan]="st.actions.length"
-                        [ngClass]="getStageClass(st.name)">
-                        {{ st.name }}
-                      </th>
-                    </tr>
-                    <tr>
-                      <ng-container *ngFor="let st of stages">
-                        <th *ngFor="let action of st.actions">{{ action }}</th>
-                      </ng-container>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let factor of factors; let i = index">
-                      <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
-                        {{ factor.sistema }}
-                      </td>
-                      <td>{{ factor.subsistema }}</td>
-                      <td>{{ factor.factor }}</td>
-                      <td>{{ factor.componente }}</td>
-                      <ng-container *ngFor="let st of stages">
-                        <td *ngFor="let action of st.actions" [ngClass]="{
-                              'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
-                              'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
-                              'cell-neutral': valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
-                            }">
-                          {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+                <!-- Grilla de la matriz con referencia para html2canvas -->
+                <div #matrizVisualizacion *ngIf="factors.length && stages.length" class="table-container">
+                  <style>
+                    table thead th.stage-construccion {
+                      background-color: #add8e6 !important;
+                    }
+
+                    table thead th.stage-funcionamiento {
+                      background-color: #ffa500 !important;
+                    }
+
+                    table thead th.stage-abandono {
+                      background-color: #ff0000 !important;
+                    }
+
+                    table thead th.stage-comunes {
+                      background-color: #ee82ee !important;
+                    }
+                  </style>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th rowspan="2" style="width: 110px;">Sistema</th>
+                        <th rowspan="2" style="width: 110px;">Subsistema</th>
+                        <th rowspan="2" style="width: 110px;">Factor</th>
+                        <th rowspan="2" style="width: 120px;">Componente</th>
+                        <th *ngFor="let st of stages" [attr.colspan]="st.actions.length"
+                          [ngClass]="getStageClass(st.name)" [style.width.px]="150">
+                          {{ st.name }}
+                        </th>
+                      </tr>
+                      <tr>
+                        <ng-container *ngFor="let st of stages">
+                          <th *ngFor="let action of st.actions">{{ action }}</th>
+                        </ng-container>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let factor of factors; let i = index">
+                        <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
+                          {{ factor.sistema }}
                         </td>
-                      </ng-container>
-                    </tr>
-                  </tbody>
-                </table>
+                        <td>{{ factor.subsistema }}</td>
+                        <td>{{ factor.factor }}</td>
+                        <td>{{ factor.componente }}</td>
+                        <ng-container *ngFor="let st of stages">
+                          <td class="text-center align-middle" *ngFor="let action of st.actions" [ngClass]="{
+                                'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
+                                'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
+                                'cell-neutral': valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
+                              }">
+                            {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+                          </td>
+                        </ng-container>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
+          </div>
+
+
+          <!-- “Por etapas”: una tabla independiente por cada etapa fija -->
+          <div *ngIf="selectedViewMode==='stages'" class="mb-3">
+            <button class="btn btn-sm btn-secondary mb-2" (click)="resetViewMode()">← Volver</button>
+
+            <ng-container *ngFor="let stageName of fixedStageNames">
+              <ng-container *ngIf="getStageByName(stageName) as st">
+                <h6 class="mt-4"><strong>{{ stageName }}</strong></h6>
+
+                <div *ngIf="factors.length && st.actions.length" class="mb-2">
+                  <!-- Contenedor SOLO de la tabla -->
+                  <div #tableEl class="table-container">
+                    <style>
+                      table thead th.stage-construccion {
+                        background-color: #add8e6 !important;
+                      }
+
+                      table thead th.stage-funcionamiento {
+                        background-color: #ffa500 !important;
+                      }
+
+                      table thead th.stage-abandono {
+                        background-color: #ff0000 !important;
+                      }
+
+                      table thead th.stage-comunes {
+                        background-color: #ee82ee !important;
+                      }
+                    </style>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th style="width:110px;">Sistema</th>
+                          <th style="width:110px;">Subsistema</th>
+                          <th style="width:110px;">Factor</th>
+                          <th style="width:120px;">Componente</th>
+                          <th *ngFor="let action of st.actions" [ngClass]="getStageClass(st.name)"
+                            [style.width.px]="150">
+                            {{ action }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let factor of factors; let i = index">
+                          <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
+                            {{ factor.sistema }}
+                          </td>
+                          <td>{{ factor.subsistema }}</td>
+                          <td>{{ factor.factor }}</td>
+                          <td>{{ factor.componente }}</td>
+                          <td *ngFor="let action of st.actions" class="text-center align-middle" [ngClass]="{
+                      'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
+                      'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
+                      'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
+                    }">
+                            {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Botón FUERA de #tableEl -->
+                  <button class="btn btn-primary btn-sm mt-2" (click)="downloadTable($any(tableEl), stageName)">
+                    <i class="fa-solid fa-download me-1"></i>
+                    Descargar {{ stageName }}
+                  </button>
+                </div>
+              </ng-container>
+            </ng-container>
+          </div>
+
+
+
+
+          <!-- Placeholder “Por sistemas” -->
+          <!-- “Por sistemas”: una tabla por cada sistema -->
+          <div *ngIf="selectedViewMode==='systems'" class="mb-3">
+            <button class="btn btn-sm btn-secondary mb-2" (click)="resetViewMode()">← Volver</button>
+
+            <ng-container *ngFor="let sistema of uniqueSystems">
+              <h6 class="mt-4"><strong>{{ sistema }}</strong></h6>
+
+              <div *ngIf="getFactorsBySystem(sistema).length && stages.length" class="mb-2">
+                <!-- Sólo la tabla está referenciada -->
+                <div #tableEl class="table-container">
+                  <style>
+                    table thead th.stage-construccion {
+                      background-color: #add8e6 !important;
+                    }
+
+                    table thead th.stage-funcionamiento {
+                      background-color: #ffa500 !important;
+                    }
+
+                    table thead th.stage-abandono {
+                      background-color: #ff0000 !important;
+                    }
+
+                    table thead th.stage-comunes {
+                      background-color: #ee82ee !important;
+                    }
+                  </style>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th rowspan="2" style="width:110px;">Sistema</th>
+                        <th rowspan="2" style="width:110px;">Subsistema</th>
+                        <th rowspan="2" style="width:110px;">Factor</th>
+                        <th rowspan="2" style="width:120px;">Componente</th>
+                        <th *ngFor="let st of stages" [attr.colspan]="st.actions.length"
+                          [ngClass]="getStageClass(st.name)" [style.width.px]="130">
+                          {{ st.name }}
+                        </th>
+                      </tr>
+                      <tr>
+                        <ng-container *ngFor="let st of stages">
+                          <th *ngFor="let action of st.actions">{{ action }}</th>
+                        </ng-container>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let factor of getFactorsBySystem(sistema); let i = index">
+                        <td *ngIf="i===0" [attr.rowspan]="getFactorsBySystem(sistema).length">
+                          {{ sistema }}
+                        </td>
+                        <td>{{ factor.subsistema }}</td>
+                        <td>{{ factor.factor }}</td>
+                        <td>{{ factor.componente }}</td>
+                        <ng-container *ngFor="let st of stages">
+                          <td *ngFor="let action of st.actions" class="text-center align-middle" [ngClass]="{
+                      'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
+                      'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
+                      'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
+                    }">
+                            {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+                          </td>
+                        </ng-container>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Botón fuera de #tableEl -->
+                <button class="btn btn-primary btn-sm mt-2" (click)="downloadTable($any(tableEl), sistema)">
+                  <i class="fa-solid fa-download me-1"></i>
+                  Descargar {{ sistema }}
+                </button>
+              </div>
+            </ng-container>
+          </div>
+
+
+          <!-- “Por etapa y sistema”: tabla por cada etapa y dentro por cada sistema -->
+          <div *ngIf="selectedViewMode==='combined'" class="mb-3">
+            <button class="btn btn-sm btn-secondary mb-2" (click)="resetViewMode()">← Volver</button>
+
+            <ng-container *ngFor="let stageName of fixedStageNames">
+              <ng-container *ngIf="getStageByName(stageName) as st">
+                <h6 class="mt-3"><strong>{{ stageName }}</strong></h6>
+
+                <ng-container *ngFor="let sistema of uniqueSystems">
+                  <h6 class="ms-3"><strong>{{ sistema }}</strong></h6>
+
+                  <div *ngIf="getFactorsBySystem(sistema).length && st.actions.length" class="mb-2">
+                    <!-- Contenedor SOLO de la tabla -->
+                    <div #tableEl class="table-container">
+                      <style>
+                        /* Tus estilos de colores por clase de etapa */
+                        table thead th.stage-construccion {
+                          background-color: #add8e6 !important;
+                        }
+
+                        table thead th.stage-funcionamiento {
+                          background-color: #ffa500 !important;
+                        }
+
+                        table thead th.stage-abandono {
+                          background-color: #ff0000 !important;
+                        }
+
+                        table thead th.stage-comunes {
+                          background-color: #ee82ee !important;
+                        }
+                      </style>
+                      <table [style.margin-bottom.px]="tableSpacingPx">
+                        <thead>
+                          <tr>
+                            <th style="width:110px;">Subsistema</th>
+                            <th style="width:110px;">Factor</th>
+                            <th style="width:120px;">Componente</th>
+                            <th *ngFor="let action of st.actions" [ngClass]="getStageClass(st.name)"
+                              [style.width.px]="130">
+                              {{ action }}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let factor of getFactorsBySystem(sistema)">
+                            <td>{{ factor.subsistema }}</td>
+                            <td>{{ factor.factor }}</td>
+                            <td>{{ factor.componente }}</td>
+                            <td *ngFor="let action of st.actions" class="text-center align-middle" [ngClass]="{
+                        'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
+                        'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
+                        'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
+                      }">
+                              {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- Botón fuera de #tableEl -->
+                    <button class="btn btn-primary btn-sm mt-2"
+                      (click)="downloadTable($any(tableEl), stageName + '-' + sistema)">
+                      <i class="fa-solid fa-download me-1"></i>
+                      Descargar {{ stageName }} / {{ sistema }}
+                    </button>
+                  </div>
+                </ng-container>
+
+              </ng-container>
+            </ng-container>
           </div>
         </ng-container>
 
       </div>
     </div>
-    <app-footer></app-footer>
+
   </div>
 </body>
+<app-footer></app-footer>

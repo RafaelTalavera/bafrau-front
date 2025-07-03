@@ -46,6 +46,7 @@ export class InventarioRegistroComponent implements OnInit {
   currentControlId: number | null = null;
   filterRazon: string = '';
   loading = true;
+  selectedControl: ControlDTO | null = null;  // nuevo
 
   constructor(
     private controlService: ControlService,
@@ -143,49 +144,65 @@ export class InventarioRegistroComponent implements OnInit {
     // Aquí podrías cargar datos adicionales si necesitas
   }
 
-  onSubmit(): void {
-    if (!this.controlForm.fecha || this.controlForm.organizacionId === 0) {
-      Swal.fire('Error', 'Complete fecha y organización.', 'error');
-      return;
-    }
-    if (this.controlForm.items.length === 0) {
-      Swal.fire('Error', 'Agregue al menos un requisito.', 'error');
-      return;
-    }
-
-    const payload: ControlPayload = {
-      fecha: this.controlForm.fecha,
-      organizacionId: this.controlForm.organizacionId,
-      items: this.controlForm.items.map(i => ({
-        documentoId: i.documentoId,
-        vencimiento: i.vencimiento,
-        presentacion: i.presentacion,
-        diasNotificacion: i.diasNotificacion,
-        listMail: i.listMail,
-        observaciones: i.observaciones ?? '',
-        nombre: i.nombre,
-        juridiccion: i.juridiccion,
-        observacionesDocumento: i.observacionesDocumento ?? '',
-        estado: i.estado
-      }))
-    };
-
-    if (this.editMode && this.currentControlId != null) {
-      this.controlService.updateControl(this.currentControlId, payload)
-        .subscribe(() => {
-          Swal.fire('Actualizado', 'Control actualizado.', 'success');
-          this.resetForm();
-          this.getControles();
-        }, () => Swal.fire('Error', 'No se pudo actualizar.', 'error'));
-    } else {
-      this.controlService.createControl(payload)
-        .subscribe(() => {
-          Swal.fire('Creado', 'Control creado.', 'success');
-          this.resetForm();
-          this.getControles();
-        }, () => Swal.fire('Error', 'No se pudo crear.', 'error'));
-    }
+onSubmit(): void {
+  // 1) Validaciones básicas
+  if (!this.controlForm.fecha || this.controlForm.organizacionId === 0) {
+    Swal.fire('Error', 'Complete fecha y organización.', 'error');
+    return;
   }
+  if (this.controlForm.items.length === 0) {
+    Swal.fire('Error', 'Agregue al menos un requisito.', 'error');
+    return;
+  }
+
+  // 2) Construcción del payload
+  const payload: ControlPayload = {
+    fecha: this.controlForm.fecha,
+    organizacionId: this.controlForm.organizacionId,
+    items: this.controlForm.items.map(i => ({
+      documentoId: i.documentoId,
+      vencimiento: i.vencimiento,
+      presentacion: i.presentacion,
+      diasNotificacion: i.diasNotificacion,
+      listMail: i.listMail,
+      observaciones: i.observaciones ?? '',
+      nombre: i.nombre,
+      juridiccion: i.juridiccion,
+      observacionesDocumento: i.observacionesDocumento ?? '',
+      estado: i.estado
+    }))
+  };
+
+  // 3) Lógica de creación vs actualización
+  if (this.editMode && this.currentControlId != null) {
+    // EDITAR
+    this.controlService.updateControl(this.currentControlId, payload).subscribe({
+      next: () => {
+        Swal.fire('Actualizado', 'Control actualizado.', 'success');
+        this.resetForm();            // Limpia el form y editMode
+        this.selectedControl = null; // Cierra detalle y vuelve al listado
+        this.getControles();         // Recarga la tabla
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudo actualizar.', 'error');
+      }
+    });
+  } else {
+    // CREAR
+    this.controlService.createControl(payload).subscribe({
+      next: () => {
+        Swal.fire('Creado', 'Control creado.', 'success');
+        this.resetForm();            // Limpia el form
+        this.selectedControl = null; // Asegura volver al listado
+        this.getControles();         // Recarga la tabla
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudo crear.', 'error');
+      }
+    });
+  }
+}
+
 
   edit(control: ControlDTO): void {
     this.editMode = true;
@@ -238,30 +255,24 @@ export class InventarioRegistroComponent implements OnInit {
   }
 
   viewDetails(control: ControlDTO): void {
-    const razon = this.getRazonSocial(control.organizacionId);
-    const htmlItems = control.items
-      .map(i => `
-        <div style="text-align:left; margin-bottom:8px;">
-          <strong>Nombre:</strong> ${i.nombre}<br>
-          <strong>Jurisdicción:</strong> ${i.juridiccion}<br>
-     <strong>Vencimiento:</strong> ${i.vencimiento ? i.vencimiento.split('-').reverse().join('/') : ''}<br>
-      <strong>Presentación:</strong> ${i.presentacion ? i.presentacion.split('-').reverse().join('/') : ''}<br>
-          <strong>Aviso:</strong> ${i.diasNotificacion}<br>
-          <strong>Mails:</strong> ${i.listMail.join(', ')}<br>
-          <strong>Observaciones:</strong> ${i.observaciones ?? '–'}<br>
-        </div>
-      `).join('');
+  this.selectedControl = control;
+}
 
-    Swal.fire({
-      title: `Control – ${razon} – Ítems (${control.items.length})`,
-      html: htmlItems,
-      width: 700
-    });
-  }
 
   private checkIfLoadingCompleted(): void {
     if (this.organizaciones.length && this.controles.length && this.documentos.length) {
       this.loading = false; // ← detené el spinner
     }
   }
+
+    backToList() {
+    this.selectedControl = null;
+  }
+
+  // en inventario-registro.component.ts
+getDocumentoNombre(id: number): string {
+  const doc = this.documentos.find(d => d.id === id);
+  return doc ? doc.nombre : '—';
+}
+
 }

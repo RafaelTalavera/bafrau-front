@@ -5,6 +5,7 @@
     <app-spinner [isVisible]="loading"></app-spinner>
 
     <div class="content">
+      <!-- Formulario de creación/edición -->
       <form (ngSubmit)="onSubmit()">
         <h1 class="matriz-title">Registro de Requisitos Legales</h1>
 
@@ -26,14 +27,12 @@
           </div>
         </div>
 
-        <button type="button" class="btn-primary" (click)="addItem()" style="margin-bottom: 12px;">
-          <i class="fas fa-plus" style="margin-right: 6px;"></i>
-          Agregar requisito
+        <button type="button" class="btn-primary mb-3" (click)="addItem()">
+          <i class="fas fa-plus me-1"></i> Agregar requisito
         </button>
 
-
-        <div *ngFor="let item of controlForm.items; let i = index" class="input-row item-row"
-          style="margin-bottom: 8px;">
+        <!-- Ítems dinámicos -->
+        <div *ngFor="let item of controlForm.items; let i = index" class="input-row item-row mb-2">
           <!-- Jurisdicción -->
           <div class="input-group">
             <label for="juridiccionSelect{{ i }}">Jurisdicción:</label>
@@ -58,36 +57,29 @@
             </select>
           </div>
 
-          <!-- Vencimiento -->
+          <!-- Vencimiento y Presentación -->
           <div class="input-group fecha-group">
             <label for="vencimiento{{ i }}">Vencimiento:</label>
             <input type="date" id="vencimiento{{ i }}" required [(ngModel)]="item.vencimiento" name="vencimiento{{ i }}"
               class="custom-input narrow" />
           </div>
-
-          <!-- Presentación -->
           <div class="input-group fecha-group">
             <label for="presentacion{{ i }}">Presentación:</label>
-            <input [name]="'presentacion' + i" [(ngModel)]="item.presentacion" id="presentacion{{ i }}" required
-              type="date" class="custom-input narrow" />
+            <input type="date" id="presentacion{{ i }}" required [(ngModel)]="item.presentacion"
+              name="presentacion{{ i }}" class="custom-input narrow" />
           </div>
 
-
-          <!-- Dias de aviso -->
+          <!-- Notificación, Observaciones y Mails -->
           <div class="input-group">
             <label for="diasNotificacion{{ i }}">Notificación:</label>
             <input type="number" id="diasNotificacion{{ i }}" required [(ngModel)]="item.diasNotificacion"
               name="diasNotificacion{{ i }}" class="custom-input" />
           </div>
-
-          <!-- Observaciones -->
           <div class="input-group observaciones-group">
             <label for="observaciones{{ i }}">Observaciones:</label>
             <input id="observaciones{{ i }}" [(ngModel)]="item.observaciones" name="observaciones{{ i }}"
               class="custom-input" />
           </div>
-
-          <!-- Mails -->
           <div class="input-group">
             <label for="mails{{ i }}">Mails:</label>
             <input id="mails{{ i }}" [ngModel]="item.listMail.join(',')" name="mails{{ i }}"
@@ -95,52 +87,48 @@
               (ngModelChange)="onListMailChange(item, $event)" />
           </div>
 
+          <!-- Estado -->
           <div class="input-group align-items-center">
-            <label for="estado{{i}}" class="me-2">Estado:</label>
-            <i id="estado{{i}}" class="fa-solid" [ngClass]="{
-      'fa-toggle-on text-success': item.estado,
-      'fa-toggle-off text-danger': !item.estado
-    }" (click)="item.estado = !item.estado" style="font-size: 1.5rem; cursor: pointer;"
-              [attr.title]="item.estado ? 'Abierto' : 'Cerrado'" [attr.aria-label]="item.estado ? 'Abierto' : 'Cerrado'"
-              role="button"></i>
+            <label for="estado{{ i }}" class="me-2">Estado:</label>
+            <i id="estado{{ i }}" class="fa-solid" [ngClass]="{
+                 'fa-toggle-on text-success': item.estado,
+                 'fa-toggle-off text-danger': !item.estado
+               }" (click)="item.estado = !item.estado" style="font-size: 1.5rem; cursor: pointer;"
+              [attr.title]="item.estado ? 'Abierto' : 'Cerrado'" role="button"></i>
             <span class="ms-2">{{ item.estado ? 'Abierto' : 'Cerrado' }}</span>
           </div>
 
-
           <!-- Eliminar ítem -->
-
           <button type="button" class="btn-sm btn-danger" (click)="removeItem(i)">
             <i class="fas fa-trash"></i>
-
           </button>
-
         </div>
 
-
         <!-- Botones Enviar / Limpiar -->
-        <div class="input-row" style="padding: 8px 0;">
+        <div class="input-row pt-2">
           <button type="submit" class="btn-primary">
-            <i class="fas fa-save" style="margin-right: 6px;"></i>
+            <i class="fas fa-save me-1"></i>
             {{ editMode ? 'Actualizar' : 'Crear' }} Control
           </button>
-          <button type="button" class="btn-success" (click)="resetForm()" style="margin-left: 12px;">
-            <i class="fas fa-eraser me-1"></i>
-            Limpiar
+          <button type="button" class="btn-success ms-2" (click)="resetForm()">
+            <i class="fas fa-eraser me-1"></i> Limpiar
           </button>
         </div>
       </form>
 
       <hr />
 
-      <!-- Listado de Controles Existentes -->
+      <!-- Controles Existentes -->
       <h2 class="matriz-title">Controles Existentes</h2>
-      <div class="col-sm-6">
+      <div class="col-sm-6 mb-3">
         <input type="text" class="form-control" placeholder="Buscar por razón social" [(ngModel)]="filterRazon"
-          [ngModelOptions]="{standalone: true}" />
+          [ngModelOptions]="{ standalone: true }" />
       </div>
-      <div class="table-container">
-        <table class="matriz">
-          <thead>
+
+      <!-- Lista de controles -->
+      <div *ngIf="!selectedControl" class="table-responsive">
+        <table class="table table-hover table-striped">
+          <thead class="table-dark">
             <tr>
               <th>Fecha</th>
               <th>Organización</th>
@@ -151,25 +139,71 @@
             <tr *ngFor="let c of filteredControles">
               <td>{{ c.fecha }}</td>
               <td>{{ getRazonSocial(c.organizacionId) }}</td>
-              <td class="col-acciones">
-                <button class="btn-sm btn-success" (click)="viewDetails(c)">
-                  <i class="fas fa-eye" style="margin-right: 6px;"></i>
-                  Ver detalles
+              <td>
+                <button class="btn btn-success btn-sm me-1" (click)="viewDetails(c)">
+                  <i class="fas fa-eye me-1"></i> Ver detalles
                 </button>
-                <button class="btn-sm btn-info" (click)="edit(c)">
-                  <i class="fas fa-edit" style="margin-right: 6px;"></i>
-                  Editar
+                <button class="btn btn-info btn-sm me-1" (click)="edit(c)">
+                  <i class="fas fa-edit me-1"></i> Editar
                 </button>
-                <button class="btn-sm btn-danger" (click)="delete(c.id)">
-                  <i class="fas fa-trash" style="margin-right: 6px;"></i>
-                  Eliminar
+                <button class="btn btn-danger btn-sm" (click)="delete(c.id)">
+                  <i class="fas fa-trash me-1"></i> Eliminar
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Detalle en tabla plana -->
+      <div *ngIf="selectedControl">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h3>
+            Detalles de {{ selectedControl.fecha }} –
+            {{ getRazonSocial(selectedControl.organizacionId) }}
+          </h3>
+          <div>
+            <button class="btn btn-info btn-sm me-1" (click)="edit(selectedControl)">
+              <i class="fas fa-edit me-1"></i> Editar
+            </button>
+            <button class="btn btn-secondary btn-sm" (click)="backToList()">
+              ← Volver
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead class="table-light">
+              <tr>
+                <th>Jurisdicción</th>
+                <th>Documento</th>
+                <th>Vencimiento</th>
+                <th>Presentación</th>
+                <th>Notificación</th>
+                <th>Observaciones</th>
+                <th>Mails</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let it of selectedControl.items">
+                <td>{{ it.juridiccion }}</td>
+                <td>{{ getDocumentoNombre(it.documentoId) }}</td>
+                <td>{{ it.vencimiento }}</td>
+                <td>{{ it.presentacion }}</td>
+                <td>{{ it.diasNotificacion }}</td>
+                <td>{{ it.observaciones || '–' }}</td>
+                <td>{{ it.listMail.join(', ') }}</td>
+                <td>{{ it.estado ? 'Abierto' : 'Cerrado' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
     </div>
+
   </div>
   <app-footer></app-footer>
 </div>

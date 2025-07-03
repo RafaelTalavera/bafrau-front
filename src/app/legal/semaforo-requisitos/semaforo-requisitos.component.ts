@@ -7,6 +7,7 @@ import { FooterComponent } from "../../gobal/footer/footer.component";
 import { NavComponent } from "../../gobal/nav/nav.component";
 import { SpinnerComponent } from '../../utils/spinner/spinner.component';
 import Swal from 'sweetalert2';
+import { ItemControlDTO } from '../models/control.model';
 
 interface RequisitoSemaforo {
   id: number;
@@ -48,47 +49,56 @@ export class SemaforoRequisitosComponent implements OnInit {
 
   constructor(private controlService: ControlService) { }
 
-  ngOnInit(): void {
-    this.loading = true;
-    this.controlService.getControles().subscribe({
-      next: controles => {
-        const hoy = new Date();
-        this.requisitos = controles.flatMap(ctrl =>
-          (ctrl.items || []).map(it => {
-            const venc = new Date(it.vencimiento);
-            const dias = Math.ceil((venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
-            // Semáforo: <5 rojo, 5–10 amarillo, >10 verde
-            let semaforo: 'red' | 'yellow' | 'green';
-            if (dias < 5) {
-              semaforo = 'red';
-            } else if (dias <= 10) {
-              semaforo = 'yellow';
-            } else {
-              semaforo = 'green';
-            }
-            return {
-              id: it.id,
-              estado: it.estado ?? false,
-              organizacionId: ctrl.organizacionId,
-              organizacionRazonSocial: ctrl.organizacionRazonSocial,
-              fechaControl: ctrl.fecha,
-              presentacion: it.presentacion,
-              vencimiento: it.vencimiento,
-              observaciones: it.observaciones,
-              diasNotificacion: it.diasNotificacion,
-              nombre: it.nombre,
-              juridiccion: it.juridiccion,
-              observacionesDocumento: it.observacionesDocumento,
-              dias,
-              semaforo
-            } as RequisitoSemaforo;
-          })
-        ).sort((a, b) => a.dias - b.dias);
-        this.loading = false;
-      },
-      error: _ => this.loading = false
-    });
-  }
+ngOnInit(): void {
+  this.loading = true;
+  this.controlService.getControles().subscribe({
+    next: controles => {
+      const hoy = new Date();
+      this.requisitos = controles.flatMap(ctrl =>
+        (ctrl.items || []).map(it => {
+          const venc = new Date(it.vencimiento);
+          const dias = Math.ceil((venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+
+          // Semáforo:
+          // rojo      => dias ≤ diasNotificacion
+          // amarillo  => dias ≤ diasNotificacion + 20
+          // verde     => dias > diasNotificacion + 20
+          const umbral = it.diasNotificacion;
+          let semaforo: 'green' | 'yellow' | 'red';
+          if (dias <= umbral) {
+            semaforo = 'red';
+          } else if (dias <= umbral + 20) {
+            semaforo = 'yellow';
+          } else {
+            semaforo = 'green';
+          }
+
+          return {
+            id: it.id,
+            estado: it.estado ?? false,
+            organizacionId: ctrl.organizacionId,
+            organizacionRazonSocial: ctrl.organizacionRazonSocial,
+            fechaControl: ctrl.fecha,
+            presentacion: it.presentacion,
+            vencimiento: it.vencimiento,
+            observaciones: it.observaciones,
+            diasNotificacion: umbral,
+            nombre: it.nombre,
+            juridiccion: it.juridiccion,
+            observacionesDocumento: it.observacionesDocumento,
+            dias,
+            semaforo
+          } as RequisitoSemaforo;
+        })
+      ).sort((a, b) => a.dias - b.dias);
+      this.loading = false;
+    },
+    error: () => this.loading = false
+  });
+}
+
+
+
 
   get requisitosFiltrados(): RequisitoSemaforo[] {
     return this.requisitos

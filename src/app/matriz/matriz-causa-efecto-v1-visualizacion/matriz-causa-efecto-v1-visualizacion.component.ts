@@ -46,6 +46,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   @ViewChild('matrizVisualizacion') matrizVisualizacion!: ElementRef<HTMLDivElement>;
   matrices: Matriz[] = [];
   selectedMatrix: Matriz | null = null;
+  selectedViewMode: 'complete' | 'stages' | 'systems' | 'combined' | null = null;
   factors: FactorView[] = [];
   stages: Stage[] = [];
   valuationsMap: { [key: string]: { [stage: string]: { [action: string]: string } } } = {};
@@ -57,6 +58,15 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   razonSocial?: string;
   sectionId?: number;
   loading: boolean = true;
+  public tableSpacingPx = 25;
+
+  //corresponde la visualicíon de opciones de matriz
+  fixedStageNames: string[] = [
+    'Construcción',
+    'Operación y mantenimiento',
+    'Comunes',
+    'Cierre'
+  ];
 
   constructor(
     private gridService: MatrizBuilderUnifiedService,
@@ -188,8 +198,9 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     this.matrizService.getMatrizById(matrix.id).subscribe(
       full => {
         this.selectedMatrix = full;
+        this.selectedViewMode = null; // reinicia selector de vista
 
-        // — DEBUG: filtrar ítems con IDs 149-194 —
+        // — DEBUG: filtrar ítems con IDs 149–194 —
         const idsProblema = Array.from({ length: 194 - 149 + 1 }, (_, i) => i + 149);
         const faulty = full.items
           .filter(i => idsProblema.includes(i.id))
@@ -210,6 +221,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
 
   backToList(): void {
     this.selectedMatrix = null;
+    this.selectedViewMode = null;
     this.factors = [];
     this.stages = [];
     this.valuationsMap = {};
@@ -296,16 +308,63 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
         link.href = canvas.toDataURL('image/jpeg', 0.9);
         link.click();
         // 3) Para el spinner
-  
+
       })
       .catch(err => {
         console.error('Error capturando la imagen:', err);
-              // 4) Para el spinner y mensaje de error
+        // 4) Para el spinner y mensaje de error
 
         Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
       });
   }
 
-  
+  /** Descarga una tabla puntual como PNG */
+  downloadTable(container: HTMLElement, label: string): void {
+    html2canvas(container, { scale: 2 })
+      .then(canvas => {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `matriz-${label}.png`;
+        link.click();
+      })
+      .catch(err => {
+        console.error('Error descargando tabla:', err);
+        Swal.fire('Error', 'No se pudo descargar la tabla.', 'error');
+      });
+  }
+
+
+  // agregado para poder visualizar la matriz con varias opciones. 
+
+  resetViewMode(): void {
+    this.selectedViewMode = null;
+  }
+
+
+
+  setViewMode(mode: 'complete' | 'stages' | 'systems' | 'combined'): void {
+    this.selectedViewMode = mode;
+  }
+
+
+  getStageByName(name: string): Stage | undefined {
+    return this.stages.find(st =>
+      st.name.toLowerCase().includes(name.toLowerCase())
+    );
+  }
+
+  /** Lista de sistemas únicos, en el orden que aparecen */
+  get uniqueSystems(): string[] {
+    return Array.from(new Set(this.factors.map(f => f.sistema)));
+  }
+
+  /** Devuelve sólo los factores de un sistema dado */
+  getFactorsBySystem(system: string): FactorView[] {
+    return this.factors.filter(f => f.sistema === system);
+  }
+
+
+
+
 
 }

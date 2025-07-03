@@ -323,3 +323,45 @@ text-align: center;
 .custom-input.small-text {
   width: 250px !important;
 }
+
+ .table-container-separado table {
+    font-size: 12px;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .table-container-separado th {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+  }
+  
+  .table-container-separado td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    font-size: 12px;
+    vertical-align: top;
+  }
+
+  /* 1) Habilita scroll horizontal si la tabla supera el ancho del contenedor */
+.table-container-separado {
+  overflow-x: auto;
+}
+
+/* 2) Fija ancho y layout de la tabla */
+.table-container-separado table {
+  table-layout: fixed;   /* fuerza el respeto a los anchos de columna */
+  width: 800px;          /* ancho total fijo; cámbialo al valor que necesites */
+}
+
+/* 3) (Opcional) Si quieres que las columnas sean proporcionales, 
+   asigna anchos específicos en los <th> */
+.table-container-separado th.col-fecha     { width: 110px; }
+.table-container-separado th.col-organizacion { width: 150px; }
+/* …etc según tus clases de columna… */
+

@@ -68,3 +68,16 @@
     box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
   }
   
+  /* Asegúrate de que el contenedor tenga overflow-y */
+.tabla-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Fija el thead */
+.tabla-scroll table thead th {
+  position: sticky;
+  top: 0;
+  background-color: #fff; /* mismo fondo de la tabla */
+  z-index: 10;            /* encima de las filas */
+}
