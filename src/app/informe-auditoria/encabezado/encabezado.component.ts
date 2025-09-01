@@ -51,7 +51,7 @@ export class EncabezadoComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       contenido: ['', Validators.required],
-      styleTemplateId: [null, Validators.required]
+
     });
   }
 
@@ -177,10 +177,7 @@ export class EncabezadoComponent implements OnInit {
 
   openImagenOptions(e: EncabezadoView, fileInput: HTMLInputElement): void {
     const actuales = e.adjuntos?.length ?? 0;
-    if (actuales >= 2) {
-      Swal.fire('Atención','Solo 2 imágenes permitidas','warning');
-      return;
-    }
+
     Swal.fire({
       title: '¿Qué deseas hacer?',
       showDenyButton: true,

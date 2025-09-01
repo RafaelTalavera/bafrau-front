@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="210mm" height="297mm"
+    viewBox="0 0 210 297"
+    version="1.1"
+>
+  <!-- Fondo transparente del lienzo SVG -->
+  <rect
+      x="0" y="0" width="210" height="297"
+      fill="none"
+  />
+  <!-- Silueta de hoja A4: borde fino y relleno blanco -->
+  <rect
+      x="0.5" y="0.5"
+      width="209" height="296"
+      fill="#ffffff"
+      stroke="#000000"
+      stroke-width="1"
+  />
+</svg>

@@ -1,0 +1,284 @@
+/* VARIABLES GLOBALES PARA ESQUINEROS */
+:root {
+  --corner-width: 25mm;     /* ancho base de la caja del esquinero */
+  --corner-height: 14mm;    /* alto base de la caja del esquinero */
+  --corner-scale: 4;        /* factor de escala (1 = 100%, 2 = 200%, etc.) */
+  --corner-offset-x: 0mm;   /* desplazamiento horizontal */
+  --corner-offset-y: 0mm;   /* desplazamiento vertical */
+}
+
+/* 1) Aseguramos altura completa y flujo flex en el root */
+html, body, app-root {
+  height: 100%;
+  margin: 0;
+}
+
+/* 2) Hacemos que el body sea un flex container vertical */
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 2) Fondo gris y centrar la “página” */
+.preview-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  background-color: transparent;
+  padding: 20px;
+}
+
+/* 3) Contenedor de las páginas (puede haber varias) */
+.preview-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10mm;
+}
+
+/* 4) Simulación de hoja A4 con CSS puro */
+.page {
+  width: 210mm;
+  height: 297mm;
+  background-color: #ffffff;
+  box-shadow: 0 0 5mm rgba(0, 0, 0, 0.1);
+  margin: 0 10mm;
+  padding: 20mm;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* evita que cualquier contenido se desborde */
+}
+
+/* 5) Pie de página dentro de cada hoja */
+.page-footer {
+  position: absolute;
+  bottom: 20mm;
+  left: 20mm;
+  font-size: 10px;
+  color: #555;
+}
+
+/* 6) Estilos de contenido */
+
+/* — Ajuste en .section-block — */
+/* Antes hacíamos un calc() que en algunos navegadores empujaba el bloque fuera del padding.
+   Ahora usamos todo el ancho interior de .page (gracias al padding de 20mm) y no dejamos margen extra. */
+.section-block {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Título de encabezado principal */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  background: white;
+  border: 4px solid #8493a7ff;
+}
+
+/* Encabezado */
+.report-header .header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Títulos de sección (cada <h3>) */
+.section-block h3 {
+  padding: 2rem;
+  font-size: 20px;
+  font-weight: bold;
+  color: #6714af;
+  margin: 0.5em 0;
+  text-align: center;
+}
+
+/* Estilo para subtítulos en la vista previa */
+.sec-subtitulo {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0.5em 0;
+  line-height: 1.4;
+  color: #792bbe;
+}
+
+/* Estilo para texto normal */
+.sec-texto {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0.5em 0;
+  text-align: justify;
+  color: #333;
+}
+
+/* Título de tabla */
+.tabla-titulo {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 0 0 0.5em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+td {
+  border: 1px solid #000;
+  padding: 0.2rem;
+  font-size: 12px;
+}
+
+/* Contenedor de múltiples imágenes dentro de un bloque */
+.images-wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5mm;
+  margin-bottom: 1em;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  background-color: transparent;
+}
+
+/* Si sólo hay una imagen en el grid, la centramos */
+.images-wrapper img:only-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+/* 7) Al imprimir o generar PDF, quitamos sombra y márgenes extras */
+@media print {
+  .page {
+    box-shadow: none;
+    margin: 0;
+  }
+}
+
+/* 8) Ajuste para evitar desbordes en .images-wrapper */
+.images-wrapper img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  background-color: transparent;
+}
+
+/* 9) Sección de imagen dentro de cada bloque */
+.section-block .sec-imagen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1em 0;
+}
+
+.section-block .sec-imagen img {
+  max-width: 60%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Evita que tablas o títulos de tabla se partan entre páginas */
+.tabla-titulo,
+table {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+/* ----------------------------------------- */
+/* Esquineros decorativos en las 4 esquinas */
+.corner {
+  position: absolute;
+  width: var(--corner-width);
+  height: var(--corner-height);
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.corner.top-left {
+  transform-origin: top left;
+  transform: scale(var(--corner-scale)) scaleX(-1);
+  top: var(--corner-offset-y);
+  left: var(--corner-offset-x);
+}
+
+.corner.top-right {
+  transform-origin: top right;
+  transform: scale(var(--corner-scale));
+  top: var(--corner-offset-y);
+  right: var(--corner-offset-x);
+}
+
+.corner.bottom-left {
+  transform-origin: bottom left;
+  transform: scale(var(--corner-scale));
+  bottom: var(--corner-offset-y);
+  left: var(--corner-offset-x);
+}
+
+.corner.bottom-right {
+  transform-origin: bottom right;
+  transform: scale(var(--corner-scale)) scaleX(-1);
+  bottom: var(--corner-offset-y);
+  right: var(--corner-offset-x);
+}
+
+/* Título estilo “REALIZA”: pesado, redondeado, base plana */
+/* Título estilo “REALIZA”: ahora más grueso (wght 800) */
+/* Engrosado óptico manteniendo Paytone One */
+.titulo-realiza-extra {
+  font-family: "Paytone One", "Fredoka", "Baloo 2", "Arial Black", Arial, sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #0077C8;               /* Pantone 3005 C */
+  line-height: 0.86;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 20px;
+  -webkit-text-stroke: 0.6px currentColor;
+  text-shadow:
+    0.6px 0 currentColor, -0.6px 0 currentColor,
+    0 0.6px currentColor,  0 -0.6px currentColor,
+    0.45px 0.45px currentColor, -0.45px 0.45px currentColor,
+    0.45px -0.45px currentColor, -0.45px -0.45px currentColor;
+}
+
+
+/* === Fuente Nyala para detalles (equipo técnico y fecha) === */
+.nyala-text {
+  font-family: "Nyala", "Times New Roman", Times, serif;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
+
+/* (Opcional) en equipos sin Nyala:
+   1) Copiá los archivos a: assets/fonts/Nyala.woff2 y Nyala.woff
+   2) Descomentá este @font-face
+   3) Asegurate de tener "assets" configurado en angular.json
+@font-face {
+  font-family: "Nyala";
+  src: url("/assets/fonts/Nyala.woff2") format("woff2"),
+       url("/assets/fonts/Nyala.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+

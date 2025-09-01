@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NavComponent } from '../../gobal/nav/nav.component';
@@ -14,11 +14,14 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { AdjuntosService } from '../../utils/adjuntos.service';
 import { SpinnerComponent } from "../../utils/spinner/spinner.component";
+import { Location } from '@angular/common';
 
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 Chart.register(...registerables);
 
 interface FactorSummary {
   factor: string;
+  componente: string;
   irt: number;
   actions: string[];
 }
@@ -83,6 +86,7 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   razonSocial?: string;
   sectionId?: number;
 
+  pieChart?: Chart; 
 
   @ViewChild('irtBarChart') irtBarChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('irtActionsChart') irtActionsChartRef!: ElementRef<HTMLCanvasElement>;
@@ -90,10 +94,13 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   @ViewChild('factorsCanvas',      { static: false }) factorsChartRef!:     ElementRef<HTMLCanvasElement>;
   @ViewChild('actionsOnlyCanvas',  { static: false }) actionsOnlyChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('actionsByStageCanvas',{ static: false }) actionsByStageChartRef!:ElementRef<HTMLCanvasElement>;
+  @ViewChild('pieCanvas',          { static: false }) pieChartRef!:        ElementRef<HTMLCanvasElement>;  
 
   factorsChart?: Chart;
   actionsOnlyChart?: Chart;
   actionsByStageChart?: Chart;
+
+  loading: boolean = false;
 
 
   /** Plugin para pintar fondo blanco detrás de cada gráfico */
@@ -115,9 +122,174 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     private matrizService: MatrizService,
     private gridBuilder: MatrizBuilderUnifiedService,
     private route: ActivatedRoute,
-    private adjuntosService: AdjuntosService
+    private adjuntosService: AdjuntosService,
+    private cdr: ChangeDetectorRef,
+    private location: Location,
   ) { }
 
+
+/**
+ * Descarga o asocia cualquier gráfico de Chart.js como imagen PNG.
+ */
+/**
+ * Descarga o asocia cualquier gráfico de Chart.js como imagen PNG.
+ */
+async onDownloadOrAssociateChart(
+  chart: Chart | undefined,
+  filename: string,
+  titleForAssoc: string
+): Promise<void> {
+  if (!chart) {
+    await Swal.fire('Error', 'No hay gráfico para capturar.', 'error');
+    return;
+  }
+
+  // 1) Mostrar spinner global
+  this.loading = true;
+  this.cdr.detectChanges();
+
+  try {
+    let dataUrl: string;
+
+    // Caso especial: capturar desde el <h3> "Distribución de Impactos"
+    if (filename === 'grafico-distribucion-impactos') {
+      // Buscar el <h3> correcto dentro de .card.chart-card
+      const titles = Array.from(
+        document.querySelectorAll<HTMLElement>('.card.chart-card h3')
+      );
+      const targetTitle = titles.find(
+        (el) => (el.textContent || '').trim().toLowerCase() === 'distribución de impactos'
+      );
+
+      if (targetTitle) {
+        const cardEl = targetTitle.closest('.card.chart-card') as HTMLElement | null;
+
+        if (cardEl) {
+          // Calcular recorte vertical desde el H3 inclusive
+          const cardRect = cardEl.getBoundingClientRect();
+          const titleRect = targetTitle.getBoundingClientRect();
+          const cropY = Math.max(
+            0,
+            Math.round(titleRect.top - cardRect.top + cardEl.scrollTop)
+          );
+          const height = Math.ceil(cardEl.scrollHeight - cropY);
+
+          // Captura nítida (fondo blanco, escala alta)
+          const canvas = await html2canvas(cardEl, {
+            y: cropY,
+            height,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            scale: Math.max(2, window.devicePixelRatio || 1),
+          });
+
+          dataUrl = canvas.toDataURL('image/png');
+        } else {
+          // Fallback si no se encontró la card
+          dataUrl = chart.toBase64Image('image/png', 1.0);
+        }
+      } else {
+        // Fallback si no se encontró el título
+        dataUrl = chart.toBase64Image('image/png', 1.0);
+      }
+    } else {
+      // Resto de los gráficos: comportamiento original
+      dataUrl = chart.toBase64Image('image/png', 1.0);
+    }
+
+    // 2) Obtener blob de la imagen (sin tocar tu flujo)
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], `${filename}.png`, { type: 'image/png' });
+
+    if (this.sectionId) {
+      // 3a) Asociación al informe
+      await this.adjuntosService
+        .ploadAdjuntoSeccion(file, titleForAssoc, this.sectionId)
+        .toPromise();
+
+      // 4a) Éxito
+      await Swal.fire('Listo', `${titleForAssoc} asociado correctamente.`, 'success');
+
+      // 5) Volver a la vista anterior
+      this.location.back();
+    } else {
+      // 3b) Descarga local
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${filename}.png`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  } catch (err) {
+    console.error(err);
+    await Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+  } finally {
+    // 6) Ocultar spinner
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+}
+
+
+
+/**
+ * Descarga o asocia la captura de una tabla según presence de sectionId.
+ */
+async onDownloadOrAssociateTable(
+  container: HTMLElement,
+  label: string
+): Promise<void> {
+  if (!container) {
+    await Swal.fire('Error', 'No hay elemento para capturar.', 'error');
+    return;
+  }
+
+  // 1) Mostrar spinner para este label
+  this.loadingDownloads[label] = true;
+  this.cdr.detectChanges();
+
+  try {
+    // 2) Captura a canvas
+    const canvas = await html2canvas(container, { scale: 2 });
+    const blob: Blob | null = await new Promise(resolve =>
+      canvas.toBlob(b => resolve(b), 'image/png')
+    );
+    if (!blob) throw new Error('No se generó el blob.');
+
+    const fileName = `matriz-${label}.png`;
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    if (this.sectionId) {
+      // 3a) Asociación al informe
+      await this.adjuntosService
+        .ploadAdjuntoSeccion(file, 'Matriz Impactos', this.sectionId)
+        .toPromise();
+
+      // 4a) Mostrar éxito
+      await Swal.fire('Listo', 'Imagen asociada correctamente.', 'success');
+
+      // 5) Volver a la vista anterior (construcción de informe)
+      this.location.back();
+
+    } else {
+      // 3b) Descarga local
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  } catch (err) {
+    console.error(err);
+    await Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+  } finally {
+    // 6) Ocultar spinner
+    this.loadingDownloads[label] = false;
+    this.cdr.detectChanges();
+  }
+}
 
 
   //Botón de descarga -->
@@ -157,38 +329,48 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
       });
   }
 
+/** Descarga o asocia el gráfico IRT como JPG */
+downloadIrtChart(): void {
+  if (!this.irtChart) return;
+  const dataUrl = this.irtChart.toBase64Image('image/jpeg', 0.9);
 
-  /** Descarga o asocia el gráfico IRT como JPG */
-  downloadIrtChart(): void {
-    if (!this.irtChart) return;
-    const dataUrl = this.irtChart.toBase64Image('image/jpeg', 0.9);
-    fetch(dataUrl)
-      .then(res => res.blob())
-      .then(blob => {
-        const fileName = `irt-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
-        const file = new File([blob], fileName, { type: 'image/jpeg' });
+  fetch(dataUrl)
+    .then(res => res.blob())
+    .then(blob => {
+      const fileName = `grafico-factor-componente-${this.selectedMatrix?.id || 'view'}.jpg`;
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-        if (this.sectionId) {
-          this.adjuntosService
-            .ploadAdjuntoSeccion(file, 'Gráfico IRT', this.sectionId)
-            .subscribe({
-              next: () =>
-                Swal.fire('Listo', 'Gráfico IRT asociado correctamente', 'success'),
-              error: () =>
-                Swal.fire('Error', 'No se pudo asociar el gráfico IRT', 'error'),
-            });
-        } else {
-          const a = document.createElement('a');
-          a.href = dataUrl;
-          a.download = fileName;
-          a.click();
-        }
-      })
-      .catch(err => {
-        console.error('Error generando gráfico IRT:', err);
-        Swal.fire('Error', 'No se pudo generar el gráfico IRT.', 'error');
-      });
-  }
+      if (this.sectionId) {
+        this.adjuntosService
+          .ploadAdjuntoSeccion(file, 'Gráfico IRT', this.sectionId)
+          .subscribe({
+            next: () => {
+              // Mostramos éxito y, al cerrar, volvemos atrás
+              Swal.fire('Listo', 'Gráfico IRT asociado correctamente', 'success')
+                .then(() => {
+                  // Opción A: usar Location.back()
+                  // this.location.back();
+
+                  // Opción B: usar el historial del navegador
+                  window.history.back();
+                });
+            },
+            error: () =>
+              Swal.fire('Error', 'No se pudo asociar el gráfico IRT', 'error'),
+          });
+      } else {
+        // Descarga local
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = fileName;
+        a.click();
+      }
+    })
+    .catch(err => {
+      console.error('Error generando gráfico IRT:', err);
+      Swal.fire('Error', 'No se pudo generar el gráfico IRT.', 'error');
+    });
+}
 
   /** Descarga o asocia el gráfico de Acciones como JPG */
   downloadActionsChart(): void {
@@ -197,7 +379,7 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     fetch(dataUrl)
       .then(res => res.blob())
       .then(blob => {
-        const fileName = `actions-chart-${this.selectedMatrix?.id || 'view'}.jpg`;
+        const fileName = `grafico-acciones-factor-${this.selectedMatrix?.id || 'view'}.jpg`;
         const file = new File([blob], fileName, { type: 'image/jpeg' });
 
         if (this.sectionId) {
@@ -221,7 +403,6 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
         Swal.fire('Error', 'No se pudo generar el gráfico de acciones.', 'error');
       });
   }
-
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -347,14 +528,23 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     // 6.1) Calcular top 3 por acción y etapa (positivos y negativos)
     this.computeTopThreeActionIRTs();  // este método ahora llena ambos arrays
 
-    setTimeout(() => {
-      this.createBarChart();
-      this.createBarChartActions();
-      this.createFactorsChart();
-      this.createActionsOnlyChart();
-      this.createActionsByStageChart();
-    }, 100);
+setTimeout(() => {
+  this.createBarChart();
+  this.createBarChartActions();
+  this.createFactorsChart();
+  this.createActionsOnlyChart();
 
+  // ❌ Antes:
+// this.createActionsByStageChart();
+
+  // ✅ Ahora:
+  if (this.actionsByStageChartRef?.nativeElement && this.shouldShowActionsByStageChart()) {
+    this.createActionsByStageChart();
+  }
+
+  // Retrasa el pie chart hasta que Angular renderice el <canvas>
+  setTimeout(() => this.createPieChart(), 0);
+}, 100);
   }
 
 
@@ -684,115 +874,181 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     return vals.length > 0 ? vals[0] : 0;
   }
 
-  computeSummaryIRTs(): void {
-    const summary = this.factors.map(f => ({
-      factor: f.factor,
-      irt: this.calculateImportanciaRelativaTotalFactor(f.id),
-      actions: Object
-        .keys(this.valuationsMap[f.id] || {})
-        .flatMap(stage =>
-          Object.keys(this.valuationsMap[f.id][stage] || {})
-        )
-    }));
-
-    this.topThreePosIRTs = summary
-      .filter(i => i.irt >= 0)
-      .sort((a, b) => b.irt - a.irt)
-      .slice(0, 3);
-
-    this.topThreeNegIRTs = summary
-      .filter(i => i.irt < 0)
-      .sort((a, b) => a.irt - b.irt)
-      .slice(0, 3);
-  }
-
-  createBarChart(): void {
-    const labels: string[] = [];
-    const pos: number[] = [];
-    const neg: number[] = [];
-
-    this.factors.forEach(f => {
-      const v = this.calculateImportanciaRelativaTotalFactor(f.id);
-      labels.push(f.factor);
-      if (v >= 0) { pos.push(v); neg.push(0); }
-      else { pos.push(0); neg.push(v); }
-    });
-
-    const ctx = this.irtBarChartRef.nativeElement.getContext('2d')!;
-    if (this.irtChart) {
-      this.irtChart.data.labels = labels;
-      this.irtChart.data.datasets![0].data = pos;
-      this.irtChart.data.datasets![1].data = neg;
-      this.irtChart.update();
-    } else {
-      this.irtChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            { label: 'IRT Positivos', data: pos },
-            { label: 'IRT Negativos', data: neg }
-          ]
-        },
-        // 1) Plugin local para fondo blanco
-        plugins: [{
-          id: 'whiteBackground',
-          beforeDraw: (chart) => {
-            const ctx = chart.ctx;
-            ctx.save();
-            ctx.globalCompositeOperation = 'destination-over';
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(0, 0, chart.width, chart.height);
-            ctx.restore();
-          }
-        }],
-        options: {
-          responsive: true
-        }
-      });
-    }
-  }
-
-  createBarChartActions(): void {
-    const actions = Array.from(new Set(this.stages.flatMap(s => s.actions)));
-    const labels = this.factors.map(f => f.factor);
-    const datasets = actions.map(a => ({
-      label: a,
-      data: this.factors.map(f =>
-        this.stages.reduce((sum, st) =>
-          sum + (this.valuationsMap[f.id]?.[st.name]?.[a] !== undefined
-            ? this.calculateImpact(f.id, st.name, a)
-            : 0)
-          , 0)
+computeSummaryIRTs(): void {
+  const summary: FactorSummary[] = this.factors.map(f => ({
+    factor: f.factor,
+    componente: f.componente!,  // ← aquí incluimos componente
+    irt: this.calculateImportanciaRelativaTotalFactor(f.id),
+    actions: Object
+      .keys(this.valuationsMap[f.id] || {})
+      .flatMap(stage =>
+        Object.keys(this.valuationsMap[f.id][stage] || {})
       )
-    }));
+  }));
 
-    const ctx = this.irtActionsChartRef.nativeElement.getContext('2d')!;
-    if (this.actionsChart) {
-      this.actionsChart.data.labels = labels;
-      this.actionsChart.data.datasets = datasets;
-      this.actionsChart.update();
+  this.topThreePosIRTs = summary
+    .filter(i => i.irt >= 0)
+    .sort((a, b) => b.irt - a.irt)
+    .slice(0, 3);
+
+  this.topThreeNegIRTs = summary
+    .filter(i => i.irt < 0)
+    .sort((a, b) => a.irt - b.irt)
+    .slice(0, 3);
+}
+
+
+
+  //Primer grafico de barras, lista los componentes
+createBarChart(): void {
+  const labels: string[] = [];
+  const pos: number[]    = [];
+  const neg: number[]    = [];
+
+  // 1) Construir labels con "Factor – Componente"
+  this.factors.forEach(f => {
+    const v = this.calculateImportanciaRelativaTotalFactor(f.id);
+    labels.push(`${f.factor} – ${f.componente!}`);
+    if (v >= 0) {
+      pos.push(v);
+      neg.push(0);
     } else {
-      this.actionsChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets },
-        plugins: [{
-          id: 'whiteBackground',
-          beforeDraw: (chart) => {
-            const ctx = chart.ctx;
-            ctx.save();
-            ctx.globalCompositeOperation = 'destination-over';
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(0, 0, chart.width, chart.height);
-            ctx.restore();
-          }
-        }],
-        options: {
-          responsive: true
-        }
-      });
+      pos.push(0);
+      neg.push(v);
     }
+  });
+
+  // 2) Crear o actualizar el Chart.js
+  const ctx = this.irtBarChartRef.nativeElement.getContext('2d')!;
+  if (this.irtChart) {
+    this.irtChart.data.labels            = labels;
+    this.irtChart.data.datasets![0].data = pos;
+    this.irtChart.data.datasets![1].data = neg;
+    this.irtChart.update();
+  } else {
+    this.irtChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'IRT Positivos', data: pos },
+          { label: 'IRT Negativos', data: neg }
+        ]
+      },
+      // plugin para fondo blanco
+      plugins: [{
+        id: 'whiteBackground',
+        beforeDraw: chart => {
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, chart.width, chart.height);
+          ctx.restore();
+        }
+      }],
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                weight: 'bold'      // ← Leyenda en negrita
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: {
+                weight: 'bold'      // ← Eje X en negrita
+              }
+            }
+          },
+          y: {
+            ticks: {
+              font: {
+                weight: 'bold'      // ← Eje Y en negrita
+              }
+            }
+          }
+        }
+      }
+    });
   }
+}
+
+//segundo grafico de barras
+
+createBarChartActions(): void {
+  // 1) Construir array de acciones y labels usando "Factor – Componente"
+  const actions  = Array.from(new Set(this.stages.flatMap(s => s.actions)));
+  const labels   = this.factors.map(f => `${f.factor} – ${f.componente!}`);
+  const datasets = actions.map(a => ({
+    label: a,
+    data: this.factors.map(f =>
+      this.stages.reduce((sum, st) =>
+        sum + (this.valuationsMap[f.id]?.[st.name]?.[a] !== undefined
+          ? this.calculateImpact(f.id, st.name, a)
+          : 0)
+      , 0)
+    )
+  }));
+
+  // 2) Crear o actualizar el Chart.js
+  const ctx = this.irtActionsChartRef.nativeElement.getContext('2d')!;
+  if (this.actionsChart) {
+    this.actionsChart.data.labels   = labels;
+    this.actionsChart.data.datasets = datasets;
+    this.actionsChart.update();
+  } else {
+    this.actionsChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets },
+      plugins: [{
+        id: 'whiteBackground',
+        beforeDraw: chart => {
+          const ctx = chart.ctx;
+          ctx.save();
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(0, 0, chart.width, chart.height);
+          ctx.restore();
+        }
+      }],
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                weight: 'bold'    // ← Leyenda en negrita
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: {
+                weight: 'bold'    // ← Eje X en negrita
+              }
+            }
+          },
+          y: {
+            ticks: {
+              font: {
+                weight: 'bold'    // ← Eje Y en negrita
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
 
   getGroupUIPSum(sistema: string): number {
     return this.factors
@@ -871,7 +1127,8 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   }
 
   get topThreePosIRTsFiltered(): FactorSummary[] {
-    return this.topThreePosIRTs.filter(i => i.irt > 0);
+    return this.topThreePosIRTs.filter(i => i.irt >= 0);
+
   }
 
   shouldShowIrtBarChart(): boolean {
@@ -1015,59 +1272,145 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
 
 
 
-
-  //aca lo nuevo 
-
   // 1) Sólo Factores
-  createFactorsChart() {
-    const labels = this.factors.map(f => f.factor);
-    const data = labels.map((_, i) => this.calculateImportanciaRelativaTotalFactor(this.factors[i].id));
-    const ctx = this.factorsChartRef.nativeElement.getContext('2d')!;
-    if (this.factorsChart) {
-      this.factorsChart.data.labels = labels;
-      this.factorsChart.data.datasets![0].data = data;
-      this.factorsChart.update();
-    } else {
-      this.factorsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{ label: 'IRT', data }]
+createFactorsChart() {
+  // 1) Construir labels con "Factor – Componente"
+  const labels = this.factors.map(f => `${f.factor} – ${f.componente!}`);
+  const data   = labels.map((_, i) =>
+    this.calculateImportanciaRelativaTotalFactor(this.factors[i].id)
+  );
+  const ctx = this.factorsChartRef.nativeElement.getContext('2d')!;
+
+  if (this.factorsChart) {
+    this.factorsChart.data.labels            = labels;
+    this.factorsChart.data.datasets![0].data = data;
+    this.factorsChart.update();
+  } else {
+    this.factorsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'IRT', data }]
+      },
+      plugins: [this.whiteBgPlugin],
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                weight: 'bold'   // ← Leyenda en negrita
+              }
+            }
+          }
         },
-        plugins: [this.whiteBgPlugin],
-        options: { responsive: true }
-      });
-    }
+        scales: {
+          x: {
+            ticks: {
+              font: {
+                weight: 'bold'   // ← Eje X en negrita
+              }
+            }
+          },
+          y: {
+            ticks: {
+              font: {
+                weight: 'bold'   // ← Eje Y en negrita
+              }
+            }
+          }
+        }
+      }
+    });
   }
+}
+
+
 
   // 2) Sólo Acciones (agregado sobre todas las etapas y factores)
-  createActionsOnlyChart() {
-    const allActions = Array.from(new Set(this.stages.flatMap(s => s.actions)));
-    const labels = allActions;
-    const data = allActions.map(ac =>
-      this.factors.reduce((sum, f) =>
-        sum + this.stages.reduce((ss, st) =>
-          ss + this.calculateImpact(f.id, st.name, ac) * (this.getAdditional(f.id, st.name, ac).uip / 1000)
-          , 0)
+// 2) Sólo Acciones (agregado sobre todas las etapas y factores)
+createActionsOnlyChart() {
+  // 1) Datos
+  const allActions = Array.from(new Set(this.stages.flatMap(s => s.actions)));
+  const labels     = allActions;
+  const data       = allActions.map(ac =>
+    this.factors.reduce((sum, f) =>
+      sum + this.stages.reduce((ss, st) =>
+        ss + this.calculateImpact(f.id, st.name, ac)
+            * (this.getAdditional(f.id, st.name, ac).uip! / 1000)
         , 0)
-    );
-    const ctx = this.actionsOnlyChartRef.nativeElement.getContext('2d')!;
-    if (this.actionsOnlyChart) {
-      this.actionsOnlyChart.data.labels = labels;
-      this.actionsOnlyChart.data.datasets![0].data = data;
-      this.actionsOnlyChart.update();
-    } else {
-      this.actionsOnlyChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{ label: 'IRT acumulada', data }]
+      , 0)
+  );
+
+  const ctx = this.actionsOnlyChartRef.nativeElement.getContext('2d')!;
+
+  if (this.actionsOnlyChart) {
+    // 2a) Actualizar datos
+    this.actionsOnlyChart.data.labels            = labels;
+    this.actionsOnlyChart.data.datasets![0].data = data;
+
+    // 2b) Actualizar opciones en negrita
+    const opts = this.actionsOnlyChart.options;
+    opts.indexAxis = 'y' as 'y';
+    opts.plugins = {
+      ...opts.plugins,
+      title: {
+        display: true,
+        text: 'IRT Acumulada por Acción',
+        font: { weight: 'bold', size: 14 }
+      },
+      legend: {
+        labels: { font: { weight: 'bold' } }
+      }
+    };
+    opts.scales = {
+      ...opts.scales,
+      ['x']: {
+        ...(opts.scales?.['x'] as any),
+        ticks: { font: { weight: 'bold' } }
+      },
+      ['y']: {
+        ...(opts.scales?.['y'] as any),
+        ticks: { font: { weight: 'bold' } }
+      }
+    };
+
+    // 2c) Redibujar
+    this.actionsOnlyChart.update();
+  } else {
+    // 3) Primera creación con negritas y título
+    this.actionsOnlyChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'IRT acumulada', data }]
+      },
+      plugins: [this.whiteBgPlugin],
+      options: {
+        responsive: true,
+        indexAxis: 'y' as 'y',
+        plugins: {
+          title: {
+            display: true,
+            text: 'IRT Acumulada por Acción',
+            font: { weight: 'bold', size: 14 }
+          },
+          legend: {
+            labels: { font: { weight: 'bold' } }
+          }
         },
-        plugins: [this.whiteBgPlugin],
-        options: { responsive: true, indexAxis: 'y' }
-      });
-    }
+        scales: {
+          ['x']: { ticks: { font: { weight: 'bold' } } },
+          ['y']: { ticks: { font: { weight: 'bold' } } }
+        }
+      }
+    });
   }
+}
+
+
+
+  
 
   // 3) Acciones por Etapa
   createActionsByStageChart(): void {
@@ -1125,6 +1468,118 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
     a.download = `${filename}.jpg`;
     a.click();
   }
+
+   shouldShowPieChart(): boolean {
+    return this.factors.some(f =>
+      this.stages.some(st =>
+        st.actions.some(ac => this.calculateImpact(f.id, st.name, ac) !== 0)
+      )
+    );
+  }
+
+  /** Crea el gráfico de torta con la distribución de clases de impacto */
+
+createPieChart(): void {
+  type ImpactClass = 'impact-compatible' | 'impact-moderado' | 'impact-severo' | 'impact-critico';
+
+  // 1) Inicializar contadores
+  const counts: Record<ImpactClass, number>    = {
+    'impact-compatible': 0,
+    'impact-moderado':   0,
+    'impact-severo':     0,
+    'impact-critico':    0
+  };
+  const countsPos: Record<ImpactClass, number> = { ...counts };
+  const countsNeg: Record<ImpactClass, number> = { ...counts };
+
+  // 2) Contabilizar impactos
+  this.factors.forEach(f => {
+    this.stages.forEach(st => {
+      st.actions.forEach(action => {
+        const val = this.calculateImpact(f.id, st.name, action);
+        if (val === 0) return;
+        const cls = this.getImpactClass(f.id, st.name, action) as ImpactClass;
+        counts[cls]++;
+        if (val > 0) countsPos[cls]++; else countsNeg[cls]++;
+      });
+    });
+  });
+
+  // 3) Filtrar claves y construir etiquetas y datos
+  const impactKeys   = ['impact-compatible', 'impact-moderado', 'impact-severo', 'impact-critico'] as ImpactClass[];
+  const baseLabels   = ['Compatible (<25)', 'Moderado (25-50)', 'Severo (50-75)', 'Crítico (>75)'];
+  const filteredKeys = impactKeys.filter(k => counts[k] > 0);
+  const labels       = filteredKeys.map(k => {
+    const idx   = impactKeys.indexOf(k);
+    const total = counts[k];
+    const pos   = countsPos[k];
+    const neg   = countsNeg[k];
+    return `${baseLabels[idx]} (T:${total}, +:${pos}, -:${neg})`;
+  });
+  const data         = filteredKeys.map(k => counts[k]);
+  const colorMap     = {
+    'impact-compatible': '#FDFCF9',
+    'impact-moderado':   '#78e97c',
+    'impact-severo':     '#e9de49',
+    'impact-critico':    '#db2f41'
+  };
+  const bgColors     = filteredKeys.map(k => colorMap[k]);
+  const borderColors = filteredKeys.map(() => '#000');
+
+  // 4) Crear o actualizar el Chart.js
+  const ctx = this.pieChartRef.nativeElement.getContext('2d')!;
+  if (this.pieChart) {
+    // Actualizar datos y estilos
+    this.pieChart.data.labels            = labels;
+    this.pieChart.data.datasets![0].data = data;
+    this.pieChart.data.datasets![0].backgroundColor = bgColors;
+    this.pieChart.data.datasets![0].borderColor     = borderColors;
+    this.pieChart.update();
+  } else {
+    // Primera creación con padding inferior
+    this.pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: bgColors,
+          borderColor: borderColors,
+          borderWidth: 1
+        }]
+      },
+      plugins: [
+        this.whiteBgPlugin,
+        ChartDataLabels
+      ],
+      options: {
+        responsive: true,
+        layout: {
+          padding: {
+            bottom: 20    // ← Padding de 20px debajo del gráfico
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              font: { weight: 'bold' }  // Leyenda en negrita
+            }
+          },
+          datalabels: {
+            color: '#000',
+            anchor: 'end',
+            align: 'start',
+            font: { weight: 'bold', size: 12 },  // Etiquetas internas en negrita
+            formatter: (val: number) => val
+          }
+        }
+      }
+    });
+  }
+}
+
+
+
 
 
 }

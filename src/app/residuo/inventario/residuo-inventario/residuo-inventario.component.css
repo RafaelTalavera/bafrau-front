@@ -115,35 +115,118 @@
     border-radius: 5px;
     background-color: #f8d7da;
   }
-  /* Modal */
+/* Modal (ÚNICA versión) */
 .modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  inset: 0;                         /* top/right/bottom/left: 0 */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;           /* evita corte vertical cuando es alto */
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 24px 12px;                /* respiración para scroll superior/inferior */
+  overflow-y: auto;                  /* si el contenido total supera el viewport */
+  z-index: 1000;                     /* por delante de nav/spinner */
+}
+
+/* === MODAL CON ESPACIO PARA NAVBAR Y HEADER STICKY === */
+
+/* Altura estimada del navbar fijo (ajustá si tu <app-nav> es más alto) */
+:root {
+  --nav-h: 64px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;                     /* ancla arriba, no centrado */
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: calc(var(--nav-h) + 16px) 12px 16px;/* espacio seguro superior */
+  overflow-y: auto;                             /* si todo excede el viewport */
+  z-index: 3000;                                /* sobre el navbar/spinner */
 }
 
 .modal-content {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 80%;
-    max-width: 1000px;
-    text-align: center;
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
+  width: min(100%, 1000px);
+  max-height: calc(100vh - (var(--nav-h) + 32px)); /* no invade navbar */
+  overflow: hidden;                               /* scroll solo en .modal-body */
+  padding: 0;                                     /* padding lo maneja header/body */
+  display: flex;
+  flex-direction: column;
 }
 
-.close {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 24px;
-    cursor: pointer;
+/* Header sticky: título siempre visible y botón cerrar accesible */
+.modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 14px 20px;
 }
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Botón cerrar */
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Cuerpo del modal: aquí scrollean los ítems */
+.modal-body {
+  padding: 16px 20px 20px;
+  overflow: auto;
+}
+
+/* Limitar tablas/listas dentro del modal para ver “menos ítems” sin tapar el título */
+.modal .table-container {
+  max-height: 50vh;                  /* ajusta cuántos ítems querés ver */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Evitar overflow horizontal en filas flex */
+.modal .input-row {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  :root { --nav-h: 56px; }          /* nav algo más chico en móvil, si aplica */
+  .modal-content {
+    width: 96vw;
+    max-height: calc(100vh - (var(--nav-h) + 24px));
+  }
+  .modal-header {
+    padding: 12px 14px;
+  }
+  .modal-body {
+    padding: 12px 14px 16px;
+  }
+}
+
 
 .col-acciones {
   white-space: nowrap;  /* evita que los botones line-break */

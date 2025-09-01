@@ -195,7 +195,7 @@
 
                 <div *ngIf="factors.length && st.actions.length" class="mb-2">
                   <!-- Contenedor SOLO de la tabla -->
-                  <div #tableEl class="table-container">
+                  <div class="table-container">
                     <style>
                       table thead th.stage-construccion {
                         background-color: #add8e6 !important;
@@ -213,32 +213,33 @@
                         background-color: #ee82ee !important;
                       }
                     </style>
-                    <table>
+                    <table #tableEl>
                       <thead>
                         <tr>
-                          <th style="width:110px;">Sistema</th>
-                          <th style="width:110px;">Subsistema</th>
-                          <th style="width:110px;">Factor</th>
-                          <th style="width:120px;">Componente</th>
+                          <th style="width:120px; font-weight: bold;">Sistema</th>
+                          <th style="width:120px; font-weight: bold;">Subsistema</th>
+                          <th style="width:110px; font-weight: bold;">Factor</th>
+                          <th style="width:125px;font-weight: bold;">Componente</th>
                           <th *ngFor="let action of st.actions" [ngClass]="getStageClass(st.name)"
-                            [style.width.px]="150">
+                            [style.width.px]="150" style="font-weight: bold;">
                             {{ action }}
                           </th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr *ngFor="let factor of factors; let i = index">
-                          <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)">
+                          <td *ngIf="shouldShowClasificacion(i)" [attr.rowspan]="getRowSpan(i)"
+                            style="font-weight: bold;">
                             {{ factor.sistema }}
                           </td>
-                          <td>{{ factor.subsistema }}</td>
-                          <td>{{ factor.factor }}</td>
-                          <td>{{ factor.componente }}</td>
+                          <td style="font-weight: bold;">{{ factor.subsistema }}</td>
+                          <td style="font-weight: bold;">{{ factor.factor }}</td>
+                          <td style="font-weight: bold;">{{ factor.componente }}</td>
                           <td *ngFor="let action of st.actions" class="text-center align-middle" [ngClass]="{
                       'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
                       'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
                       'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
-                    }">
+                    }" style="font-weight: bold;">
                             {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
                           </td>
                         </tr>
@@ -246,11 +247,13 @@
                     </table>
                   </div>
 
-                  <!-- Botón FUERA de #tableEl -->
-                  <button class="btn btn-primary btn-sm mt-2" (click)="downloadTable($any(tableEl), stageName)">
+                  <!-- Botón por etapas -->
+                  <button class="btn btn-primary btn-sm mt-2"
+                    (click)="onDownloadOrAssociateTable($any(tableEl), stageName)">
                     <i class="fa-solid fa-download me-1"></i>
-                    Descargar {{ stageName }}
+                    {{ sectionId ? 'Asociar a informe' : ('Descargar ' + stageName) }}
                   </button>
+
                 </div>
               </ng-container>
             </ng-container>
@@ -269,7 +272,7 @@
 
               <div *ngIf="getFactorsBySystem(sistema).length && stages.length" class="mb-2">
                 <!-- Sólo la tabla está referenciada -->
-                <div #tableEl class="table-container">
+                <div class="table-container">
                   <style>
                     table thead th.stage-construccion {
                       background-color: #add8e6 !important;
@@ -287,15 +290,15 @@
                       background-color: #ee82ee !important;
                     }
                   </style>
-                  <table>
+                  <table #tableEl>
                     <thead>
                       <tr>
-                        <th rowspan="2" style="width:110px;">Sistema</th>
-                        <th rowspan="2" style="width:110px;">Subsistema</th>
-                        <th rowspan="2" style="width:110px;">Factor</th>
-                        <th rowspan="2" style="width:120px;">Componente</th>
+                        <th rowspan="2" style="width:120px; font-weight: bold;">Sistema</th>
+                        <th rowspan="2" style="width:110px; font-weight: bold;">Subsistema</th>
+                        <th rowspan="2" style="width:110px; font-weight: bold;">Factor</th>
+                        <th rowspan="2" style="width:120px; font-weight: bold;">Componente</th>
                         <th *ngFor="let st of stages" [attr.colspan]="st.actions.length"
-                          [ngClass]="getStageClass(st.name)" [style.width.px]="130">
+                          [ngClass]="getStageClass(st.name)" [style.width.px]="130" style="font-weight: bold;">
                           {{ st.name }}
                         </th>
                       </tr>
@@ -307,14 +310,16 @@
                     </thead>
                     <tbody>
                       <tr *ngFor="let factor of getFactorsBySystem(sistema); let i = index">
-                        <td *ngIf="i===0" [attr.rowspan]="getFactorsBySystem(sistema).length">
+                        <td *ngIf="i===0" [attr.rowspan]="getFactorsBySystem(sistema).length"
+                          style="font-weight: bold;">
                           {{ sistema }}
                         </td>
-                        <td>{{ factor.subsistema }}</td>
-                        <td>{{ factor.factor }}</td>
-                        <td>{{ factor.componente }}</td>
+                        <td style="font-weight: bold;">{{ factor.subsistema }}</td>
+                        <td style="font-weight: bold;">{{ factor.factor }}</td>
+                        <td style="font-weight: bold;">{{ factor.componente }}</td>
                         <ng-container *ngFor="let st of stages">
-                          <td *ngFor="let action of st.actions" class="text-center align-middle" [ngClass]="{
+                          <td *ngFor="let action of st.actions" class="text-center align-middle"
+                            style="font-weight: bold;" [ngClass]="{
                       'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
                       'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
                       'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
@@ -327,11 +332,13 @@
                   </table>
                 </div>
 
-                <!-- Botón fuera de #tableEl -->
-                <button class="btn btn-primary btn-sm mt-2" (click)="downloadTable($any(tableEl), sistema)">
+                <!-- Botón por sistemas  -->
+                <button class="btn btn-primary btn-sm mt-2"
+                  (click)="onDownloadOrAssociateTable($any(tableEl), sistema)">
                   <i class="fa-solid fa-download me-1"></i>
-                  Descargar {{ sistema }}
+                  {{ sectionId ? 'Asociar a informe' : ('Descargar ' + sistema) }}
                 </button>
+
               </div>
             </ng-container>
           </div>
@@ -350,7 +357,7 @@
 
                   <div *ngIf="getFactorsBySystem(sistema).length && st.actions.length" class="mb-2">
                     <!-- Contenedor SOLO de la tabla -->
-                    <div #tableEl class="table-container">
+                    <div class="table-container">
                       <style>
                         /* Tus estilos de colores por clase de etapa */
                         table thead th.stage-construccion {
@@ -369,40 +376,44 @@
                           background-color: #ee82ee !important;
                         }
                       </style>
-                      <table [style.margin-bottom.px]="tableSpacingPx">
+                      <table #tableEl [style.margin-bottom.px]="tableSpacingPx">
                         <thead>
                           <tr>
-                            <th style="width:110px;">Subsistema</th>
-                            <th style="width:110px;">Factor</th>
-                            <th style="width:120px;">Componente</th>
+                            <th style="width:120px; font-weight: bold;">Subsistema</th>
+                            <th style="width:110px; font-weight: bold;">Factor</th>
+                            <th style="width:125px; font-weight: bold;">Componente</th>
                             <th *ngFor="let action of st.actions" [ngClass]="getStageClass(st.name)"
-                              [style.width.px]="130">
+                              [style.width.px]="130" style="font-weight: bold;">
                               {{ action }}
                             </th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr *ngFor="let factor of getFactorsBySystem(sistema)">
-                            <td>{{ factor.subsistema }}</td>
-                            <td>{{ factor.factor }}</td>
-                            <td>{{ factor.componente }}</td>
-                            <td *ngFor="let action of st.actions" class="text-center align-middle" [ngClass]="{
+                            <td style="font-weight: bold;">{{ factor.subsistema }}</td>
+                            <td style="font-weight: bold;">{{ factor.factor }}</td>
+                            <td style="font-weight: bold;">{{ factor.componente }}</td>
+                            <td *ngFor="let action of st.actions" class="text-center align-middle"
+                              style="font-weight: bold;" [ngClass]="{
                         'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
                         'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
                         'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
                       }">
                               {{ valuationsMap[factor.id]?.[st.name]?.[action] || '—' }}
+
                             </td>
                           </tr>
                         </tbody>
                       </table>
                     </div>
 
-                    <!-- Botón fuera de #tableEl -->
+                    <!-- Botón conbinado -->
                     <button class="btn btn-primary btn-sm mt-2"
-                      (click)="downloadTable($any(tableEl), stageName + '-' + sistema)">
+                      (click)="onDownloadOrAssociateTable($any(tableEl), stageName + '-' + sistema)">
                       <i class="fa-solid fa-download me-1"></i>
-                      Descargar {{ stageName }} / {{ sistema }}
+                      {{ sectionId
+                      ? 'Asociar a informe'
+                      : ('Descargar ' + stageName + ' / ' + sistema) }}
                     </button>
                   </div>
                 </ng-container>
@@ -417,4 +428,5 @@
 
   </div>
 </body>
+
 <app-footer></app-footer>

@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CapituloDTO } from '../models/capitulo-dto';
+import { CapituloLightDTO } from '../models/capitulo-light-dto';
 
 @Injectable({ providedIn: 'root' })
 export class CapituloService {
@@ -22,6 +23,14 @@ export class CapituloService {
   getAll(): Observable<CapituloDTO[]> {
     return this.http.get<CapituloDTO[]>(this.apiUrl, {
       headers: this.getAuthHeaders()
+    });
+  }
+
+    getLightByInforme(informeId: number): Observable<CapituloLightDTO[]> {
+    const params = new HttpParams().set('informeId', String(informeId));
+    return this.http.get<CapituloLightDTO[]>(`${this.apiUrl}/light`, {
+      headers: this.getAuthHeaders(),
+      params
     });
   }
 

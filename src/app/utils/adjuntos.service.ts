@@ -96,4 +96,23 @@ export class AdjuntosService {
     formData
   );
 }
+
+  /**
+   * Sube un adjunto asociado a una Carátula.
+   * @param file El archivo a subir.
+   * @param descripcion Descripción opcional.
+   * @param caratulaId ID de la carátula.
+   */
+  uploadAdjuntoCaratula(
+    file: File,
+    descripcion: string,
+    caratulaId: number
+  ): Observable<AdjuntoDTO> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('descripcion', descripcion);
+    // No hay que enviar organiza​ción ni sección, el controlador usa el path
+    const url = `${environment.apiUrl}/caratulas/${caratulaId}/adjuntos`;
+    return this.http.post<AdjuntoDTO>(url, formData);
+  }
 }

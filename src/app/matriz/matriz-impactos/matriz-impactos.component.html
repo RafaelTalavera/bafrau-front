@@ -136,7 +136,6 @@
                       background-color: #ee82ee !important;
                     }
                   </style>
-
                   <table>
                     <thead>
                       <tr>
@@ -410,9 +409,13 @@
 
                 <!-- Botón de descarga para “completo” -->
                 <!-- Antes (modo complete) -->
-                <button class="btn btn-primary btn-sm mt-2" (click)="downloadTable(tableEl, 'matriz-completa')">
-                  <i class="fa-solid fa-download me-1"></i> Descargar Completo
+                <button class="btn btn-primary btn-sm mt-2" [disabled]="loadingDownloads['matriz-completa']"
+                  (click)="onDownloadOrAssociateTable(tableEl, 'matriz-completa')">
+                  <app-spinner [isVisible]="loadingDownloads['matriz-completa']" class="me-1"></app-spinner>
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar a informe' : 'Descargar Completo' }}
                 </button>
+
 
               </div>
             </ng-container>
@@ -435,106 +438,119 @@
             <ng-container *ngIf="selectedViewMode==='stages'">
               <ng-container *ngFor="let st of stages">
                 <h5 class="mt-4"><strong>{{ st.name }}</strong></h5>
-                <!-- 📌 Aquí movemos el #tableEl dentro del ngFor -->
                 <div #tableEl class="table-container-separado">
                   <table class="table table-fixed">
                     <thead>
+                      <!-- Primera fila: solo columnas fijas -->
                       <tr>
-                        <th rowspan="2" style="width: 110px;">Sistema</th>
-                        <th rowspan="2" style="width: 110px;">Subsistema</th>
-                        <th rowspan="2" style="width: 110px;">Factor</th>
-                        <th rowspan="2" style="width: 110px;">Componente</th>
-                        <th rowspan="2" style="width: 30px;">UIP</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Sistema</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Subsistema</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Factor</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Componente</th>
+                        <th rowspan="2" style="width: 30px;  font-weight: bold;">UIP</th>
+                      </tr>
+                      <!-- Segunda fila: nombres de las acciones + IAT e IRT al final -->
+                      <tr>
                         <th *ngFor="let action of st.actions" class="small-text" [ngClass]="getStageClass(st.name)"
                           [style.width.px]="150">
                           {{ action }}
-
                         </th>
-                        <th rowspan="2" class="small-text uip-column">IAT</th>
-                        <th rowspan="2" class="small-text uip-column">IRT</th>
-                      </tr>
-                      <tr>
-                        <th *ngFor="let action of st.actions" class="small-text">
-                          {{ action }}
-                        </th>
+                        <th class="small-text uip-column" style="text-align:center;">IAT</th>
+                        <th class="small-text uip-column" style="text-align:center;">IRT</th>
                       </tr>
                     </thead>
                     <tbody>
                       <ng-container *ngFor="let factor of factors; let i = index">
                         <tr>
                           <td *ngIf="isFirstOfSystemFactor(i)" [attr.rowspan]="getSystemRowSpanFactor(i)">
-                            {{ factor.sistema }}
+                            <strong>{{ factor.sistema }}</strong>
                           </td>
-                          <td>{{ factor.subsistema }}</td>
-                          <td>{{ factor.factor }}</td>
-                          <td>{{ factor.componente }}</td>
-                          <td>{{ getUIPValue(factor.id) }}</td>
+                          <td><strong>{{ factor.subsistema }}</strong></td>
+                          <td><strong>{{ factor.factor }}</strong></td>
+                          <td><strong>{{ factor.componente }}</strong></td>
+                          <td><strong>{{ getUIPValue(factor.id) }}</strong></td>
 
-                          <td *ngFor="let action of st.actions" [ngClass]="{
-                      'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
-                      'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
-                      'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
-                    }" style="text-align:center;">
-                            {{ calculateImpact(factor.id, st.name, action) }}
+                          <!-- Valores coloreados por etapa -->
+                          <td *ngFor="let action of st.actions" [ngClass]="getImpactClass(factor.id, st.name, action)"
+                            style="text-align:center;">
+                            <strong>
+                              {{ calculateImpact(factor.id, st.name, action) }}
+                            </strong>
                           </td>
 
+                          <!-- Ahora las dos últimas columnas IAT e IRT -->
                           <td class="small-text" style="text-align:center;">
-                            {{ calculateImportanciaAbsolutaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
+                            <strong>
+                              {{ calculateImportanciaAbsolutaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
+                            </strong>
                           </td>
                           <td class="small-text" style="text-align:center;">
-                            {{ calculateImportanciaRelativaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
+                            <strong>
+                              {{ calculateImportanciaRelativaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
+                            </strong>
                           </td>
                         </tr>
 
                         <tr *ngIf="isLastOfSystemFactor(i)" class="total-row">
                           <td colspan="5"><strong>Total {{ factor.sistema }}</strong></td>
                           <td *ngFor="let action of st.actions" class="small-text text-center">
-                            <strong>{{ getGroupImpactSum(factor.sistema, st.name, action) | number:'1.0-1' }}</strong>
+                            <strong>
+                              {{ getGroupImpactSum(factor.sistema, st.name, action) | number:'1.0-1' }}
+                            </strong>
+                          </td>
+                          <!-- Totales IAT e IRT al final -->
+                          <td class="small-text text-center">
+                            <strong>
+                              {{ getGroupAbsolutaPorEtapa(factor.sistema, st.name) | number:'1.0-1' }}
+                            </strong>
                           </td>
                           <td class="small-text text-center">
-                            <strong>{{ getGroupAbsolutaPorEtapa(factor.sistema, st.name) | number:'1.0-1' }}</strong>
-                          </td>
-                          <td class="small-text text-center">
-                            <strong>{{ getGroupRelativaPorEtapa(factor.sistema, st.name) | number:'1.0-1' }}</strong>
+                            <strong>
+                              {{ getGroupRelativaPorEtapa(factor.sistema, st.name) | number:'1.0-1' }}
+                            </strong>
                           </td>
                         </tr>
                       </ng-container>
                     </tbody>
                   </table>
                 </div>
-                <!-- Botón justo debajo de cada tabla -->
-                <button class="btn btn-primary btn-sm mt-2" (click)="downloadTable(tableEl, 'matriz-etapas-'+st.name)">
-                  <i class="fa-solid fa-download me-1"></i> Descargar {{ st.name }}
-                </button> {{ st.name }}
+                <button class="btn btn-primary btn-sm mt-2" [disabled]="loadingDownloads['matriz-etapas-'+st.name]"
+                  (click)="onDownloadOrAssociateTable(tableEl, 'matriz-etapas-'+st.name)">
+                  <app-spinner [isVisible]="loadingDownloads['matriz-etapas-'+st.name]" class="me-1"></app-spinner>
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar a informe' : 'Descargar ' + st.name }}
+                </button>
 
               </ng-container>
             </ng-container>
+
+
+
 
             <!-- ▼ Modo “Por Sistemas” -->
             <ng-container *ngIf="selectedViewMode==='systems'">
               <ng-container *ngFor="let sys of uniqueSystems">
                 <h5 class="mt-4"><strong>{{ sys }}</strong></h5>
-                <div #tableEl class="table-container">
-                  <table>
+                <div class="table-container">
+                  <table #tableEl>
                     <thead>
                       <tr>
-                        <th rowspan="2" style="width: 110px;">Sistema</th>
-                        <th rowspan="2" style="width: 110px;">Subsistema</th>
-                        <th rowspan="2" style="width: 110px;">Factor</th>
-                        <th rowspan="2" style="width: 80px;">Componente</th>
-                        <th rowspan="2" style="width: 30px;">UIP</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Sistema</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Subsistema</th>
+                        <th rowspan="2" style="width: 110px; font-weight: bold;">Factor</th>
+                        <th rowspan="2" style="width: 80px; font-weight: bold;">Componente</th>
+                        <th rowspan="2" style="width: 30px; font-weight: bold;">UIP</th>
                         <th *ngFor="let st of stages" [attr.colspan]="st.actions.length" class="small-text"
-                          [ngClass]="getStageClass(st.name)" [style.width.px]="300" [style.white-space]="'normal'"
+                          [ngClass]="getStageClass(st.name)" [style.width.px]="150" [style.white-space]="'normal'"
                           [style.overflow-wrap]="'break-word'">
-                          {{ st.name }}
+                          <strong>{{ st.name }}</strong>
                         </th>
-
-                        <th rowspan="2" style="width: 10px;">IAT</th>
-                        <th rowspan="2" style="width: 10px;">IRT</th>
+                        <th rowspan="2" class="small-text uip-column">IAT</th>
+                        <th rowspan="2" class="small-text uip-column">IRT</th>
                       </tr>
                       <tr>
                         <ng-container *ngFor="let st of stages">
-                          <th *ngFor="let action of st.actions" class="small-text" [style.width.px]="300">
+                          <th *ngFor="let action of st.actions" class="small-text">
                             {{ action }}
                           </th>
                         </ng-container>
@@ -544,38 +560,38 @@
                       <ng-container *ngFor="let factor of factors; let i = index">
                         <tr *ngIf="factor.sistema === sys">
                           <td *ngIf="isFirstOfSystemFactor(i)" [attr.rowspan]="getSystemRowSpanFactor(i)">
-                            {{ factor.sistema }}
+                            <strong>{{ factor.sistema }}</strong>
                           </td>
-                          <td>{{ factor.subsistema }}</td>
-                          <td>{{ factor.factor }}</td>
-                          <td>{{ factor.componente }}</td>
-                          <td>{{ getUIPValue(factor.id) }}</td>
+                          <td><strong>{{ factor.subsistema }}</strong></td>
+                          <td><strong>{{ factor.factor }}</strong></td>
+                          <td><strong>{{ factor.componente }}</strong></td>
+                          <td><strong>{{ getUIPValue(factor.id) }}</strong></td>
 
                           <ng-container *ngFor="let st of stages">
-                            <td *ngFor="let action of st.actions" [ngClass]="{
-                        'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
-                        'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
-                        'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
-                     }" style="text-align:center; white-space: normal; overflow-wrap: break-word;">
-                              {{ calculateImpact(factor.id, st.name, action) }}
+                            <td *ngFor="let action of st.actions" [ngClass]="getImpactClass(factor.id, st.name, action)"
+                              style="text-align:center;">
+                              <strong>
+                                {{ calculateImpact(factor.id, st.name, action) === 200
+                                ? '-'
+                                : calculateImpact(factor.id, st.name, action)
+                                }}
+                              </strong>
                             </td>
                           </ng-container>
 
                           <td class="small-text" style="text-align:center;">
-                            {{ calculateImportanciaAbsolutaTotal(factor.id) | number:'1.0-1' }}
+                            <strong>{{ calculateImportanciaAbsolutaTotal(factor.id) | number:'1.0-1' }}</strong>
                           </td>
                           <td class="small-text" style="text-align:center;">
-                            {{ calculateImportanciaRelativaTotalFactor(factor.id) | number:'1.0-1' }}
+                            <strong>{{ calculateImportanciaRelativaTotalFactor(factor.id) | number:'1.0-1' }}</strong>
                           </td>
                         </tr>
 
-                        <tr *ngIf="factor.sistema===sys && isLastOfSystemFactor(i)" class="total-row">
+                        <tr *ngIf="factor.sistema === sys && isLastOfSystemFactor(i)" class="total-row">
                           <td colspan="5"><strong>Total {{ sys }}</strong></td>
                           <ng-container *ngFor="let st of stages">
                             <td *ngFor="let action of st.actions" class="small-text text-center">
-                              <strong>
-                                {{ getGroupImpactSum(sys, st.name, action) | number:'1.0-1' }}
-                              </strong>
+                              <strong>{{ getGroupImpactSum(sys, st.name, action) | number:'1.0-1' }}</strong>
                             </td>
                           </ng-container>
                           <td class="small-text text-center">
@@ -595,9 +611,9 @@
                   <i class="fa-solid fa-download me-1"></i>
                   Descargar {{ sys }}
                 </button>
-
               </ng-container>
             </ng-container>
+
 
 
             <!-- ▼ Modo “Combinado” -->
@@ -606,59 +622,62 @@
                 <h5 class="mt-4"><strong>{{ st.name }}</strong></h5>
                 <ng-container *ngFor="let sys of uniqueSystems">
                   <h6 class="ms-3"><strong>{{ sys }}</strong></h6>
-                  <div #tableEl class="table-container-separado">
-                    <table>
+                  <div class="table-container-separado">
+                    <table #tableEl>
                       <thead>
+                        <!-- Primera fila: solo columnas fijas -->
                         <tr>
-                          <th rowspan="2" style="width: 110px;">Sistema</th>
-                          <th rowspan="2" style="width: 110px;">Subsistema</th>
-                          <th rowspan="2" style="width: 110px;">Factor</th>
-                          <th rowspan="2" style="width: 80px;">Componente</th>
-                          <th rowspan="2" style="width: 30px;">UIP</th>
-                          <th *ngFor="let action of st.actions" class="small-text" [ngClass]="getStageClass(st.name)"
-                            [style.width.px]="150" [style.white-space]="'normal'" [style.overflow-wrap]="'break-word'">
-                            {{ action }}
-                          </th>
-                          <th rowspan="2" class="small-text uip-column">IAT</th>
-                          <th rowspan="2" class="small-text uip-column">IRT</th>
+                          <th rowspan="2" style="width: 110px; font-weight: bold;">Sistema</th>
+                          <th rowspan="2" style="width: 110px; font-weight: bold;">Subsistema</th>
+                          <th rowspan="2" style="width: 110px; font-weight: bold;">Factor</th>
+                          <th rowspan="2" style="width: 80px; font-weight: bold;">Componente</th>
+                          <th rowspan="2" style="width: 30px; font-weight: bold;">UIP</th>
                         </tr>
+                        <!-- Segunda fila: nombres de las acciones + IAT e IRT al final -->
                         <tr>
-                          <th *ngFor="let action of st.actions" class="small-text">
+                          <th *ngFor="let action of st.actions" class="small-text" [ngClass]="getStageClass(st.name)"
+                            [style.width.px]="150" style="white-space: normal; overflow-wrap: break-word;">
                             {{ action }}
                           </th>
+                          <th class="small-text uip-column" style="text-align:center;">IAT</th>
+                          <th class="small-text uip-column" style="text-align:center;">IRT</th>
                         </tr>
                       </thead>
                       <tbody>
                         <ng-container *ngFor="let factor of factors; let i = index">
                           <tr *ngIf="factor.sistema === sys">
                             <td *ngIf="isFirstOfSystemFactor(i)" [attr.rowspan]="getSystemRowSpanFactor(i)">
-                              {{ factor.sistema }}
+                              <strong>{{ factor.sistema }}</strong>
                             </td>
-                            <td>{{ factor.subsistema }}</td>
-                            <td>{{ factor.factor }}</td>
-                            <td>{{ factor.componente }}</td>
-                            <td>{{ getUIPValue(factor.id) }}</td>
+                            <td><strong>{{ factor.subsistema }}</strong></td>
+                            <td><strong>{{ factor.factor }}</strong></td>
+                            <td><strong>{{ factor.componente }}</strong></td>
+                            <td><strong>{{ getUIPValue(factor.id) }}</strong></td>
 
-                            <td *ngFor="let action of st.actions" [ngClass]="{
-                        'cell-positive': valuationsMap[factor.id]?.[st.name]?.[action]==='positivo',
-                        'cell-negative': valuationsMap[factor.id]?.[st.name]?.[action]==='negativo',
-                        'cell-neutral':  valuationsMap[factor.id]?.[st.name]?.[action]==='neutro'
-                      }" style="text-align:center;">
-                              {{ calculateImpact(factor.id, st.name, action) }}
+                            <!-- Valores coloreados por acción -->
+                            <td *ngFor="let action of st.actions" [ngClass]="getImpactClass(factor.id, st.name, action)"
+                              style="text-align:center;">
+                              <strong>
+                                {{ calculateImpact(factor.id, st.name, action) === 200 ? '-' :
+                                calculateImpact(factor.id, st.name, action) }}
+                              </strong>
                             </td>
 
-                            <td class="small-text" style="text-align:center;">
-                              {{ calculateImportanciaAbsolutaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
-                            </td>
-                            <td class="small-text" style="text-align:center;">
-                              {{ calculateImportanciaRelativaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
-                            </td>
+                            <!-- IAT e IRT al final de cada fila -->
+                            <td class="small-text" style="text-align:center;"><strong>
+                                {{ calculateImportanciaAbsolutaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
+                              </strong></td>
+                            <td class="small-text" style="text-align:center;"><strong>
+                                {{ calculateImportanciaRelativaPorEtapa(factor.id, st.name) | number:'1.0-1' }}
+                              </strong></td>
                           </tr>
+
                           <tr *ngIf="factor.sistema === sys && isLastOfSystemFactor(i)" class="total-row">
                             <td colspan="5"><strong>Total {{ sys }}</strong></td>
                             <td *ngFor="let action of st.actions" class="small-text text-center">
                               <strong>{{ getGroupImpactSum(sys, st.name, action) | number:'1.0-1' }}</strong>
                             </td>
+                            <!-- Totales IAT e IRT al final -->
                             <td class="small-text text-center">
                               <strong>{{ getGroupAbsolutaPorEtapa(sys, st.name) | number:'1.0-1' }}</strong>
                             </td>
@@ -670,12 +689,15 @@
                       </tbody>
                     </table>
                   </div>
-                  <button class="btn btn-primary btn-sm mt-2" [disabled]="loadingDownloads['matriz-etapas-'+st.name]"
-                    (click)="downloadTable(tableEl, 'matriz-etapas-'+st.name)">
-                    <app-spinner [isVisible]="loadingDownloads['matriz-etapas-'+st.name]" class="me-1"></app-spinner>
+                  <button class="btn btn-primary btn-sm mt-2" [disabled]="loadingDownloads[st.name + '-' + sys]"
+                    (click)="onDownloadOrAssociateTable(tableEl, st.name + '-' + sys)">
+                    <app-spinner [isVisible]="loadingDownloads[st.name + '-' + sys]" class="me-1"></app-spinner>
                     <i class="fa-solid fa-download me-1"></i>
-                    Descargar {{ st.name }}
+                    {{ sectionId
+                    ? 'Asociar a informe'
+                    : ('Descargar ' + st.name + ' / ' + sys) }}
                   </button>
+
                 </ng-container>
               </ng-container>
             </ng-container>
@@ -692,26 +714,28 @@
               <i class="fas fa-list"></i> Ver Matriz Numérica
             </button>
 
-            <!-- Resumen - Top 3 IRT Positivos (solo > 0) -->
+            <!-- Resumen - IRT Positivos (solo > 0) -->
             <div class="card summary-card" *ngIf="topThreePosIRTsFiltered.length > 0">
-              <h3>Resumen - Top 3 IRT Factores Positivos</h3>
+              <h3>Resumen - Principales IRT Factores Positivos</h3>
               <ul>
                 <li *ngFor="let item of topThreePosIRTsFiltered">
                   Factor: {{ item.factor }} | IRT:
-                  <span [ngClass]="{ 'positive-value': item.irt > 0 }">
+
+                  <span [ngClass]="{ 'negative-value': item.irt > 0 }">
                     {{ item.irt | number:'1.0-2' }}
                   </span>
+
                 </li>
               </ul>
             </div>
 
 
-            <!-- Resumen - Top 3 IRT Negativos con Acciones -->
+            <!-- Resumen - Top IRT Negativos con Acciones -->
             <div class="card summary-card" *ngIf="topThreeNegIRTs.length > 0">
-              <h3>Resumen - Top 3 IRT Factores Negativos</h3>
+              <h3>Resumen - Principales IRT Factores Negativos</h3>
               <ul>
                 <li *ngFor="let item of topThreeNegIRTs">
-                  Factor: {{ item.factor }} | IRT:
+                  {{ item.factor }} - {{ item.componente }}| IRT:
                   <span [ngClass]="{ 'negative-value': item.irt < 0 }">
                     {{ item.irt | number:'1.0-2' }}
                   </span>
@@ -722,7 +746,7 @@
 
             <!-- Top 3 IRT Positivos por Acción y Etapa -->
             <div class="card summary-card" *ngIf="topThreeActionPosIRTs.length > 0">
-              <h3>Top 3 IRT Positivos por Acción y Etapa</h3>
+              <h3>Principales IRT Positivos por Acción y Etapa</h3>
               <ul>
                 <li *ngFor="let item of topThreeActionPosIRTs">
                   Etapa: {{ item.etapa }} | Acción: {{ item.accion }} | IRT:
@@ -735,7 +759,7 @@
 
             <!-- Top 3 IRT Negativos por Acción y Etapa -->
             <div class="card summary-card" *ngIf="topThreeActionNegIRTs.length > 0">
-              <h3>Top 3 IRT Negativos por Acción y Etapa</h3>
+              <h3>Principales IRT Negativos por Acción y Etapa</h3>
               <ul>
                 <li *ngFor="let item of topThreeActionNegIRTs">
                   Etapa: {{ item.etapa }} | Acción: {{ item.accion }} | IRT:
@@ -747,91 +771,91 @@
             </div>
 
 
-            <!-- Gráfico IRT -->
-            <div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
-              <h3>Gráfico de Barras - IRT de cada Factor</h3>
-              <canvas id="irtBarChart" #irtBarChart style="width: 100%; height: 400px;"></canvas>
-              <div class="mb-2">
-                <button class="btn btn-primary btn-sm" (click)="downloadIrtChart()">
-                  <i class="fa-solid fa-download me-1"></i>
-                  {{ sectionId ? 'Asociar gráfico IRT' : 'Descargar JPG' }}
-                </button>
-              </div>
-            </div>
+<!-- Gráfico IRT -->
+<div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
+  <h3>IRT de cada Factor-Componente</h3>
+  <canvas #irtBarChart style="width:100%;height:400px;"></canvas>
+  <div class="mb-2">
+    <button
+      class="btn btn-primary btn-sm"
+      (click)="onDownloadOrAssociateChart(irtChart, 'grafico-irt-factores', 'Gráfico IRT')"
+    >
+      <i class="fa-solid fa-download me-1"></i>
+      {{ sectionId ? 'Asociar gráfico IRT' : 'Descargar gráfico IRT' }}
+    </button>
+  </div>
+</div>
 
-            <!-- Gráfico de Acciones -->
-            <div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
-              <h3>Gráfico de Barras - IRT por Acciones y Factores</h3>
-              <canvas id="irtActionsChart" #irtActionsChart style="width: 100%; height: 400px;"></canvas>
-              <div class="mb-2">
-                <button class="btn btn-primary btn-sm" (click)="downloadActionsChart()">
-                  <i class="fa-solid fa-download me-1"></i>
-                  {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar JPG' }}
-                </button>
-              </div>
-            </div>
+<!-- Gráfico de Acciones -->
+<div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
+  <h3>IRT por Acciones y Factores</h3>
+  <canvas #irtActionsChart style="width:100%;height:400px;"></canvas>
+  <div class="mb-2">
+    <button
+      class="btn btn-primary btn-sm"
+      (click)="onDownloadOrAssociateChart(actionsChart, 'grafico-irt-acciones', 'Gráfico Acciones')"
+    >
+      <i class="fa-solid fa-download me-1"></i>
+      {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar gráfico de Acciones' }}
+    </button>
+  </div>
+</div>
 
-            <!-- 1. Sólo Factores -->
-            <div class="card chart-card" *ngIf="shouldShowFactorsChart()">
-              <h3 class="text-center">IRT por Factor</h3>
+<!-- 1. Sólo Factores -->
+<div class="card chart-card" *ngIf="shouldShowFactorsChart()">
+  <h3 class="text-center">IRT por Factor</h3>
+  <div class="d-flex justify-content-center">
+    <div class="chart-area w-100" style="width:100%;height:400px;">
+      <canvas #factorsCanvas style="width:100%;height:400px;"></canvas>
+    </div>
+  </div>
+  <div class="d-flex justify-content-center mb-2">
+    <button
+      class="btn btn-primary btn-sm"
+      (click)="onDownloadOrAssociateChart(factorsChart, 'grafico-irt-por-factor', 'Gráfico IRT por Factor')"
+    >
+      <i class="fa-solid fa-download me-1"></i>
+      {{ sectionId ? 'Asociar gráfico por Factor' : 'Descargar gráfico por Factor' }}
+    </button>
+  </div>
+</div>
 
-              <!-- Contenedor flex para centrar el chart-area -->
-              <div class="d-flex justify-content-center">
-                <!-- chart-area con ancho máximo y responsivo -->
-                <div class="chart-area w-100" style="max-width: 600px; height: 300px;">
-                  <canvas #factorsCanvas></canvas>
-                </div>
-              </div>
+<!-- 2. Sólo Acciones -->
+<div class="card chart-card" *ngIf="shouldShowActionsOnlyChart()">
+  <div class="d-flex justify-content-center">
+    <div class="chart-area w-100" style="max-width:600px;height:300px;">
+      <canvas #actionsOnlyCanvas></canvas>
+    </div>
+  </div>
+  <div class="d-flex justify-content-center mb-2">
+    <button
+      class="btn btn-primary btn-sm"
+      (click)="onDownloadOrAssociateChart(actionsOnlyChart, 'grafico-irt-acciones-unicas', 'Gráfico IRT Acciones')"
+    >
+      <i class="fa-solid fa-download me-1"></i>
+      {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar gráfico de Acciones' }}
+    </button>
+  </div>
+</div>
 
-              <!-- Botón centrado -->
-              <div class="d-flex justify-content-center mb-2">
-                <button class="btn btn-primary btn-sm" (click)="downloadChart(factorsChart, 'irt-factores')">
-                  <i class="fa-solid fa-download me-1"></i>
-                  Descargar JPG
-                </button>
-              </div>
-            </div>
+<!-- Pie Chart -->
+<!-- Pie Chart -->
+<div class="card chart-card" *ngIf="shouldShowPieChart()" #pieCard>
+  <h3 class="text-center" #pieTitle>Distribución de Impactos</h3>
+  <div class="d-flex justify-content-center">
+    <div class="chart-area w-100" style="max-width:400px;height:400px;">
+      <canvas #pieCanvas style="width:100%;height:400px;"></canvas>
+    </div>
+  </div>
 
 
 
-            <!-- 2. Sólo Acciones -->
-            <div class="card chart-card" *ngIf="shouldShowActionsOnlyChart()">
-              <h3 class="text-center">IRT por Acción</h3>
+</div>
 
-              <div class="d-flex justify-content-center">
-                <div class="chart-area w-100" style="max-width: 600px; height: 300px;">
-                  <canvas #actionsOnlyCanvas></canvas>
-                </div>
-              </div>
 
-              <div class="d-flex justify-content-center mb-2">
-                <button class="btn btn-primary btn-sm" (click)="downloadChart(actionsOnlyChart, 'irt-acciones')">
-                  <i class="fa-solid fa-download me-1"></i>
-                  Descargar JPG
-                </button>
-              </div>
-            </div>
 
-            <!-- 3. Acciones por Etapa 
-            <div class="card chart-card" *ngIf="shouldShowActionsByStageChart()">
-              <h3 class="text-center">IRT por Etapa y Acción</h3>
 
-              <div class="d-flex justify-content-center">
-                <div class="chart-area w-100" style="max-width: 600px; height: 300px;">
-                  <canvas #actionsByStageCanvas></canvas>
-                </div>
-              </div>
 
-              <div class="d-flex justify-content-center mb-2">
-                <button class="btn btn-primary btn-sm"
-                  (click)="downloadChart(actionsByStageChart, 'irt-por-etapa-accion')">
-                  <i class="fa-solid fa-download me-1"></i>
-                  Descargar JPG
-                </button>
-              </div>
-            </div>
-
-            -->
 
           </div>
         </div>

@@ -1,5 +1,7 @@
 <app-nav></app-nav>
 
+<app-spinner [isVisible]="loading"></app-spinner>
+
 <div class="content-wrapper">
   <form [formGroup]="informeForm" (ngSubmit)="onSubmit()" class="container mt-2 custom-form">
     <div class="card w-100">
@@ -121,15 +123,26 @@
                 <td>{{ inf.razonSocial }}</td>
                 <td style="width: 200px; white-space: nowrap;">
 
+
+                  <button class="btn btn-success btn-sm mx-2" (click)="onPreviewClick(inf.id)">
+                    <i class="fas fa-eye me-1"></i> Informe
+                  </button>
+
                   <!-- botón crear capitulo -->
                   <button class="btn btn-sm btn-info mx-2" (click)="crearCapitulos(inf)">
-                    <i class="fas fa-folder-open mx-1"></i>Crear Capítulos
+                    <i class="fas fa-folder-open mx-1"></i>Capítulos
                   </button>
 
                   <!-- botón crear encabezado -->
                   <button class="btn btn-sm btn-secondary mx-2" (click)="crearEncabezado(inf)">
-                    <i class="fas fa-file-alt mx-1"></i> Crear Encabezado
+                    <i class="fas fa-file-alt mx-1"></i> Encabezado
                   </button>
+
+                  <!-- botón crear caratula -->
+                  <button class="btn btn-sm btn-secondary mx-2" (click)="crearCaratula(inf)">
+                    <i class="fas fa-masks-theater mx-1"></i> Caratula
+                  </button>
+
 
                   <button class="btn btn-sm btn-danger mx-2" (click)="eliminarInforme(inf.id!)">
                     <i class="fas fa-trash mx-1"></i>Eliminar

@@ -48,12 +48,15 @@ body.layout-fixed {
   flex-direction: column;
 }
 
+/* Inputs personalizados */
 .custom-input {
+  text-align: center;
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 14px;
+  box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
 }
 
 /* Texto pequeño */
@@ -65,9 +68,7 @@ body.layout-fixed {
 .table-container {
   margin-top: 20px;
   overflow-x: auto;
-  table-layout: auto;
-  /* distribuye ancho según contenido */
-
+  /* table-layout fijo eliminado aquí */
 }
 
 .table-wrapper {
@@ -75,6 +76,7 @@ body.layout-fixed {
   margin: 0 auto;
 }
 
+/* Tabla: distribución fija de columnas */
 .table-container table {
   width: 100%;
   font-size: 12px;
@@ -83,24 +85,32 @@ body.layout-fixed {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
+  table-layout: fixed; /* para las otras tablas */
+}
+
+/* Encabezados y celdas: recorte y ellipsis */
+.table-container th,
+.table-container td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  vertical-align: top;
+  text-align: left;
+  overflow: hidden;        /* Oculta el desborde */
+  text-overflow: ellipsis; /* Añade "..." si no cabe */
+  white-space: nowrap;     /* Evita saltos de línea */
 }
 
 .table-container th {
   background-color: #007bff;
   color: #fff;
-  padding: 10px;
-  text-align: center;
-  font-size: 12px;
 }
 
 .table-container td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  font-size: 12px;
-  vertical-align: top;
+  background-color: #fff;
 }
 
-/* Columnas específicas */
+/* Columnas específicas (si sigues usándolas) */
 .col-fecha {
   width: 150px;
 }
@@ -141,4 +151,128 @@ body.layout-fixed {
 .btn-sm {
   padding: 4px 8px;
   font-size: 12px;
+}
+
+/* ——————————————— */
+/* Ajuste dinámico ANULANDO fixed para la tabla de factores */
+/* ——————————————— */
+.table-container.mt-3 > table {
+  table-layout: auto; /* deja que el ancho se ajuste al contenido */
+}
+
+.table-container.mt-3 col {
+  width: auto !important; /* anula cualquier width en el colgroup */
+}
+
+.table-container.mt-3 th,
+.table-container.mt-3 td {
+  white-space: nowrap; /* sin saltos de línea, ancho según contenido */
+}
+
+.table-container.mt-3 .custom-input {
+  width: auto;     /* input tan ancho como necesite */
+  min-width: 50px; /* ancho mínimo razonable */
+  box-sizing: content-box; /* padding fuera del ancho calculado */
+}
+
+/* ——————————————— */
+/* Tabla de factores (ancho dinámico) */
+/* ——————————————— */
+.table-container.mt-3 {
+  overflow-x: auto; /* scroll sólo si sobrepasa */
+}
+
+.table-container.mt-3 > table {
+  width: auto !important;         /* ancho según contenido */
+  table-layout: auto !important;  /* desactiva fixed */
+  margin: 0 auto;                 /* centra si sobra espacio */
+}
+
+.table-container.mt-3 th,
+.table-container.mt-3 td {
+  white-space: nowrap;            /* evita que baje el texto */
+  /* si quieres permitir saltos de línea en palabras largas,
+     cambia a:
+     white-space: normal;
+     word-break: break-word;
+  */
+}
+
+/* Ajuste de inputs dentro de esta tabla */
+.table-container.mt-3 .custom-input {
+  width: auto;      /* sólo tan ancho como necesite */
+  min-width: 50px;  /* evita que quede demasiado pequeño */
+  box-sizing: content-box;
+}
+
+/* ================================
+   Tipografía controlada para TABLAS
+   ================================ */
+
+/* Wrapper que habilita variables de fuente, tamaño y peso para la tabla */
+.table-typo {
+  /* Valores por defecto (puedes modificarlos con las clases modificadoras) */
+  --tbl-font-family: Calibri, "Segoe UI", Arial, sans-serif;
+  --tbl-font-size: 90pt;
+  --tbl-font-weight: 900;   /* cuerpo */
+  --tbl-th-font-weight: 900; /* encabezados */
+}
+
+/* Aplica tipografía a toda la tabla dentro del wrapper */
+.table-typo table,
+.table-typo th,
+.table-typo td,
+.table-typo input,
+.table-typo .small-text {
+  font-family: var(--tbl-font-family);
+  font-size: var(--tbl-font-size) !important; /* anula .small-text (12px !important) SOLO dentro del wrapper */
+  font-weight: var(--tbl-font-weight);
+}
+
+/* Encabezados con peso independiente */
+.table-typo th {
+  font-weight: var(--tbl-th-font-weight);
+}
+
+/* = Modificadores opcionales (sin tocar el resto del CSS) = */
+/* Familia */
+.table-typo--calibri { --tbl-font-family: Calibri, "Segoe UI", Arial, sans-serif; }
+.table-typo--roboto { --tbl-font-family: "Roboto", "Helvetica Neue", Arial, sans-serif; }
+
+/* Tamaño: elige el que quieras usar */
+.table-typo--size-9  { --tbl-font-size: 9pt; }
+.table-typo--size-10 { --tbl-font-size: 10pt; }
+.table-typo--size-11 { --tbl-font-size: 11pt; }
+.table-typo--size-12 { --tbl-font-size: 12pt; }
+.table-typo--size-12px { --tbl-font-size: 12px; } /* por si prefieres px */
+
+/* Peso del cuerpo */
+.table-typo--weight-300 { --tbl-font-weight: 300; }
+.table-typo--weight-400 { --tbl-font-weight: 400; }
+.table-typo--weight-500 { --tbl-font-weight: 500; }
+.table-typo--weight-600 { --tbl-font-weight: 600; }
+.table-typo--weight-700 { --tbl-font-weight: 700; }
+
+/* Peso de encabezados */
+.table-typo--th-400 { --tbl-th-font-weight: 400; }
+.table-typo--th-600 { --tbl-th-font-weight: 600; }
+.table-typo--th-700 { --tbl-th-font-weight: 700; }
+
+/* =========================================================
+   Refuerzo de NEGRITA para todo texto dentro de .table-typo
+   (afecta únicamente a lo que esté dentro del wrapper)
+   ========================================================= */
+.table-typo :is(th, td, input, select, textarea, label, span, p, div, button, .btn) {
+  font-weight: var(--tbl-font-weight) !important;
+}
+
+/* Encabezados con control independiente */
+.table-typo th {
+  font-weight: var(--tbl-th-font-weight) !important;
+}
+
+/* (Opcional) placeholders de inputs en negrita si hubiera */
+.table-typo input::placeholder,
+.table-typo textarea::placeholder {
+  font-weight: var(--tbl-font-weight) !important;
 }

@@ -17,9 +17,10 @@
             <div class="input-row mb-2">
               <div class="input-group">
                 <label for="fecha">Fecha:</label>
-                <input type="date" id="fecha" required [(ngModel)]="inventarioForm.fecha" name="fecha"
-                  class="custom-input" />
+                <input type="date" id="fecha" name="fecha" class="custom-input" [(ngModel)]="inventarioForm.fecha"
+                  [min]="inventarioForm.fecha" [max]="inventarioForm.fecha" [disabled]="true" required />
               </div>
+
 
               <div class="input-group">
                 <label for="organizacion">Organización:</label>
@@ -125,6 +126,12 @@
 
       <hr />
 
+      <!-- >>> NUEVO: Buscador por razón social (no interfiere con el <form>) -->
+      <div class="col-sm-6 mb-3">
+        <input type="text" class="form-control" placeholder="Buscar por razón social" [(ngModel)]="filterRazon"
+          [ngModelOptions]="{ standalone: true }" />
+      </div>
+
       <!-- Listado de Inventarios -->
       <h2 class="matriz-title">Listado de Inventarios</h2>
       <div class="table-container">
@@ -138,8 +145,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let inv of inventarios">
-              <td>{{ inv.fecha }}</td>
+            <!-- MODIFICADO: ahora recorre filteredInventarios -->
+            <tr *ngFor="let inv of filteredInventarios">
+              <td>{{ inv.fecha | date:'dd/MM/yyyy' }}</td>
               <td>{{ getOrgName(inv.organizacionId) }}</td>
               <td>{{ inv.contrato }}</td>
               <td class="col-acciones">
@@ -164,38 +172,41 @@
       <!-- Modal de detalles -->
       <div class="modal" *ngIf="mostrarDetalles">
         <div class="modal-content">
-          <span class="close" (click)="cerrarDetalles()">&times;</span>
-          <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 12px;">
-            Detalles del Inventario
-          </h2>
-          <p><strong>Fecha:</strong> {{ inventarioSeleccionado?.fecha }}</p>
-          <p>
-            <strong>Organización:</strong>
-            {{ getOrgName(inventarioSeleccionado!.organizacionId) }}
-          </p>
-          <div class="table-container">
-            <table class="matriz">
-              <thead>
-                <tr>
-                  <th>Categoría</th>
-                  <th>Alcance</th>
-                  <th>Descripción</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let item of inventarioSeleccionado?.items">
-                  <td>{{ item.residuo!.corriente }}</td>
-                  <td>{{ item.residuo!.juridiccion }}</td>
-                  <td>{{ item.residuo!.detalle }}</td>
-                </tr>
-                <tr *ngIf="(inventarioSeleccionado?.items?.length || 0) === 0">
-                  <td colspan="3" style="text-align: center;">
-                    No hay items asociados.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="modal-header">
+            <button class="close" (click)="cerrarDetalles()" aria-label="Cerrar">&times;</button>
           </div>
+
+          <div class="modal-body">
+            <p><strong>Fecha:</strong> {{ inventarioSeleccionado?.fecha }}</p>
+            <p>
+              <strong>Organización:</strong>
+              {{ getOrgName(inventarioSeleccionado!.organizacionId) }}
+            </p>
+
+            <div class="table-container">
+              <table class="matriz">
+                <thead>
+                  <tr>
+                    <th>Categoría</th>
+                    <th>Alcance</th>
+                    <th>Descripción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of inventarioSeleccionado?.items">
+                    <td>{{ item.residuo!.corriente }}</td>
+                    <td>{{ item.residuo!.juridiccion }}</td>
+                    <td>{{ item.residuo!.detalle }}</td>
+                  </tr>
+                  <tr *ngIf="(inventarioSeleccionado?.items?.length || 0) === 0">
+                    <td colspan="3" style="text-align: center;">
+                      No hay items asociados.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div> <!-- /modal-body -->
         </div>
       </div>
 

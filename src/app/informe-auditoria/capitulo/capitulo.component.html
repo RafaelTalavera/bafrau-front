@@ -6,7 +6,7 @@
 <div class="content-wrapper">
   <form [formGroup]="capituloForm" (ngSubmit)="onSubmit()" class="container mt-2 custom-form">
     <div class="card w-100">
-      <div class="card-header bg-primary text-white">
+      <div class="card-header bg-primary text-white card-header-ajustada">
         <h5 class="custom-h5">
           {{ editarId == null ? 'Nuevo Capítulo' : 'Editar Capítulo' }}
         </h5>
@@ -66,12 +66,13 @@
     </div>
   </form>
 
-  <!-- BOTÓN NUEVO -->
   <div class="container mt-3 text-end">
-    <button class="btn btn-success btn-sm" (click)="previewInforme()">
-      <i class="fas fa-eye me-1"></i> Previsualizar Informe
+    <button class="btn btn-success btn-sm mx-2" (click)="onPreviewClick(informe.id)">
+      <i class="fas fa-eye me-1"></i> Informe
     </button>
   </div>
+
+
 
   <!-- FILTRO POR CAPITULO: dentro de un contenedor para alinear -->
   <div class="container mt-4">
@@ -80,8 +81,8 @@
         <div class="row align-items-center">
           <div class="col-md-4">
             <label class="small-text mb-1">Filtrar por Titulo:</label>
-            <input type="text" [(ngModel)]="capituloFilter" name="capituloFilter" placeholder="🔎 Escriba para filtrar..."
-              class="form-control form-control-sm" />
+            <input type="text" [(ngModel)]="capituloFilter" name="capituloFilter"
+              placeholder="🔎 Escriba para filtrar..." class="form-control form-control-sm" />
           </div>
         </div>
       </div>
@@ -135,5 +136,7 @@
     </div>
   </div>
 
-  <app-footer></app-footer>
 </div>
+
+
+  <app-footer></app-footer>

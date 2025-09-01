@@ -11,10 +11,10 @@ import { Organizacion } from '../models/organizacion.model';
 export class OrganizacionService {
   private apiUrl = `${environment.apiUrl}/organizaciones`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('jwt_token'); 
+    const token = localStorage.getItem('jwt_token');
     let headers = new HttpHeaders();
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
@@ -55,7 +55,7 @@ export class OrganizacionService {
   updateOrganizacion(id: number, organizacion: Organizacion): Observable<Organizacion> {
     const headers = this.getAuthHeaders();
     const url = `${this.apiUrl}/${id}`;
-    
+
     return this.http.put<Organizacion>(url, organizacion, { headers })
       .pipe(
         catchError(this.handleError)
@@ -70,27 +70,27 @@ export class OrganizacionService {
     );
   }
 
-    getOrganizacionesAuditoriaAmbiental(): Observable<Organizacion[]> {
-      const url = `${this.apiUrl}/auditorias-ambientales`;
-      return this.http
-        .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
-        .pipe(
-          catchError(err => {
-            return throwError(() => err);
-          })
-        );
-    }
-    
-        getOrganizacionesRepresentacionTecnica(): Observable<Organizacion[]> {
-          const url = `${this.apiUrl}/representacion-tecnica`;
-          return this.http
-            .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
-            .pipe(
-              catchError(err => {
-                console.error('Error al cargar organizaciones:', err);
-                return throwError(() => err);
-              })
-            );
-        }
-        
+  getOrganizacionesAuditoriaAmbiental(): Observable<Organizacion[]> {
+    const url = `${this.apiUrl}/auditorias-ambientales`;
+    return this.http
+      .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
+      .pipe(
+        catchError(err => {
+          return throwError(() => err);
+        })
+      );
+  }
+
+  getOrganizacionesRepresentacionTecnica(): Observable<Organizacion[]> {
+    const url = `${this.apiUrl}/representacion-tecnica`;
+    return this.http
+      .get<Organizacion[]>(url, { headers: this.getAuthHeaders() })
+      .pipe(
+        catchError(err => {
+          console.error('Error al cargar organizaciones:', err);
+          return throwError(() => err);
+        })
+      );
+  }
+
 }

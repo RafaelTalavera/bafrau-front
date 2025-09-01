@@ -1,5 +1,5 @@
 // src/app/seccion/seccion.component.ts
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import Swal from 'sweetalert2';
@@ -12,17 +12,16 @@ import { TablaService } from '../service/tabla.service';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import { SeccionDTO } from '../models/seccion-dto';
-import { CeldaDTO, FilaDTO, TablaDTO } from '../models/tabla-dto.model';
+import { CeldaDTO, TablaDTO } from '../models/tabla-dto.model';
 import { TypoService } from '../../services/typo.service';
-import { firstValueFrom, forkJoin, map, of, switchMap } from 'rxjs';
-import panzoom from "@panzoom/panzoom";
-import html2pdf from "html2pdf.js";
+import {  forkJoin, map, of, switchMap } from 'rxjs';
 import { AdjuntosService } from '../../utils/adjuntos.service';
 import { Router } from '@angular/router';
 import { SpinnerComponent } from "../../utils/spinner/spinner.component";
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { EncabezadoService } from '../service/encabezado.service';
+import { InformeDTO } from '../models/informe-dto.models';
 
 interface SeccionView extends SeccionDTO {
   organizacionId?: number;
@@ -69,6 +68,19 @@ export class SeccionComponent implements OnInit {
   informeId!: number;
   organizacionId?: number;
   loading = true;
+  mostrarFormulario = true;
+  informe!: InformeDTO;
+
+  toggleFormulario(): void {
+    this.mostrarFormulario = !this.mostrarFormulario;
+  }
+
+  private normalizeContenidoForSave(raw: string | null | undefined): string {
+  const txt = String(raw ?? '');
+  // Unifica CRLF/CR en LF y recorta solo espacios de extremos (no internos)
+  return txt.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+}
+
 
   constructor(
     private fb: FormBuilder,
@@ -144,6 +156,7 @@ export class SeccionComponent implements OnInit {
         this.infService.getById(cap.informeId!).subscribe({
           next: inf => {
             this.informeId = inf.id!;
+            this.informe   = inf;
             this.informeTitulo = inf.titulo;
             this.informeRazonSocial = inf.razonSocial;
             this.organizacionId = inf.organizacionId;
@@ -200,60 +213,74 @@ export class SeccionComponent implements OnInit {
   }
 
   onSubmit(): void {
-    // 1) Validar orden único
-    const ordenIngresado = this.seccionForm.value.orden;
-    const dup = this.secciones.some(s =>
-      s.orden === ordenIngresado && (this.editarId == null || s.id !== this.editarId)
-    );
-    if (dup) {
-      Swal.fire('Orden repetido', 'Ya existe una sección con ese orden.', 'error');
-      return;
-    }
-    // 2) Validar formulario
-    if (this.seccionForm.invalid) return;
-    // 3) Construir payload
-    const payload: SeccionDTO = {
-      contenido: this.seccionForm.value.contenido,
-      orden: ordenIngresado,
-      capituloId: this.capituloId,
-      organizacionId: this.organizacionId,
-      styleTemplateId: this.seccionForm.value.styleTemplateId,
-      adjuntosIds: []    // sin adjuntos aquí; se suben después
-    };
-    // 4) Elegir create o update
-    const request$ = this.editarId === null
-      ? this.seccionService.createSeccion(payload)
-      : this.seccionService.updateSeccion(this.editarId, payload);
-    // 5) Ejecutar y, si hay archivos, subirlos
-    request$.pipe(
-      switchMap(sec => {
-        if (!this.uploadFiles.length) return of(sec);
-        const uploads$ = this.uploadFiles.map(file =>
-          this.seccionService.uploadAdjunto(file, sec.id!)
-        );
-        return forkJoin(uploads$).pipe(map(() => sec));
-      })
-    ).subscribe({
-      next: sec => {
-        // 6) Refrescar lista y limpiar estado
-        this.cargarSecciones();
-        this.uploadFiles = [];
-        Swal.fire(
-          'Éxito',
-          `Sección ${this.editarId === null ? 'creada' : 'actualizada'} correctamente.`,
-          'success'
-        );
-        if (this.editarId !== null) {
-          this.cancelarEdicion();
-        } else {
-          this.seccionForm.reset({ contenido: '', orden: 1, styleTemplateId: null });
-        }
-      },
-      error: err => {
-        Swal.fire('Error', 'No se pudo procesar la sección o subir imágenes.', 'error');
-      }
-    });
+  // 1) Validar orden único
+  const ordenIngresado = this.seccionForm.value.orden;
+  const dup = this.secciones.some(s =>
+    s.orden === ordenIngresado && (this.editarId == null || s.id !== this.editarId)
+  );
+  if (dup) {
+    Swal.fire('Orden repetido', 'Ya existe una sección con ese orden.', 'error');
+    return;
   }
+
+  // 2) Validar formulario
+  if (this.seccionForm.invalid) return;
+
+  // 3) Normalizar contenido (asegura \n para viñetas)
+  const contenidoNorm = this.normalizeContenidoForSave(this.seccionForm.value.contenido);
+
+  // Diagnóstico: confirmá que van \n
+  console.log('DEBUG contenido:', JSON.stringify(contenidoNorm));
+
+  // 4) Construir payload
+  const payload: SeccionDTO = {
+    contenido: contenidoNorm,
+    orden: ordenIngresado,
+    capituloId: this.capituloId,
+    organizacionId: this.organizacionId,
+    styleTemplateId: this.seccionForm.value.styleTemplateId,
+    adjuntosIds: []    // sin adjuntos aquí; se suben después
+  };
+
+  // 5) Elegir create o update
+  const request$ = this.editarId === null
+    ? this.seccionService.createSeccion(payload)
+    : this.seccionService.updateSeccion(this.editarId, payload);
+
+  // 6) Ejecutar (y si hay archivos, subirlos)
+  request$.pipe(
+    switchMap(sec => {
+      if (!this.uploadFiles.length) return of(sec);
+      const uploads$ = this.uploadFiles.map(file =>
+        this.seccionService.uploadAdjunto(file, sec.id!)
+      );
+      return forkJoin(uploads$).pipe(map(() => sec));
+    })
+  ).subscribe({
+    next: sec => {
+      this.cargarSecciones();
+      this.uploadFiles = [];
+      Swal.fire(
+        'Éxito',
+        `Sección ${this.editarId === null ? 'creada' : 'actualizada'} correctamente.`,
+        'success'
+      );
+      if (this.editarId !== null) {
+        this.cancelarEdicion();
+      } else {
+        this.seccionForm.reset({
+          contenido: '',
+          orden: 1,
+          styleTemplateId: null
+        });
+      }
+    },
+    error: () => {
+      Swal.fire('Error', 'No se pudo procesar la sección o subir imágenes.', 'error');
+    }
+  });
+}
+
 
   cancelarEdicion(): void {
     this.editarId = null;
@@ -383,31 +410,46 @@ export class SeccionComponent implements OnInit {
       }
     });
   }
-  //Modal de tabla
+
+
+  //Modal matriz
+  // dentro de tu componente (seccion.component.ts)
   openOpcionesMatriz(s: SeccionView): void {
     this.editarSeccion(s);
     this.showTableModal = false;
+
     Swal.fire({
       title: '¿Qué deseas hacer?',
       showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: 'Causa efecto',
-      denyButtonText: 'Evaluación de impacto'
+      denyButtonText: 'Evaluación de impacto',
+      cancelButtonText: 'Ponderación'
     }).then(res => {
       const id = s.id ?? this.editarId;
       if (!id) {
         Swal.fire('Error', 'La sección no tiene ID definido', 'error');
         return;
       }
+
       if (res.isConfirmed) {
+        // Navegar a causa-efecto
         this.router.navigate([
           'matriz-causa-efecto-v1-visualizacion',
           s.razonSocial,
           id
         ]);
       } else if (res.isDenied) {
+        // Navegar a evaluación de impacto
         this.router.navigate([
           'matriz-impacto',
+          s.razonSocial,
+          id
+        ]);
+      } else if (res.isDismissed) {
+        // ← NUEVO: navegar a ponderación
+        this.router.navigate([
+          'matriz-ponderacion',
           s.razonSocial,
           id
         ]);
@@ -562,234 +604,14 @@ export class SeccionComponent implements OnInit {
     return name;
   }
 
+/**
+ * Navega a la vista de previsualización de un informe concreto.
+ * @param id El identificador del informe a previsualizar.
+ */
+onPreviewClick(id: number): void {
+  this.router.navigate(['/informes', id, 'preview']);
 
-  async previewCapitulo(): Promise<void> {
-    // 0) Cerrar modal existente y limpiar resto
-    if (Swal.isVisible()) {
-      Swal.close();
-    }
-    document
-      .querySelectorAll('#preview-zoom, style.swal2-previsualizacion-a4, .swal2-container')
-      .forEach(el => el.remove());
-
-    this.loading = true;
-
-    // 1) Traer encabezados y construir headerHtml
-    const encabezados = await firstValueFrom(
-      this.encabezadoService.getByInformeId(this.informeId)
-    );
-    const todosAdj = encabezados.flatMap(e => e.adjuntos);
-    const logoIzq = todosAdj[0]?.urlAdjunto || '';
-    const logoDer = todosAdj[1]?.urlAdjunto || '';
-    const textoEncabezado = encabezados[0]?.contenido || '';
-    const headerHtml = `
-    <div class="report-header">
-      <img src="${logoIzq}" alt="Logo IZQ">
-      <div class="header-title">${textoEncabezado}</div>
-      <img src="${logoDer}" alt="Logo DER">
-    </div>
-  `;
-
-    // 2) Preparar medidor oculto
-    const pxPorMm = (mm: number) => (mm / 25.4) * 96;
-    const pageHeight = pxPorMm(297 - 20);
-    const measurer = document.createElement('div');
-    Object.assign(measurer.style, {
-      position: 'absolute',
-      visibility: 'hidden',
-      width: `${pxPorMm(210 - 20)}px`
-    });
-    document.body.appendChild(measurer);
-    measurer.innerHTML = headerHtml;
-    const headerH = (measurer.firstElementChild as HTMLElement).offsetHeight;
-
-    // 3) Ordenar secciones y traer tablas
-    const seccionesOrdenadas = [...this.secciones]
-      .map(sec => ({ ...sec, orden: Number(sec.orden) }))
-      .sort((a, b) => a.orden - b.orden);
-    const tablasPorSeccion = await Promise.all(
-      seccionesOrdenadas.map(s => firstValueFrom(this.tablaService.getTablasPorSeccion(s.id!)))
-    );
-
-    // 4) Generar páginas con encabezado en cada una
-    const pages: string[] = [];
-    let currentHtml = headerHtml;
-    let usedHeight = headerH;
-
-    for (let i = 0; i < seccionesOrdenadas.length; i++) {
-      const sec = seccionesOrdenadas[i];
-
-      // Contenido según template
-      const lines = sec.contenido.split('\n').map(l => l.trim()).filter(l => l);
-      let contentHtml: string;
-      switch (sec.styleTemplateNombre) {
-        case 'titulo':
-          contentHtml = `<div style="font-size:19px;font-weight:bold;text-decoration:underline;margin:0 0 .5em">${sec.contenido}</div>`;
-          break;
-        case 'subtitulo':
-          contentHtml = `<div style="font-size:16px;font-weight:bold;margin:0 0 .4em">${sec.contenido}</div>`;
-          break;
-        case 'viñeta':
-          contentHtml = lines.length < 2
-            ? `<p>${sec.contenido}</p>`
-            : `<ul style="display:table;margin:0 auto 1em;padding-left:8mm;list-style-type:disc;list-style-position:outside">
-              ${lines.map(item => `<li style="font-size:12px;line-height:1.2;margin:0 0 .1em;padding-left:2mm;text-indent:-2mm">${item}</li>`).join('')}
-            </ul>`;
-          break;
-        default:
-          contentHtml = `<p>${sec.contenido}</p>`;
-      }
-
-      // Tablas
-      const tablasHtml = tablasPorSeccion[i].map(t => `
-      <div class="tabla-titulo">${t.nombre}</div>
-      <table><tbody>
-        ${t.filas.map(f =>
-        `<tr>${f.celdas.map(c => `<td>${c.contenido}</td>`).join('')}</tr>`
-      ).join('')}
-      </tbody></table>
-    `).join('');
-
-
-      // Imágenes
-      const imgsCount = sec.adjuntos?.length ?? 0;
-      const cols = imgsCount > 1 ? `repeat(${imgsCount}, 1fr)` : '1fr';
-
-      const block = `
-  <div class="section-block">
-    ${contentHtml}
-    <div class="images-wrapper" style="
-      display: grid;
-      grid-template-columns: ${cols};
-      gap: 5mm;
-      margin-bottom: 1em;
-    ">
-      ${sec.adjuntos?.map(a => `
-        <img src="${a.urlAdjunto}" style="
-          width: 100%;
-          height: auto;
-          object-fit: cover;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        " />
-      `).join('') ?? ''}
-    </div>
-    ${tablasHtml}
-  </div>
-`;
-      measurer.innerHTML = block;
-      const bh = (measurer.firstElementChild as HTMLElement).offsetHeight;
-
-      if (usedHeight + bh > pageHeight) {
-        pages.push(currentHtml);
-        currentHtml = headerHtml + block;
-        usedHeight = headerH + bh;
-      } else {
-        currentHtml += block;
-        usedHeight += bh;
-      }
-    }
-
-    if (currentHtml) pages.push(currentHtml);
-    document.body.removeChild(measurer);
-
-    // 5) Construir HTML final con CSS idéntico a previewInforme()
-    const total = pages.length;
-    const pagesHtml = pages.map((pg, idx) => `
-    <div class="page">
-      ${pg}
-      <div style="position:absolute;bottom:5mm;right:10mm;font-size:10px">
-        Hoja ${idx + 1} de ${total}
-      </div>
-    </div>
-  `).join('');
-    const previewId = `preview-zoom-${Date.now()}`;
-    const html = `
-    <style class="swal2-previsualizacion-a4">
-      .report-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-      .report-header img { max-height:50px; }
-      .report-header .header-title { flex:1; text-align:center; font-weight:bold; font-size:14px; }
-
-      .page {
-        position:relative;
-        width:210mm;
-        min-height:297mm;
-        padding:10mm;
-        box-sizing:border-box;
-        background:white;
-        page-break-after:always;
-      }
-
-      .section-block,
-      .report-header,
-      .tabla-titulo,
-      table,
-      .images-wrapper {
-        break-inside:avoid-page;
-        page-break-inside:avoid;
-      }
-      .section-block { margin-bottom:1em; }
-      .section-block h3 { font-weight:bold; font-size:20px; margin:0 0 .5em; }
-      .section-block p { text-align:justify; font-size:12px; margin:0 0 1em; }
-
-      .tabla-titulo { font-size:12px; font-weight:bold; margin:0 0 .5em; }
-      table { width:100%; border-collapse:collapse; margin-bottom:1em; }
-      td { border:1px solid #000; padding:.2rem; font-size:12px; }
-
-      .images-wrapper {
-        display:grid;
-        grid-template-columns:repeat(2,1fr);
-        gap:5mm;
-        margin-bottom:1em;
-      }
-      .images-wrapper img:only-child {
-        grid-column:1/-1;
-        justify-self:center;
-      }
-
-      @media print {
-        .page { margin:0; box-shadow:none; }
-      }
-    </style>
-    <div id="${previewId}">${pagesHtml}</div>
-  `;
-
-    // 6) Mostrar modal con panzoom y botón de descarga PDF
-    this.loading = false;
-    Swal.fire({
-      title: `Preview: ${this.capituloTitulo}`,
-      html,
-      width: 'auto',
-      showCloseButton: true,
-      confirmButtonText: 'Cerrar',
-      customClass: { popup: 'swal2-previsualizacion-a4' },
-      didOpen: () => {
-        const el = document.getElementById(previewId)!;
-        el.prepend(document.querySelector('style.swal2-previsualizacion-a4')!);
-        panzoom(el, { maxZoom: 3, minZoom: 1, bounds: true, boundsPadding: 0.1 });
-        const actions = Swal.getActions()!;
-        const btn = document.createElement('button');
-        btn.textContent = 'Descargar PDF';
-        btn.className = 'swal2-styled';
-        btn.style.marginRight = '0.5rem';
-        btn.onclick = () => html2pdf()
-          .from(el)
-          .set({
-            margin: [0, 0, 0, 0],
-            filename: `${this.capituloTitulo}.pdf`,
-            html2canvas: { scale: 2, useCORS: true, allowTaint: true, width: el.offsetWidth, windowWidth: el.offsetWidth },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css'], after: '.page' }
-          })
-          .save();
-        actions.insertBefore(btn, actions.firstChild);
-      },
-      willClose: () => {
-        document.querySelectorAll('style.swal2-previsualizacion-a4').forEach(e => e.remove());
-      }
-    });
-  }
-
+}
 
 
 
@@ -898,29 +720,49 @@ export class SeccionComponent implements OnInit {
       }
     });
   }
+
   // --- Cambios en openImagenOptions ---
+  /**
+   * Abre el modal de opciones de imagen:
+   * - Permite ver y eliminar adjuntos SIEMPRE.
+   * - Deshabilita "Cargar imagen" cuando ya hay 2 o más adjuntos.
+   */
   openImagenOptions(s: SeccionView, fileInput: HTMLInputElement): void {
+    // Aseguramos que estemos editando la sección correspondiente
     this.editarSeccion(s);
+
+    // Contamos cuántos adjuntos hay
     const actuales = s.adjuntos?.length ?? 0;
-    if (actuales >= 2) {
-      Swal.fire('Atención', 'Solo puedes cargar hasta dos imágenes.', 'warning');
-      return;
-    }
+
     Swal.fire({
       title: '¿Qué deseas hacer?',
       showDenyButton: true,
       showCancelButton: true,
       confirmButtonText: 'Cargar imagen',
-      denyButtonText: 'Ver imágenes'
+      denyButtonText: 'Ver imágenes',
+      // Al abrir, deshabilitamos “Cargar imagen” si ya hay 2 o más
+      didOpen: () => {
+        if (actuales >= 2) {
+          const btn = Swal.getConfirmButton();
+          if (btn) {
+            btn.setAttribute('disabled', 'true');
+            btn.classList.add('swal2-styled--disabled');
+          }
+        }
+      }
     }).then(res => {
       if (res.isConfirmed) {
+        // Solo se ejecutará si hay menos de 2 adjuntos
         fileInput.click();
       } else if (res.isDenied) {
+        // Siempre permitimos ver/eliminar adjuntos
         this.loading = true;
         this.verAdjuntos(s);
       }
+      // res.dismiss (Cancel) simplemente cierra el diálogo
     });
   }
+
   // --- Drp de tabla ---
   drop(event: CdkDragDrop<SeccionView[], SeccionView[], any>): void {
     // reordena local

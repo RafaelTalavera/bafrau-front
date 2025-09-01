@@ -48,7 +48,7 @@ html, body {
 }
 
 .table-container {
-  max-height: 300px; /* o lo que necesites */
+  max-height: 600px; /* o lo que necesites */
   overflow-y: auto;
   display: block;
 }

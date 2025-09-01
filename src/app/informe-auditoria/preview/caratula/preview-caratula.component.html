@@ -1,0 +1,22 @@
+<app-nav></app-nav>
+
+<div class="content-wrapper">
+  <div class="preview-actions">
+    <button (click)="previewCaratula()" [disabled]="loading">
+      {{ loading ? 'Cargando...' : 'Previsualizar Carátula' }}
+    </button>
+    <button (click)="downloadPdf()" [disabled]="!previewHtml">
+      Descargar PDF
+    </button>
+  </div>
+
+  <div
+    #previewContainer
+    class="preview-container"
+    [innerHTML]="previewHtml"
+  >
+  </div>
+
+</div>
+
+  <app-footer></app-footer>

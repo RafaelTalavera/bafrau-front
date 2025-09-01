@@ -1,0 +1,812 @@
+/* ------------------------------ */
+/* 1) Reset y layout base         */
+/* ------------------------------ */
+html,
+body,
+app-root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 160px); /* 80px nav + 80px footer */
+  margin: 0;
+  position: relative;
+  overflow-y: auto;      /* la zona scrolleable es el wrapper */
+  padding-top: 80px;     /* deja la barra sticky debajo del nav fijo */
+  padding-bottom: 0;
+  background: transparent;
+}
+
+/* ------------------------------ */
+/* 2) Variables globales          */
+/* ------------------------------ */
+:root {
+  --corner-width: 25mm;
+  --corner-height: 14mm;
+  --corner-scale: 4;
+  --corner-offset-x: 0mm;
+  --corner-offset-y: 0mm;
+
+  /* NUEVO: separación vertical entre texto, tabla, subtítulo, imagen y matriz */
+  --gap-bloque: 1pt; /* ajustable: p.ej. 8px, 2mm, etc. */
+
+  /* NUEVO: separación SOLO entre textos (.sec-texto) */
+  --gap-texto: 1pt; /* subí o bajá este valor para regular el espacio entre párrafos */
+}
+
+/* ------------------------------ */
+/* 3) Preview (pantalla + PDF)    */
+/* ------------------------------ */
+.preview-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;  /* centro horizontal */
+  align-items: flex-start;  /* inicio vertical */
+  overflow: auto;
+  background-color: #e0e0e0;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.preview-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10mm; /* separación entre páginas */
+  transform: none !important;
+  transform-origin: initial !important;
+  will-change: auto !important;
+}
+
+/* ------------------------------ */
+/* 4) Simulación hoja A4          */
+/* ------------------------------ */
+.page {
+  width: 210mm;
+  height: 297mm;
+  margin: 0 10mm;
+  padding: 20mm 20mm 30mm 20mm; /* top/right/bottom/left */
+  box-sizing: border-box;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, .08);
+  background-color: #fff;
+  overflow: visible; /* visible para medición/paginación en vivo */
+}
+
+/* Pie de página dentro de cada hoja */
+.page-footer {
+  position: absolute;
+  bottom: 20mm;
+  right: 20mm; /* numeración a la derecha */
+  font-size: 10px;
+  color: #555;
+}
+
+/* ------------------------------ */
+/* 5) Impresión                    */
+/* ------------------------------ */
+@media print {
+  .page {
+    box-shadow: none;
+    margin: 0;
+  }
+}
+
+/* ------------------------------ */
+/* 6) Contenido (encabezados)     */
+/* ------------------------------ */
+/* Header principal: [logo][título+fecha][logo] */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 3mm; /* en mm para ser determinista */
+  padding: 2mm 3mm;   /* en mm */
+  border-radius: 4px;
+  background: #fff;
+}
+
+.report-header .report-logo {
+  max-height: 16mm; /* en mm */
+  width: auto;
+  object-fit: contain;
+}
+
+.report-header .header-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.report-header .header-title {
+  text-align: center;
+  font-size: 5mm; /* en mm */
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.report-header .header-date {
+  width: 100%;
+  text-align: center;
+  margin-top: 1mm;
+  color: #333;
+  font-weight: 500;
+}
+
+/* ------------------------------ */
+/* 7) Sección y texto             */
+/* ------------------------------ */
+.section-block {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* alinea a la izquierda */
+  text-align: left;
+}
+
+.section-block h3 {
+  padding: 6mm;         /* en mm */
+  font-size: 5mm;       /* en mm */
+  line-height: 1.25;
+  font-weight: bold;
+  color: #6714af;
+  margin: 2mm 0;
+  text-align: center;
+}
+
+/* Subtítulo */
+.sec-subtitulo {
+  font-size: 4mm;
+  line-height: 1.35;
+  font-weight: 600;
+  margin-block: var(--gap-bloque);
+  color: #792bbe;
+}
+
+/* Texto normal */
+.sec-texto {
+  font-size: 3.5mm;
+  line-height: 1.4;
+  margin-top: var(--gap-bloque);
+  margin-bottom: var(--gap-bloque);
+  text-align: justify;
+  color: #333;
+  width: 100%;
+}
+
+/* Formato “matriz”: bloque centrado, texto justificado y color */
+.sec-matriz {
+  font-weight: 600;
+  width: 100%;
+  margin-inline: auto;              /* centrado horizontal */
+  margin-block: var(--gap-bloque);  /* separación vertical unificada */
+  text-align: center;
+  color: #6714af;
+  line-height: 1.6;
+  padding: 15px 30px;               /* decorativo */
+}
+
+/* Por si se usa .sec-imagen dentro de section-block */
+.section-block .sec-imagen img {
+  max-width: 60%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.section-block.chapter-title h3 {
+  color: #6714af;
+  text-align: justify; /* alinear como sec-texto */
+}
+
+/* ------------------------------ */
+/* 8) Tablas y títulos de tabla   */
+/* ------------------------------ */
+.tabla-titulo {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 0 0 0.5em;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0; /* evita doble separación; la maneja .table-item */
+  break-inside: avoid-page; /* tablas no parten */
+  page-break-inside: avoid;
+}
+
+td {
+  border: 1px solid #000;
+  padding: 0.2rem;
+  font-size: 12px;
+}
+
+/* bloque tabla y caption */
+.table-item {
+  margin-block: var(--gap-bloque);
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.table-item figcaption {
+  font-size: 12px;
+  margin-bottom: 0.5em;
+  text-align: left;
+}
+
+.table-item table thead th {
+  font-weight: 600;
+  background-color: #1976d2;
+  color: #ffffff;
+  border-color: #0d47a1;
+}
+
+/* Primera fila como header visual */
+.table-item table tbody tr:first-child td {
+  font-weight: 600;
+  background-color: #1976d2;
+  color: #ffffff;
+  border-color: #0d47a1;
+}
+
+.table-item table tbody tr:first-child td a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+@media print {
+  .table-item table tbody tr:first-child td,
+  .table-item table thead th {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ------------------------------ */
+/* 9) Galería de imágenes         */
+/* ------------------------------ */
+
+/* Variable para la altura uniforme cuando hay 2 imágenes */
+:root {
+  --dual-image-height: 60mm; /* ajustable a tu diseño */
+}
+
+.images-wrapper {
+  display: grid;
+  gap: 5mm;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 1em;
+}
+
+/* Columnas por cantidad */
+.images-wrapper.cols-1 { grid-template-columns: 1fr; }
+.images-wrapper.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.images-wrapper.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.images-wrapper.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.images-wrapper.cols-5 { grid-template-columns: repeat(5, 1fr); }
+.images-wrapper.cols-6 { grid-template-columns: repeat(6, 1fr); }
+
+/* Cuando hay 1 imagen, ocupa todo el ancho del texto */
+.images-wrapper.cols-1 .figure-item {
+  grid-column: 1 / -1;
+}
+
+/* Contenedor del bitmap: controla el tamaño visual uniforme */
+.figure-media {
+  width: 100%;
+  height: auto; /* por defecto */
+  display: block;
+}
+
+/* Para DOS imágenes: fijamos la misma altura en ambos items */
+.images-wrapper.cols-2 .figure-media {
+  height: var(--dual-image-height);
+}
+
+/* El bitmap se ajusta sin deformarse dentro de su caja */
+.figure-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* evita recortes; respeta proporción */
+  display: block;
+}
+
+/* Figures y captions */
+.figure-item {
+  margin: 1em 0;
+  text-align: center;
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+.figure-item img {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.figure-item figcaption {
+  font-size: 12px;
+  margin-top: 0.5em;
+  text-align: left;
+}
+
+/* Ajustes SOLO cuando hay DOS imágenes */
+.images-wrapper.cols-2 { gap: 1mm; }               /* menos separación */
+.images-wrapper.cols-2 .figure-item { margin: 0.05em 0; }
+.images-wrapper.cols-2 .figure-item figcaption { margin-top: 0.02em; }
+
+/* ------------------------------ */
+/* 10) Esquineros decorativos     */
+/* ------------------------------ */
+.corner {
+  position: absolute;
+  width: var(--corner-width);
+  height: var(--corner-height);
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.corner.top-left {
+  transform-origin: top left;
+  transform: scale(var(--corner-scale)) scaleX(-1);
+  top: var(--corner-offset-y);
+  left: var(--corner-offset-x);
+}
+
+.corner.top-right {
+  transform-origin: top right;
+  transform: scale(var(--corner-scale));
+  top: var(--corner-offset-y);
+  right: var(--corner-offset-x);
+}
+
+.corner.bottom-left {
+  transform-origin: bottom left;
+  transform: scale(var(--corner-scale));
+  bottom: var(--corner-offset-y);
+  left: var(--corner-offset-x);
+}
+
+.corner.bottom-right {
+  transform-origin: bottom right;
+  transform: scale(var(--corner-scale)) scaleX(-1);
+  bottom: var(--corner-offset-y);
+  right: var(--corner-offset-x);
+}
+
+/* ------------------------------ */
+/* 11) Títulos de capítulo         */
+/* ------------------------------ */
+.chapter-title {
+  page-break-before: always;
+  break-before: page;
+  text-align: center;
+  margin: 0.25em 0;
+}
+
+/* ------------------------------ */
+/* 12) Índices                    */
+/* ------------------------------ */
+/* (Soporta la versión nueva basada en .index-page y la anterior) */
+
+.index-chapters {
+  padding: 2em;
+  border-radius: 4px;
+  margin: 0 auto 2em;
+  width: 80%;
+}
+
+.index-chapters__title {
+  text-align: justify;
+  font-size: 22px;
+  font-weight: bold;
+  color: #2a2a2a;
+  margin-bottom: 3em;
+}
+
+.index-chapters__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.index-chapters__list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5em 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  color: #333;
+  gap: 20em;
+}
+
+.index-chapters__list li:last-child { border-bottom: none; }
+.index-chapters__list li span:last-child {
+  font-weight: 600;
+  color: #6714af;
+}
+
+/* Estructura moderna */
+.section-block.index-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.section-block.index-page .index-page__title {
+  width: 100%;
+  font-size: 22px;
+  font-weight: bold;
+  color: #2a2a2a;
+  text-align: center;
+  margin-bottom: 1.5em;
+}
+
+/* Reset básico + comportamiento inline-block para centrar la lista */
+.index-page__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: inline-block; /* UL ocupa solo lo necesario */
+  text-align: left;      /* ítems alineados a la izquierda */
+}
+
+/* Línea de índice con layout robusto (una sola línea para la numeración) */
+.index-page__list .index-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  flex-wrap: nowrap;
+  padding: 0.5em 0;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+.index-page__list .index-item:last-child { border-bottom: none; }
+
+/* El título ocupa todo el espacio disponible; con elipsis si no entra */
+.index-page__list .index-item__title {
+  flex: 1 1 auto;
+  min-width: 0; /* necesario para que ellipsis funcione en flex */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La numeración nunca se parte y no depende del UL */
+.index-page__list .index-item__num {
+  flex: 0 0 auto;
+  display: inline-flex;
+  white-space: nowrap;  /* clave: siempre en un renglón */
+  margin-left: 1em;
+  color: #6714af;
+  font-weight: 700;
+}
+
+/* Índice de Figuras (mismo patrón) */
+.section-block.index-page.index-figures .index-page__list { display: inline-block; text-align: left; }
+.section-block.index-page.index-figures .index-page__list .index-item { gap: 0.75em; }
+.section-block.index-page.index-figures .index-page__list .index-item:last-child { border-bottom: none; }
+
+/* ============================
+   Índices: título con ancho fijo y wrap (capítulos, tablas, figuras)
+   ============================ */
+
+/* Ancho fijo del título (ajustable una sola vez) */
+:root {
+  --index-title-width: 120mm; /* ej: 110mm, 130mm */
+}
+
+.index-chapters .index-page__list .index-item,
+.index-tables  .index-page__list .index-item,
+.index-figures .index-page__list .index-item {
+  align-items: flex-start;     /* alinea arriba cuando el título envuelve */
+}
+
+.index-chapters .index-page__list .index-item__title,
+.index-tables  .index-page__list .index-item__title,
+.index-figures .index-page__list .index-item__title {
+  flex: 0 0 var(--index-title-width);    /* ancho fijo */
+  max-width: var(--index-title-width);
+  min-width: 0;
+  white-space: normal;                    /* permite envolver */
+  overflow: visible;
+  text-overflow: clip;                    /* sin elipsis */
+  word-break: break-word;                 /* evita desbordes largos */
+}
+
+.index-chapters .index-page__list .index-item__num,
+.index-tables  .index-page__list .index-item__num,
+.index-figures .index-page__list .index-item__num {
+  flex: 0 0 auto;
+  white-space: nowrap;                    /* nunca se parte */
+  align-self: flex-start;                 /* queda arriba */
+  margin-left: 1em;
+  color: #6714af;
+  font-weight: 700;
+}
+
+/* ------------------------------ */
+/* 13) Tipografías y portada      */
+/* ------------------------------ */
+/* styles.css (global) */
+@font-face {
+  font-family: "Serpentine Bold";
+  src:
+    url("/assets/fonts/Serpentine-Bold.woff2") format("woff2"),
+    url("/assets/fonts/Serpentine-Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  font-synthesis: none;
+}
+
+:root { --pantone-3005c: #0077C8; }
+
+.section-block h3:not(.titulo-realiza-extra) {
+  padding: 6mm;
+  font-size: 5mm; /* tamaño por defecto para h3 */
+  line-height: 1.25;
+  font-weight: bold;
+  color: #6714af;
+  margin: 2mm 0;
+  text-align: center;
+}
+
+/* Título portada — interlineado más amplio */
+.titulo-realiza-extra {
+  font-family: "Paytone One", "Fredoka", "Baloo 2", "Arial Black", Arial, sans-serif;
+  font-weight: 800;
+  font-style: normal;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0077C8;
+  line-height: 1.15;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 12.3mm;
+  -webkit-text-stroke: 0.6px currentColor;
+  text-shadow:
+    0.6px 0 currentColor, -0.6px 0 currentColor,
+    0 0.6px currentColor, 0 -0.6px currentColor,
+    0.45px 0.45px currentColor, -0.45px 0.45px currentColor,
+    0.45px -0.45px currentColor, -0.45px -0.45px currentColor;
+  margin-block: 12mm;
+  padding: 0;
+  display: block;
+}
+
+.titulo-realiza-extra br { line-height: inherit; }
+
+.nyala-text {
+  font-family: "Nyala", "Times New Roman", Times, serif;
+  text-align: center;
+  font-weight: 500;
+  margin-top: 10px;
+  margin-bottom: 100px;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.nyala-text p {
+  margin: 0.25em 0;
+  text-align: center;  /* fuerza centrado */
+}
+
+/* Evitar cortes raros por defecto */
+.section-block,
+.sec-texto {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  overflow: visible;
+  word-break: break-word; /* palabras largas no desbordan */
+}
+
+/* Mantener “no partir” solo para piezas que conviene juntas */
+.figure-item,
+.table-item,
+table {
+  break-inside: avoid-page;
+  page-break-inside: avoid;
+}
+
+/* Interacción: elementos clicables en la preview */
+.preview-root [data-entity] { cursor: pointer; }
+
+/* Viñetas de secciones */
+.sec-vineta {
+  list-style: disc;            /* fuerza los puntos */
+  list-style-position: outside;
+  margin: 1mm 0;
+  padding-left: 6mm;           /* sangría para que se vean los bullets */
+}
+
+.sec-vineta li { margin: 0.75mm 0; }
+
+/* Calibri 10 pt (selectivo) */
+.texto-calibri-10 {
+  font-family: "Calibri", "Carlito", "Segoe UI", Arial, sans-serif;
+  font-size: 12pt;
+  line-height: 1.4;
+}
+
+.vineta-calibri-10,
+.vineta-calibri-10 li {
+  font-family: "Calibri", "Carlito", "Segoe UI", Arial, sans-serif;
+  font-size: 12pt;
+  line-height: 1.4;
+}
+
+.table-item.tabla-calibri-10 table td,
+.table-item.tabla-calibri-10 table th {
+  font-family: "Calibri", "Carlito", "Segoe UI", Arial, sans-serif;
+  font-size: 12pt;
+  line-height: 1.3;
+}
+
+.table-item.tabla-calibri-10 figcaption {
+  font-family: "Calibri", "Carlito", "Segoe UI", Arial, sans-serif;
+  font-size: 12pt;
+  line-height: 1.3;
+}
+
+/* ------------------------------ */
+/* 14) Portada: imágenes          */
+/* ------------------------------ */
+.primer-imagen {
+  text-align: center;
+  margin: 1.5em 0;
+}
+
+.primer-imagen img {
+  padding: 20px;
+  width: 70%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+.segunda-imagen {
+  text-align: center;
+  margin: 0.5em 0 0;
+}
+
+.segunda-imagen img {
+  padding: 5px;
+  width: 60%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+.section-block.cover-page {
+  align-items: center;
+  text-align: center;
+}
+
+.section-block.cover-page > * { align-self: center; }
+
+/* ------------------------------ */
+/* 15) Barra de acciones sticky   */
+/* ------------------------------ */
+.preview-actions {
+  position: sticky; /* se queda pegada arriba mientras hacés scroll */
+  top: 0;
+  z-index: 1000;    /* por encima de la preview */
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: #ffffff;  /* visible sobre el gris de la preview */
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+}
+
+.preview-actions button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ====== Opción B (si preferís SIN padding-top en el wrapper) ======
+   .preview-actions { top: 80px; }
+*/
+
+/* ------------------------------ */
+/* 16) PDF MODE (exportación)     */
+/* ------------------------------ */
+.pdf-mode .preview-root {
+  /* no centramos ni dejamos separación entre hojas al capturar */
+  align-items: stretch !important;
+  gap: 0 !important;
+}
+
+.pdf-mode .page {
+  /* cada hoja entra exacta al ancho A4 sin “aire” lateral extra */
+  margin: 0 !important;          /* elimina el margin: 0 10mm de la vista */
+  border: none !important;       /* evita que el borde 1px altere el ancho efectivo */
+  box-shadow: none !important;
+  background: #fff !important;   /* asegura fondo blanco puro */
+  width: 210mm !important;
+  height: 297mm !important;
+  overflow: hidden !important;   /* evita scroll interno */
+}
+
+/* Desactivar cortes internos que generaban hojas extra */
+.pdf-mode .chapter-title {
+  break-before: auto !important;
+  page-break-before: auto !important;
+}
+
+.pdf-mode .section-block,
+.pdf-mode .index-page,
+.pdf-mode .table-item,
+.pdf-mode .figure-item {
+  break-before: auto !important;
+  break-after: auto !important;
+  page-break-before: auto !important;
+  page-break-after: auto !important;
+}
+
+/* Mantener NO partir tablas/figuras en export */
+.pdf-mode .table-item,
+.pdf-mode .figure-item,
+.pdf-mode table {
+  break-inside: avoid-page !important;
+  page-break-inside: avoid !important;
+}
+
+.descargar-btn {
+  background: linear-gradient(135deg, #0077c8, #005fa3);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.descargar-btn:hover {
+  background: linear-gradient(135deg, #005fa3, #004377);
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+}
+
+.descargar-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}

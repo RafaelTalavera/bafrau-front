@@ -1,0 +1,16 @@
+<app-nav></app-nav>
+
+<app-spinner [isVisible]="loading"></app-spinner>
+
+<div class="content-wrapper">
+  <div class="preview-actions">
+    <button class="btn btn-primary descargar-btn" (click)="downloadPdf()" [disabled]="!previewHtml">
+      <i class="fa fa-file-pdf-o"></i> Descargar PDF
+    </button>
+
+  </div>
+  <div #previewContainer class="preview-container" [innerHTML]="previewHtml">
+  </div>
+</div>
+
+<app-footer></app-footer>

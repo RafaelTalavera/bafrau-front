@@ -10,7 +10,10 @@
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  padding-bottom: 100px; /* Espacio extra para evitar superposición con el footer */
+  padding-bottom: 100px;             
+  box-sizing: border-box;
+    /* NUEVO: espacio externo igual al alto del NAV fijo */
+  margin-top: var(--nav-height);
 }
 
 /* Título principal */
@@ -153,7 +156,7 @@ width: 1px;           /* fuerza que la columna se ajuste al contenido mínimo */
 
 .col-fecha {
 white-space: nowrap;
-width: 120px; /* ancho estándar para “YYYY-MM-DD” */
+width: 110px; /* ancho estándar para “YYYY-MM-DD” */
 text-align: center;
 }
 
@@ -171,17 +174,130 @@ table-layout: auto;  /* deja que las celdas se dimensionen según su contenido *
   width: 100%;      /* para que sea responsivo hasta ese máximo */
 }
 
+/* Nueva clase para “Notificación” */
+.notification-group {
+  flex: 0 0 50px;   /* ancho fijo de 80px */
+}
+
 /* Vencimiento fijo */
 .input-row .fecha-group {
-  flex: 0 0 150px;  /* ancho fijo de 150px */
+  flex: 0 0 130px;  /* ancho fijo de 150px */
 }
 
 /* Observaciones crece más */
 .input-row .observaciones-group {
-  flex: 1 1 800px;  /* mínimo 300px, puede crecer */
+  flex: 1 1 600px;  /* mínimo 300px, puede crecer */
 }
 
 /* Asegura que el input llene su contenedor */
 .input-group .custom-input {
   width: 100%;
+}
+
+/* src/app/legal/inventario-registro/inventario-registro.component.css */
+
+.custom-textarea {
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  resize: vertical;
+  min-height: 4rem;
+}
+
+
+:root {
+  /* Poné acá el alto real de tu <app-nav>, p.ej. 70, 80, 96, 100... */
+  --nav-height: 96px;
+}
+
+.detail-container > .detail-title {
+  display: block;                         /* por claridad */
+  padding-top: calc(var(--nav-height) + 8px);
+  margin-top: 0;                          /* evita colapso de márgenes */
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  /* útil si llegás por ancla/enlace */
+  scroll-margin-top: calc(var(--nav-height) + 12px);
+}
+
+:root {
+  /* PONÉ el alto real de tu nav (vos tenías 70px) */
+  --nav-height: 70px;
+}
+
+/* Empuja SOLO el detalle hacia abajo sin tocar el HTML */
+.detail-container::before {
+  content: '';
+  display: block;
+  height: calc(var(--nav-height) + 8px) !important; /* deja el h3 visible */
+}
+
+.detail-title {
+  margin-top: 0;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* Mantené tu padding 20 en el contenedor principal */
+.content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 100px;
+  box-sizing: border-box;
+}
+
+.card-detalle {
+  margin-top: 70px;
+  padding: 10px;
+}
+
+
+.juridiccion-group {
+  flex: 0 0 100px; /* ancho fijo de 200px */
+  max-width: 200px;
+}
+
+.fecha-group{
+    flex: 0 0 800px;
+}
+
+/* Botón sólo del tamaño del icono */
+.btn-icon {
+  padding: 0;               /* sin relleno */
+  width: 1.8rem;            /* ancho igual al icono + mínimo clickeable */
+  height: 1.8rem;           /* alto igual al icono + mínimo clickeable */
+  display: inline-flex;     /* centrado del icono */
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;           /* evita que se expanda en flex */
+  border-radius: 4px;       /* opcional, redondeo mínimo */
+}
+
+/* Icono interno */
+.btn-icon i {
+  font-size: 1rem;          /* tamaño del ícono */
+  line-height: 1;           /* sin espacio extra */
+}
+
+/* Evita espacio extra en el botón de eliminar dentro de estado-acciones */
+.estado-acciones .btn-icon {
+  margin-right: 0;   /* anula tu margen global de botones */
+}
+
+/* Reduce el espacio entre el toggle, el texto y el botón */
+.estado-acciones {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* ajusta este valor según lo que quieras */
+}
+
+/* Que el campo de mails sea el que más crece en la fila */
+
+.input-row .mails-group {
+  flex: 1 1 200%;   /* mínimo 400px, pero puede crecer para ocupar espacio libre */
 }

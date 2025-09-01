@@ -1,95 +1,110 @@
 <!-- src/app/seccion/seccion.component.html -->
+
+<!-- Formulario para crear o editar sección -->
 <app-nav></app-nav>
 
 <div class="content-wrapper">
 
-  <!-- Formulario para crear o editar sección -->
-  <form [formGroup]="seccionForm" (ngSubmit)="onSubmit()" class="container custom-wid mt-2 custom-form">
-    <div class="card w-100">
-      <div class="card-header bg-primary text-white">
-        <h5 class="custom-h5">
-          {{ editarId == null ? 'Nueva Sección' : 'Editar Sección' }}
-        </h5>
+  <!-- Botón para mostrar/ocultar el formulario -->
+  <div class="container mt-2 mb-3 text-center">
+    <button class="btn btn-outline-primary btn-sm" type="button" (click)="toggleFormulario()">
+      <i class="fas" [ngClass]="mostrarFormulario ? 'fa-eye-slash' : 'fa-eye'">
+      </i>
+      {{ mostrarFormulario ? 'Ocultar formulario' : 'Mostrar formulario' }}
+    </button>
+  </div>
+
+  <!-- Formulario para crear o editar sección (visible sólo cuando mostrarFormulario = true) -->
+  <ng-container *ngIf="mostrarFormulario">
+    <form [formGroup]="seccionForm" (ngSubmit)="onSubmit()" class="container custom-wid mt-2 custom-form">
+      <div class="card w-100">
+        <div class="card-header bg-primary text-white d-inline-block w-auto">
+          <h5 class="custom-h5">
+            {{ editarId == null ? 'Nueva Sección' : 'Editar Sección' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- FILA 1: Textarea autoajustable -->
+          <div class="row mb-3">
+            <div class="col-12">
+              <label for="contenido" class="small-text mb-1">Contenido:</label>
+              <textarea id="contenido" formControlName="contenido" class="form-control form-control-sm uniform-field"
+                rows="4"
+                style="font-size:14px;line-height:1.2;min-height: calc(1.2em * 4);overflow:hidden; resize:none;"
+                (input)="adjustTextarea($event)">
+              </textarea>
+              <div
+                *ngIf="seccionForm.get('contenido')?.invalid && (seccionForm.get('contenido')?.dirty || seccionForm.get('contenido')?.touched)"
+                class="text alert-danger small-text mt-1">
+                <div *ngIf="seccionForm.get('contenido')?.errors?.['required']">
+                  El contenido es obligatorio.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FILA 2: Orden, Plantilla y Adjuntos en una sola línea -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="orden" class="small-text mb-1">Orden:</label>
+              <input type="number" id="orden" formControlName="orden" min="1"
+                class="form-control form-control-sm uniform-field" />
+              <div *ngIf="seccionForm.get('orden')?.invalid && (seccionForm.get('orden')?.touched)"
+                class="text alert-danger small-text mt-1">
+                <div *ngIf="seccionForm.get('orden')?.errors?.['required']">
+                  El orden es obligatorio.
+                </div>
+                <div *ngIf="seccionForm.get('orden')?.errors?.['min']">
+                  El orden debe ser mínimo 1.
+                </div>
+                <div *ngIf="seccionForm.get('orden')?.errors?.['ordenExists']">
+                  El orden ya está en uso.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="styleTemplateId" class="small-text mb-1">Formato:</label>
+              <select id="styleTemplateId" formControlName="styleTemplateId"
+                class="form-control form-control-sm uniform-field">
+                <option value="" disabled>-- Seleccionar plantilla --</option>
+                <option *ngFor="let tmpl of styleTemplates" [value]="tmpl.id">
+                  {{ tmpl.nombre }}
+                </option>
+              </select>
+              <div
+                *ngIf="seccionForm.get('styleTemplateId')?.invalid && (seccionForm.get('styleTemplateId')?.dirty || seccionForm.get('styleTemplateId')?.touched)"
+                class="text alert-danger small-text mt-1">
+                <div *ngIf="seccionForm.get('styleTemplateId')?.errors?.['required']">
+                  La plantilla de estilo es obligatoria.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-sm mx-2">
+              <i class="fas fa-save me-1"></i>
+              {{ editarId == null ? 'Guardar' : 'Actualizar' }}
+            </button>
+            <button *ngIf="editarId != null" type="button" class="btn btn-success btn-sm mx-2"
+              (click)="cancelarEdicion()">
+              <i class="fas fa-eraser me-1"></i> Cancelar
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <!-- FILA 1: Textarea autoajustable -->
-        <div class="row mb-3">
-          <div class="col-12">
-            <label for="contenido" class="small-text mb-1">Contenido:</label>
-            <textarea id="contenido" formControlName="contenido" class="form-control form-control-sm uniform-field"
-              rows="4" style="font-size:14px;line-height:1.2;min-height: calc(1.2em * 4);overflow:hidden; resize:none; "
-              (input)="adjustTextarea($event)"></textarea>
-
-            <!-- Errores de validación -->
-            <div
-              *ngIf="seccionForm.get('contenido')?.invalid && (seccionForm.get('contenido')?.dirty || seccionForm.get('contenido')?.touched)"
-              class="text alert-danger small-text mt-1">
-              <div *ngIf="seccionForm.get('contenido')?.errors?.['required']">
-                El contenido es obligatorio.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- FILA 2: Orden, Plantilla y Adjuntos en una sola línea -->
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="orden" class="small-text mb-1">Orden:</label>
-            <input type="number" id="orden" formControlName="orden" min="1"
-              class="form-control form-control-sm uniform-field" />
-            <div *ngIf="seccionForm.get('orden')?.invalid && (seccionForm.get('orden')?.touched)"
-              class="text alert-danger small-text mt-1">
-              <div *ngIf="seccionForm.get('orden')?.errors?.['required']">
-                El orden es obligatorio.
-              </div>
-              <div *ngIf="seccionForm.get('orden')?.errors?.['min']">
-                El orden debe ser mínimo 1.
-              </div>
-              <div *ngIf="seccionForm.get('orden')?.errors?.['ordenExists']">
-                El orden ya está en uso.
-              </div>
-            </div>
-
-          </div>
-          <div class="col-md-4">
-            <label for="styleTemplateId" class="small-text mb-1">Formato:</label>
-            <select id="styleTemplateId" formControlName="styleTemplateId"
-              class="form-control form-control-sm uniform-field">
-              <option value="" disabled>-- Seleccionar plantilla --</option>
-              <option *ngFor="let tmpl of styleTemplates" [value]="tmpl.id">
-                {{ tmpl.nombre }}
-              </option>
-            </select>
-            <div
-              *ngIf="seccionForm.get('styleTemplateId')?.invalid && (seccionForm.get('styleTemplateId')?.dirty || seccionForm.get('styleTemplateId')?.touched)"
-              class="text alert-danger small-text mt-1">
-              <div *ngIf="seccionForm.get('styleTemplateId')?.errors?.['required']">
-                La plantilla de estilo es obligatoria.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botones -->
-        <div class="text-center">
-          <button type="submit" class="btn btn-primary btn-sm mx-2">
-            <i class="fas fa-save me-1"></i>
-            {{ editarId == null ? 'Guardar' : 'Actualizar' }}
-          </button>
-          <button *ngIf="editarId != null" type="button" class="btn btn-success btn-sm mx-2"
-            (click)="cancelarEdicion()">
-            <i class="fas fa-eraser me-1"></i> Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  </form>
+    </form>
+  </ng-container>
 
   <!-- Botón de previsualización -->
-  <div class="container mt-3">
-    <button class="btn btn-success btn-sm" (click)="previewCapitulo()">
-      <i class="fas fa-eye me-1"></i> Previsualizar capítulo
-    </button>
+  <div class="container mt-3 text-end">
+    <div class="container mt-3 text-end">
+      <button class="btn btn-success btn-sm mx-2" (click)="onPreviewClick(informeId)">
+        <i class="fas fa-eye me-1"></i> Informe
+      </button>
+    </div>
+
   </div>
 
   <!-- Listado de secciones con botón para modal -->

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { InformeDTO } from '../models/informe-dto.models';
 import { environment } from '../../../environments/environment';
+import { InformePreviewDTO } from '../models/informe-preview-dto.models';
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +14,15 @@ export class InformeAuditoriaService {
   constructor(private http: HttpClient) { }
 
   getAll(): Observable<InformeDTO[]> {
-    return this.http.get<InformeDTO[]>(`${this.BASE_URL}`);
+    return this.http.get<InformeDTO[]>(`${this.BASE_URL}/light`);
   }
 
   getById(id: number): Observable<InformeDTO> {
     return this.http.get<InformeDTO>(`${this.BASE_URL}/${id}`);
+  }
+
+  getPreview(id: number): Observable<InformePreviewDTO> {
+    return this.http.get<InformePreviewDTO>(`${this.BASE_URL}/${id}/preview`);
   }
 
   create(dto: InformeDTO): Observable<InformeDTO> {

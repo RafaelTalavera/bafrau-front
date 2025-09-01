@@ -1,5 +1,3 @@
-
-
 /* src/app/informe-auditoria/informe-auditoria.component.css */
 
 html, body {
@@ -118,10 +116,4 @@ html, body {
 
 .wrapper {
   min-height: 100vh;
-}
-
-.card-header-ajustada {
-  display: inline-block;  /* ya hace lo mismo que d-inline-block */
-  width: auto !important; /* asegura width automático */
-  padding: 0.5rem 1rem;   /* ajusta vertical y horizontal según prefieras */
 }

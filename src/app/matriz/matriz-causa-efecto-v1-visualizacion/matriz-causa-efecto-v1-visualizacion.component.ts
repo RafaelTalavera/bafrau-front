@@ -21,6 +21,7 @@ import html2canvas from 'html2canvas';
 import { ActivatedRoute } from '@angular/router';
 import { AdjuntosService } from '../../utils/adjuntos.service';
 import { SpinnerComponent } from '../../utils/spinner/spinner.component';
+import { Location } from '@angular/common';
 
 
 @Component({
@@ -74,7 +75,8 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
     private http: HttpClient,
     private route: ActivatedRoute,
     private adjuntosService: AdjuntosService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) { }
 
 
@@ -133,6 +135,69 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
       await Swal.fire('Error', 'No se pudo generar la imagen', 'error');
     }
   }
+
+ /**
+   * Descarga o asocia la captura de una tabla (canvas PNG) según presencia de sectionId.
+   */
+  async onDownloadOrAssociateTable(
+    container: HTMLElement,
+    label: string
+  ): Promise<void> {
+    if (!container) {
+      await Swal.fire('Error', 'No hay elemento para capturar.', 'error');
+      return;
+    }
+
+    this.loading = true;
+    this.cdr.detectChanges();
+
+    try {
+      // 1) Captura la tabla a canvas
+      const canvas = await html2canvas(container, { scale: 2 });
+      const blob: Blob | null = await new Promise(resolve =>
+        canvas.toBlob(b => resolve(b), 'image/png')
+      );
+      if (!blob) throw new Error('No se generó el blob.');
+
+      const fileName = `matriz-${label}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      if (this.sectionId) {
+        // 2a) Asociación al informe
+        await this.adjuntosService
+          .ploadAdjuntoSeccion(file, 'Matriz Causa Efecto', this.sectionId)
+          .toPromise();
+
+        // 3a) Ocultar spinner antes de la notificación
+        this.loading = false;
+        this.cdr.detectChanges();
+
+        // 4a) Mostrar éxito
+        await Swal.fire('Listo', 'Imagen asociada correctamente.', 'success');
+
+        // 5) Volver a la vista anterior (construcción de informe)
+        this.location.back();   // ← Llamada agregada
+
+      } else {
+        // 2b) Descarga local
+        this.loading = false;
+        this.cdr.detectChanges();
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error(err);
+      this.loading = false;
+      this.cdr.detectChanges();
+      await Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+    }
+  }
+
 
 
   getOrganization(matrix: Matriz): string {

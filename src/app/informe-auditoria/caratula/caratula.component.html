@@ -1,0 +1,120 @@
+<!-- src/app/caratula/caratula.component.html -->
+<app-nav></app-nav>
+
+<div class="content-wrapper">
+  <!-- Spinner de carga -->
+  <app-spinner [isVisible]="loading"></app-spinner>
+
+  <!-- Formulario de creación/edición -->
+  <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading" class="card p-4 mb-4 custom-form">
+<div class="card-header bg-primary text-white d-inline-block w-auto">
+  <h4 class="custom-h5 mb-0">
+    {{ editarId ? 'Editar Carátula' : 'Nueva Carátula' }}
+  </h4>
+</div>
+
+    <!-- Título -->
+    <div class="mb-3">
+      <label for="titulo" class="form-label">Título</label>
+      <input id="titulo" type="text" formControlName="titulo" class="form-control form-control-sm" />
+      <div *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched" class="text alert-danger small-text mb-1">
+        Requerido
+      </div>
+    </div>
+
+    <!-- Elaborador -->
+    <div class="mb-3">
+      <label for="elaborador" class="form-label">Equipo Técnico</label>
+      <input id="elaborador" type="text" formControlName="elaborador" class="form-control form-control-sm" />
+      <div *ngIf="
+          form.get('elaborador')?.invalid && form.get('elaborador')?.touched
+        " class="text alert-danger small-text mb-1">
+        Requerido
+      </div>
+    </div>
+
+    <!-- Fecha (MM-yyyy) -->
+    <div class="mb-3">
+      <label for="fecha" class="form-label">Fecha (MM-yyyy)</label>
+      <input id="fecha" type="text" formControlName="fecha" placeholder="MM-2025"
+        class="form-control form-control-sm" />
+      <div *ngIf="form.get('fecha')?.errors?.['invalidFormat']" class="text alert-danger small-text mb-1">
+        Formato inválido
+      </div>
+    </div>
+
+    <!-- Sección de imágenes en edición -->
+    <div *ngIf="editarId" class="mb-3">
+      <label class="form-label">Imágenes actuales</label>
+      <div class="d-flex flex-wrap mb-2">
+        <div *ngFor="let adj of currentAdjuntos" class="me-2 mb-2 text-center">
+          <img [src]="adj.urlAdjunto" class="miniatura" style="display:block; margin-bottom:0.5rem;" />
+          <button type="button" class="btn btn-xs btn-danger" (click)="onDeleteAdjunto(adj.id!)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <input #formFileInput type="file" accept="image/*" class="d-none" (change)="onFileSelected($event, editarId!)" />
+      <button type="button" class="btn btn-info btn-sm" (click)="formFileInput.click()">
+        <i class="fas fa-image me-1"></i> Cambiar/Agregar imagen
+      </button>
+    </div>
+
+    <!-- Botones Guardar / Cancelar -->
+      <div class="text-center">
+    <button type="submit" class="btn btn-primary btn-sm mx-2">
+      <i class="fas fa-save me-1"></i>
+      {{ editarId ? 'Actualizar' : 'Guardar' }}
+    </button>
+    <button *ngIf="editarId" type="button" class="btn btn-secondary btn-sm" (click)="cancelar()">
+      <i class="fas fa-times me-1"></i>Cancelar
+    </button>
+    </div>
+  </form>
+
+  <!-- Botón de Previsualizar Carátula (nueva página) -->
+  <div class="container mt-3 mb-4 text-end">
+    <button class="btn btn-success btn-sm" (click)="onPreviewClick()">
+      <i class="fas fa-eye me-1"></i> Previsualizar Carátula
+    </button>
+  </div>
+
+
+  <!-- Lista de carátulas existentes -->
+  <div *ngIf="caratulas.length && !editarId && !loading" class="card p-4">
+    <h4 class="mb-3 custom-h5">Carátulas existentes</h4>
+    <div class="table-container">
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Elaborador</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of caratulas">
+            <td>{{ c.titulo }}</td>
+            <td>{{ c.elaborador }}</td>
+            <td>{{ c.fecha }}</td>
+            <td>
+              <button class="btn btn-outline-primary btn-xs me-1" (click)="editar(c)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-xs me-1" (click)="borrar(c.id!)">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button class="btn btn-outline-info btn-xs me-1" (click)="openImagenOptions(c, fileInput)">
+                <i class="fas fa-image"></i>
+              </button>
+              <input #fileInput type="file" accept="image/*" class="d-none" (change)="onFileSelected($event, c.id!)" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

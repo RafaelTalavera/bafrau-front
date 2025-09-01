@@ -17,13 +17,14 @@ import { SpinnerComponent } from '../../../utils/spinner/spinner.component';
 @Component({
   selector: 'app-inventario',
   standalone: true,
-  imports: [FormsModule,
-           CommonModule, 
-           NavComponent, 
-           FooterComponent, 
-           HttpClientModule,
-            SpinnerComponent  
-          ],
+  imports: [
+    FormsModule,
+    CommonModule, 
+    NavComponent, 
+    FooterComponent, 
+    HttpClientModule,
+    SpinnerComponent  
+  ],
   templateUrl: './residuo-inventario.component.html',
   styleUrls: ['./residuo-inventario.component.css']
 })
@@ -51,6 +52,7 @@ export class ResiduoInventarioComponent implements OnInit {
   errorMessage = '';
   rrppList: string[] = [];
   loading = false; 
+  filterRazon: string = '';
 
   constructor(
     private inventarioService: InventarioService,
@@ -60,9 +62,21 @@ export class ResiduoInventarioComponent implements OnInit {
     ) {}
 
   ngOnInit(): void {
+    // ← fecha de hoy al iniciar componente (para altas)
+    this.inventarioForm.fecha = this.todayStr();
+
     this.loading = true; 
     this.getOrganizacionesRepresentacionTecnica();
     this.getCorrientes();
+  }
+
+  // === NUEVO: fecha local en formato yyyy-MM-dd (sin problemas de timezone) ===
+  private todayStr(): string {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
    getOrganizacionesRepresentacionTecnica(): void {
@@ -138,7 +152,6 @@ export class ResiduoInventarioComponent implements OnInit {
       c.juridiccion === this.selectedJuridiccion
     );
     this.selectedCorrienteId = corriente?.id ?? null;
-
   }
 
   addItemToInventario(): void {
@@ -177,7 +190,7 @@ export class ResiduoInventarioComponent implements OnInit {
   const payload: InventarioPayload = {
     fecha: this.inventarioForm.fecha,
     organizacionId: this.inventarioForm.organizacionId,
-    contrato: this.inventarioForm.contrato,  // aquí incluimos RRPP como "contrato"
+    contrato: this.inventarioForm.contrato,
     items: this.inventarioForm.items.map(item => ({
       residuo: { id: item.residuo!.id }
     }))
@@ -196,7 +209,8 @@ export class ResiduoInventarioComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.inventarioForm = { fecha: '', organizacionId: 0, razonSocial: '',contrato : '', items: [] };
+    // ← al limpiar, dejamos fecha en HOY (para nuevas altas)
+    this.inventarioForm = { fecha: this.todayStr(), organizacionId: 0, razonSocial: '', contrato : '', items: [] };
     this.editMode = false;
     this.currentInventarioId = null;
     this.selectedJuridiccion = '';
@@ -206,6 +220,7 @@ export class ResiduoInventarioComponent implements OnInit {
   }
 
   editInventario(inventario: Inventario): void {
+    // ← en edición, respetamos la fecha que venga del inventario existente
     this.editMode = true;
     this.currentInventarioId = inventario.id!;
     this.inventarioForm = { ...inventario, items: [...(inventario.items || [])] };
@@ -245,8 +260,16 @@ export class ResiduoInventarioComponent implements OnInit {
   }
 
   onOrganizacionChange(orgId: number): void {
-  const org = this.organizaciones.find(o => o.id === orgId);
-  this.rrppList = org?.rrpp ?? [];
-}
+    const org = this.organizaciones.find(o => o.id === orgId);
+    this.rrppList = org?.rrpp ?? [];
+  }
+
+  get filteredInventarios(): Inventario[] {
+    const q = this.filterRazon?.trim().toLowerCase() ?? '';
+    if (!q) return this.inventarios;
+    return this.inventarios.filter(inv =>
+      this.getOrgName(inv.organizacionId).toLowerCase().includes(q)
+    );
+  }
 
 }

@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import html2canvas from 'html2canvas';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { NavComponent } from '../../gobal/nav/nav.component';
@@ -6,46 +7,33 @@ import { FooterComponent } from '../../gobal/footer/footer.component';
 import Swal from 'sweetalert2';
 import { ItemMatriz, Matriz } from '../models/matriz';
 import { MatrizService } from '../service/matriz-service';
+import { AdjuntosService } from '../../utils/adjuntos.service';
+import { Location } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { SpinnerComponent } from '../../utils/spinner/spinner.component';
 
-export interface AdditionalFields {
-  uip: number;
-}
-
-interface Stage {
-  name: string;
-  actions: string[];
-}
-
-interface FactorView {
-  sistema: string;
-  subsistema: string;
-  factor: string;
-  Componente: string;
-  key: string;
-  uip: number;
-  itemMatrizId: number;
-}
-
-export interface ItemUIPUpdateDTO {
-  itemId: number;
-  uip: number;
-}
-
-interface ActionIRTSummary {
-  etapa: string;
-  accion: string;
-  irt: number;
-}
-
+export interface AdditionalFields { uip: number; }
+interface Stage { name: string; actions: string[]; }
+interface FactorView { sistema: string; subsistema: string; factor: string; Componente: string; key: string; uip: number; itemMatrizId: number; }
+export interface ItemUIPUpdateDTO { itemId: number; uip: number; }
+interface ActionIRTSummary { etapa: string; accion: string; irt: number; }
 
 @Component({
   selector: 'app-ponderacion-matriz',
   standalone: true,
-  imports: [FormsModule, CommonModule, NavComponent, FooterComponent],
+  imports: [FormsModule, 
+            CommonModule, 
+            NavComponent,
+            FooterComponent,
+            SpinnerComponent  
+          ],
   templateUrl: './ponderacion-matriz.component.html',
   styleUrls: ['./ponderacion-matriz.component.css']
 })
 export class PonderacionMatrizComponent implements OnInit {
+  public razonSocial: string = '';
+   public sectionId?: number; 
+
   matrices: Matriz[] = [];
   selectedMatrix: Matriz | null = null;
   factors: FactorView[] = [];
@@ -57,24 +45,53 @@ export class PonderacionMatrizComponent implements OnInit {
   totalUIP = 0;
   readonly TOTAL_DISTRIBUCION = 1000;
 
-  constructor(private matrizService: MatrizService) { }
+  @ViewChild('uipTableVisualizacion') uipTableVisualizacion!: ElementRef<HTMLDivElement>;
+  loading = false;
+
+  constructor(
+    private route: ActivatedRoute,
+    private matrizService: MatrizService,
+    private adjuntosService: AdjuntosService,
+    private cdr: ChangeDetectorRef,
+    private location: Location
+  ) {}
 
   ngOnInit(): void {
-    this.loadMatrices();
+    this.route.paramMap.subscribe(params => {
+      const raw = params.get('razonSocial') ?? '';
+      this.razonSocial = decodeURIComponent(raw).trim();
+      this.organizationFilter = this.razonSocial;
+
+      // ← Leemos el sectionId si viene en la URL
+      const sec = params.get('sectionId');
+      this.sectionId = sec ? +sec : undefined;
+
+      this.loadMatrices();
+    });
   }
 
-  loadMatrices(): void {
-    this.matrizService.getAllMatrices().subscribe(
-      data => this.matrices = data,
-      err => console.error('Error al cargar matrices:', err)
-    );
-  }
+loadMatrices(): void {
+  this.loading = true;                         // ← Activa el spinner
+  this.cdr.detectChanges();                    // ← Fuerza detección para que aparezca inmediatamente
+  this.matrizService.getAllMatrices().subscribe(
+    data => {
+      this.matrices = data;
+      this.loading = false;                    // ← Desactiva el spinner al recibir datos
+      this.cdr.detectChanges();
+    },
+    err => {
+      console.error('Error al cargar matrices:', err);
+      this.loading = false;                    // ← Desactiva el spinner también en error
+      this.cdr.detectChanges();
+      Swal.fire('Error', 'No se pudieron cargar las matrices.', 'error');
+    }
+  );
+}
+
 
   get filteredMatrices(): Matriz[] {
     const filtro = this.organizationFilter.trim().toLowerCase();
-    if (!filtro) {
-      return this.matrices;
-    }
+    if (!filtro) return this.matrices;
     return this.matrices.filter(m =>
       m.items.some(item =>
         (item.razonSocial ?? '').toLowerCase().includes(filtro)
@@ -110,10 +127,9 @@ export class PonderacionMatrizComponent implements OnInit {
       if (!item.factorSistema || !item.etapa || !item.accionTipo || !item.factorFactor || !item.factorComponente) {
         return;
       }
-
       const factorKey = `${item.factorSistema}|${item.factorFactor}|${item.factorComponente}`;
       const actionKey = item.accionTipo;
-      const uipVal = item.uip == null ? 0 : item.uip;
+      const uipVal = item.uip ?? 0;
 
       if (!this.factors.find(f => f.key === factorKey)) {
         this.factors.push({
@@ -145,9 +161,7 @@ export class PonderacionMatrizComponent implements OnInit {
       this.additionalMap[factorKey][item.etapa][actionKey] = { uip: uipVal };
     });
 
-    // Recalcular UIP tras construir la grilla
     this.calculateTotalUIP();
-
     this.factors.sort((a, b) =>
       a.sistema.localeCompare(b.sistema) || a.factor.localeCompare(b.factor)
     );
@@ -171,39 +185,23 @@ export class PonderacionMatrizComponent implements OnInit {
 
   updateUIP(): void {
     this.calculateTotalUIP();
-  
     if (this.totalUIP < this.TOTAL_DISTRIBUCION) {
-      // Usuario presionó guardar con UIP < 1000
       Swal.fire('Error', 'El Valor total de UIP debe ser 1.000', 'error');
       return;
     }
-  
     if (this.totalUIP > this.TOTAL_DISTRIBUCION) {
-      // Opcional: manejar exceso
       Swal.fire('Error', `Te pasaste ${this.totalUIP - this.TOTAL_DISTRIBUCION}`, 'error');
       return;
     }
-  
-    // Aquí totalUIP === TOTAL_DISTRIBUCION
-    const updates: ItemUIPUpdateDTO[] = this.factors.map(f => ({
-      itemId: f.itemMatrizId,
-      uip: f.uip
-    }));
-  
+    const updates: ItemUIPUpdateDTO[] = this.factors.map(f => ({ itemId: f.itemMatrizId, uip: f.uip }));
     if (this.selectedMatrix?.id != null) {
       this.matrizService.updateUPI(this.selectedMatrix.id, updates).subscribe(
-        () => {
-          Swal.fire('Actualizado', 'Valores UIP actualizados.', 'success')
-            .then(() => this.backToList());
-        },
-        err => {
-          console.error('Error al actualizar UIP:', err);
-          Swal.fire('Error', 'No se pudo actualizar.', 'error');
-        }
+        () => Swal.fire('Actualizado', 'Valores UIP actualizados.', 'success').then(() => this.backToList()),
+        err => { console.error('Error al actualizar UIP:', err); Swal.fire('Error', 'No se pudo actualizar.', 'error'); }
       );
     }
   }
-  
+
   getUIPAdjustmentMessage(): string {
     const diff = this.totalUIP - this.TOTAL_DISTRIBUCION;
     if (diff > 0) return `Te pasaste ${diff}`;
@@ -219,8 +217,7 @@ export class PonderacionMatrizComponent implements OnInit {
     const cls = this.factors[i].sistema;
     let cnt = 1;
     for (let j = i + 1; j < this.factors.length; j++) {
-      if (this.factors[j].sistema === cls) cnt++;
-      else break;
+      if (this.factors[j].sistema === cls) cnt++; else break;
     }
     return cnt;
   }
@@ -230,9 +227,52 @@ export class PonderacionMatrizComponent implements OnInit {
   }
 
   getFactorClassificationSum(sistema: string): number {
-    return this.factors.filter(f => f.sistema === sistema)
-      .reduce((sum, f) => sum + f.uip, 0);
+    return this.factors.filter(f => f.sistema === sistema).reduce((sum, f) => sum + f.uip, 0);
   }
 
-  
+ /** Captura y descarga o asocia la tabla UIP según presence de sectionId */
+  async onDownloadOrAssociateTable(): Promise<void> {
+    const container = this.uipTableVisualizacion.nativeElement;
+    if (!container) {
+      await Swal.fire('Error', 'No hay elemento para capturar.', 'error');
+      return;
+    }
+    this.loading = true;
+    this.cdr.detectChanges();
+    try {
+      const canvas = await html2canvas(container, { scale: 2 });
+      const blob: Blob | null = await new Promise(resolve =>
+        canvas.toBlob(b => resolve(b), 'image/png')
+      );
+      if (!blob) throw new Error('No se generó el blob.');
+      const fileName = `uip-tabla.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      if (this.sectionId) {
+        // → Asociación al informe
+        await this.adjuntosService
+          .ploadAdjuntoSeccion(file, 'Tabla UIP', this.sectionId)
+          .toPromise();
+        this.loading = false;
+        this.cdr.detectChanges();
+        await Swal.fire('Listo', 'Imagen asociada correctamente.', 'success');
+        this.location.back();  // ← Volvemos atrás
+      } else {
+        // → Descarga local
+        this.loading = false;
+        this.cdr.detectChanges();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error(err);
+      this.loading = false;
+      this.cdr.detectChanges();
+      await Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
+    }
+  }
 }

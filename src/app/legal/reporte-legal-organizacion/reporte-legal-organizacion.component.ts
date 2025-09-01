@@ -136,15 +136,18 @@ export class ReporteLegalOrganizacionComponent implements OnInit {
     });
 
     // 5. Datos
-    this.items.forEach(it => {
-      worksheet.addRow([
-        it.id,
-        it.nombre,
-        new Date(it.vencimiento),
-        new Date(it.presentacion),
-        it.observaciones
-      ]);
-    });
+this.items.forEach(it => {
+  worksheet.addRow([
+    it.id,
+    it.nombre,
+    // Si vienen null, dejamos la celda en blanco
+    it.vencimiento    ? new Date(it.vencimiento)    : null,
+    it.presentacion   ? new Date(it.presentacion)   : null,
+    // Observaciones no puede ser null
+    it.observaciones ?? ''
+  ]);
+});
+
 
     // 6. Ancho de columnas
     worksheet.columns = [

@@ -9,10 +9,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router'; // <-- Importamos Router
 import Swal from 'sweetalert2';
-
 import { NavComponent } from '../gobal/nav/nav.component';
 import { FooterComponent } from '../gobal/footer/footer.component';
-
 import { InformeDTO } from './models/informe-dto.models';
 import { InformeAuditoriaService } from './service/informe-auditoria.service';
 import { OrganizacionService } from '../organizacion/service/organizacion-service';
@@ -21,7 +19,13 @@ import { SpinnerComponent } from '../utils/spinner/spinner.component';
 @Component({
   selector: 'app-informe-auditoria',
   standalone: true,
-  imports: [NavComponent, FooterComponent, CommonModule, ReactiveFormsModule, FormsModule, SpinnerComponent],
+  imports: [NavComponent, 
+            FooterComponent, 
+            CommonModule, 
+            ReactiveFormsModule, 
+            FormsModule, 
+            SpinnerComponent            
+          ],
   templateUrl: './informe-auditoria.component.html',
   styleUrls: ['./informe-auditoria.component.css']
 })
@@ -51,9 +55,6 @@ export class InformeAuditoriaComponent implements OnInit {
     this.obtenerOrganizaciones();
     this.cargarInformes();
   }
-
-
-
 
   obtenerOrganizaciones(): void {
     this.organizacionService.getOrganizacionesAuditoriaAmbiental().subscribe(
@@ -91,7 +92,6 @@ export class InformeAuditoriaComponent implements OnInit {
       }
     });
   }
-
 
   onSubmit(): void {
     if (this.informeForm.invalid || !this.informe.organizacionId) return;
@@ -181,6 +181,11 @@ export class InformeAuditoriaComponent implements OnInit {
     this.router.navigate(['/encabezado', inf.id]);
   }
 
+  //botón crear caratula
+  crearCaratula(inf: InformeDTO): void {
+    this.router.navigate(['/caratula', inf.id]);
+  }
+
   get filteredInformes(): InformeDTO[] {
     if (!this.organizationFilter) {
       return this.informes;
@@ -190,4 +195,13 @@ export class InformeAuditoriaComponent implements OnInit {
       inf.razonSocial?.toLowerCase().includes(filtro)
     );
   }
+
+/**
+ * Navega a la vista de previsualización de un informe concreto.
+ * @param id El identificador del informe a previsualizar.
+ */
+onPreviewClick(id: number): void {
+  this.router.navigate(['/informes', id, 'preview']);
+}
+
 }
