@@ -74,8 +74,10 @@ export class MenuTableComponent {
       icon: '',
       color: '#198754',
       items: [
-        { label: 'Semáforo Requisitos', path: '/registro-semaforo', icon: 'fas fa-traffic-light' },
-        { label: 'Registro Inventario', path: '/registro-inventario', icon: 'fas fa-calendar-days' },
+        { label: 'Semáforo de Requisitos', path: '/registro-semaforo', icon: 'fas fa-traffic-light' },
+        { label: 'Reporte de Requisitos', path: '/registro-inventario', icon: 'fas fa-clipboard' },
+        { label: 'Registro Requisitos', path: '/registro-inventario', icon: 'fas fa-calendar-days' },
+
       ]
     },
 
@@ -86,7 +88,7 @@ export class MenuTableComponent {
       items: [
 
         { label: 'Inventario Residuos', path: '/residuo-inventario', icon: 'fas fa-pencil' },
-        { label: 'Residuos', path: '/residuo', icon: 'fas fa-trash' },
+        { label: 'Alta de Residuos', path: '/residuo', icon: 'fas fa-trash' },
       ]
     },
 

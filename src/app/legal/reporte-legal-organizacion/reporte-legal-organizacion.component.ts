@@ -5,7 +5,6 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 import * as ExcelJS from 'exceljs';
 
-
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import { SpinnerComponent } from '../../utils/spinner/spinner.component';
@@ -136,18 +135,15 @@ export class ReporteLegalOrganizacionComponent implements OnInit {
     });
 
     // 5. Datos
-this.items.forEach(it => {
-  worksheet.addRow([
-    it.id,
-    it.nombre,
-    // Si vienen null, dejamos la celda en blanco
-    it.vencimiento    ? new Date(it.vencimiento)    : null,
-    it.presentacion   ? new Date(it.presentacion)   : null,
-    // Observaciones no puede ser null
-    it.observaciones ?? ''
-  ]);
-});
-
+    this.items.forEach(it => {
+      worksheet.addRow([
+        it.id,
+        it.nombre,
+        it.vencimiento  ? new Date(it.vencimiento)  : null,
+        it.presentacion ? new Date(it.presentacion) : null,
+        it.observaciones ?? ''
+      ]);
+    });
 
     // 6. Ancho de columnas
     worksheet.columns = [

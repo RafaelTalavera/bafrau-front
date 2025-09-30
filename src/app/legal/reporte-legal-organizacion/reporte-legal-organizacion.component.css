@@ -1,10 +1,58 @@
-/* src/app/legal/reporte-legal-organizacion/reporte-legal-organizacion.component.css */
-.container {
-  max-width: 900px;
-  padding: 2rem; /* o el valor que desees, como 20px */
-  padding-top: 6rem; 
+/* Mantengo tus estilos y agrego control de espaciados sin romper nada */
+
+:host {
+  display: block;
 }
 
+/* Contenedor principal */
+.container {
+  max-width: 900px;
+  padding: 2rem;          /* padding general */
+  /* Ojo: NO fijamos padding-top aquí; lo controlan spaced-top / near-navbar */
+}
+
+/* Espaciado superior para modos de vista */
+.spaced-top {             /* Vista: listado de organizaciones (más aire) */
+  padding-top: 5.5rem;    /* pensado para navbar fijo ~56px + margen visual */
+  margin-top: 1rem;
+}
+
+.near-navbar {            /* Vista: Ítems de control (más compacto) */
+  padding-top: 4rem;      /* evita que el navbar tape el contenido */
+  margin-top: 0.5rem;
+}
+
+/* Reserva de espacio inferior para que el footer no tape el final */
+.content-guard-bottom {
+  padding-bottom: 8rem;   /* ajusta si tu footer es más alto */
+}
+
+/* Scroll interno y altura máxima relativa al viewport en Ítems */
+.items-scroll-area {
+  /* Resta aproximada para header/título/botones: afinado para vista compacta */
+  max-height: calc(100vh - 260px);
+  overflow: auto;
+}
+
+/* Responsive: en móviles el navbar suele ocupar más alto */
+@media (max-width: 768px) {
+  .spaced-top {
+    padding-top: 5rem;
+    margin-top: 0.75rem;
+  }
+  .near-navbar {
+    padding-top: 3.5rem;
+    margin-top: 0.5rem;
+  }
+  .content-guard-bottom {
+    padding-bottom: 10rem;
+  }
+  .items-scroll-area {
+    max-height: calc(100vh - 300px);
+  }
+}
+
+/* Tarjetas y tabla (tus estilos previos) */
 .card {
   border: none;
 }

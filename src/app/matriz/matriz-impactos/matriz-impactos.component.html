@@ -771,92 +771,80 @@
             </div>
 
 
-<!-- Gráfico IRT -->
-<div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
-  <h3>IRT de cada Factor-Componente</h3>
-  <canvas #irtBarChart style="width:100%;height:400px;"></canvas>
-  <div class="mb-2">
-    <button
-      class="btn btn-primary btn-sm"
-      (click)="onDownloadOrAssociateChart(irtChart, 'grafico-irt-factores', 'Gráfico IRT')"
-    >
-      <i class="fa-solid fa-download me-1"></i>
-      {{ sectionId ? 'Asociar gráfico IRT' : 'Descargar gráfico IRT' }}
-    </button>
-  </div>
-</div>
+            <!-- Gráfico IRT -->
+            <div class="card chart-card" *ngIf="shouldShowIrtBarChart()">
+              <h3>IRT de cada Factor-Componente</h3>
+              <canvas #irtBarChart style="width:100%;height:400px;"></canvas>
+              <div class="mb-2">
+                <button class="btn btn-primary btn-sm"
+                  (click)="onDownloadOrAssociateChart(irtChart, 'grafico-irt-factores', 'Gráfico IRT')">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar gráfico IRT' : 'Descargar gráfico IRT' }}
+                </button>
+              </div>
+            </div>
 
-<!-- Gráfico de Acciones -->
-<div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
-  <h3>IRT por Acciones y Factores</h3>
-  <canvas #irtActionsChart style="width:100%;height:400px;"></canvas>
-  <div class="mb-2">
-    <button
-      class="btn btn-primary btn-sm"
-      (click)="onDownloadOrAssociateChart(actionsChart, 'grafico-irt-acciones', 'Gráfico Acciones')"
-    >
-      <i class="fa-solid fa-download me-1"></i>
-      {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar gráfico de Acciones' }}
-    </button>
-  </div>
-</div>
+            <!-- Gráfico de Acciones -->
+            <div class="card chart-card" *ngIf="shouldShowIrtActionsChart()">
+              <h3>IRT por Acciones y Factores</h3>
+              <canvas #irtActionsChart style="width:100%;height:400px;"></canvas>
+              <div class="mb-2">
+                <button class="btn btn-primary btn-sm"
+                  (click)="onDownloadOrAssociateChart(actionsChart, 'grafico-irt-acciones', 'Gráfico Acciones')">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar gráfico de Acciones' }}
+                </button>
+              </div>
+            </div>
 
-<!-- 1. Sólo Factores -->
-<div class="card chart-card" *ngIf="shouldShowFactorsChart()">
-  <h3 class="text-center">IRT por Factor</h3>
-  <div class="d-flex justify-content-center">
-    <div class="chart-area w-100" style="width:100%;height:400px;">
-      <canvas #factorsCanvas style="width:100%;height:400px;"></canvas>
-    </div>
-  </div>
-  <div class="d-flex justify-content-center mb-2">
-    <button
-      class="btn btn-primary btn-sm"
-      (click)="onDownloadOrAssociateChart(factorsChart, 'grafico-irt-por-factor', 'Gráfico IRT por Factor')"
-    >
-      <i class="fa-solid fa-download me-1"></i>
-      {{ sectionId ? 'Asociar gráfico por Factor' : 'Descargar gráfico por Factor' }}
-    </button>
-  </div>
-</div>
+            <!-- 1. Sólo Factores -->
+            <div class="card chart-card" *ngIf="shouldShowFactorsChart()">
+              <h3 class="text-center">IRT por Factor</h3>
+              <div class="d-flex justify-content-center">
+                <div class="chart-area w-100" style="width:100%;height:400px;">
+                  <canvas #factorsCanvas style="width:100%;height:400px;"></canvas>
+                </div>
+              </div>
+              <div class="d-flex justify-content-center mb-2">
+                <button class="btn btn-primary btn-sm"
+                  (click)="onDownloadOrAssociateChart(factorsChart, 'grafico-irt-por-factor', 'Gráfico IRT por Factor')">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar gráfico por Factor' : 'Descargar gráfico por Factor' }}
+                </button>
+              </div>
+            </div>
 
-<!-- 2. Sólo Acciones -->
-<div class="card chart-card" *ngIf="shouldShowActionsOnlyChart()">
-  <div class="d-flex justify-content-center">
-    <div class="chart-area w-100" style="max-width:600px;height:300px;">
-      <canvas #actionsOnlyCanvas></canvas>
-    </div>
-  </div>
-  <div class="d-flex justify-content-center mb-2">
-    <button
-      class="btn btn-primary btn-sm"
-      (click)="onDownloadOrAssociateChart(actionsOnlyChart, 'grafico-irt-acciones-unicas', 'Gráfico IRT Acciones')"
-    >
-      <i class="fa-solid fa-download me-1"></i>
-      {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar gráfico de Acciones' }}
-    </button>
-  </div>
-</div>
-
-<!-- Pie Chart -->
-<!-- Pie Chart -->
-<div class="card chart-card" *ngIf="shouldShowPieChart()" #pieCard>
-  <h3 class="text-center" #pieTitle>Distribución de Impactos</h3>
-  <div class="d-flex justify-content-center">
-    <div class="chart-area w-100" style="max-width:400px;height:400px;">
-      <canvas #pieCanvas style="width:100%;height:400px;"></canvas>
-    </div>
-  </div>
-
-
-
-</div>
-
-
-
-
-
-
+            <!-- 2. Sólo Acciones -->
+            <div class="card chart-card" *ngIf="shouldShowActionsOnlyChart()">
+              <div class="d-flex justify-content-center">
+                <div class="chart-area w-100" style="max-width:600px;height:300px;">
+                  <canvas #actionsOnlyCanvas></canvas>
+                </div>
+              </div>
+              <div class="d-flex justify-content-center mb-2">
+                <button class="btn btn-primary btn-sm"
+                  (click)="onDownloadOrAssociateChart(actionsOnlyChart, 'grafico-irt-acciones-unicas', 'Gráfico IRT Acciones')">
+                  <i class="fa-solid fa-download me-1"></i>
+                  {{ sectionId ? 'Asociar gráfico de Acciones' : 'Descargar gráfico de Acciones' }}
+                </button>
+              </div>
+            </div>
+            <!-- Pie Chart -->
+            <div class="card chart-card" *ngIf="shouldShowPieChart()" #pieCard>
+              <h3 class="text-center" #pieTitle>Distribución de Impactos</h3>
+              <div class="d-flex justify-content-center">
+                <div class="chart-area w-100" style="max-width:400px;height:400px;">
+                  <canvas #pieCanvas style="width:100%;height:400px;"></canvas>
+                </div>
+              </div>
+              <!-- Botón Descargar/Asociar (igual que otros gráficos) -->
+              <div class="d-flex justify-content-center mb-2">
+                <button class="btn btn-primary btn-sm"
+                  (click)="onDownloadOrAssociateChart(pieChart, 'grafico-distribucion-impactos', 'Distribución de Impactos')">
+                  <i class="fa-solid fa-download me-1"></i> {{ sectionId ? 'Asociar gráfico de Distribución' :
+                  'Descargar gráfico de Distribución' }} </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -144,16 +144,13 @@ async onDownloadOrAssociateChart(
     return;
   }
 
-  // 1) Mostrar spinner global
   this.loading = true;
   this.cdr.detectChanges();
 
   try {
     let dataUrl: string;
 
-    // Caso especial: capturar desde el <h3> "Distribución de Impactos"
     if (filename === 'grafico-distribucion-impactos') {
-      // Buscar el <h3> correcto dentro de .card.chart-card
       const titles = Array.from(
         document.querySelectorAll<HTMLElement>('.card.chart-card h3')
       );
@@ -165,56 +162,58 @@ async onDownloadOrAssociateChart(
         const cardEl = targetTitle.closest('.card.chart-card') as HTMLElement | null;
 
         if (cardEl) {
-          // Calcular recorte vertical desde el H3 inclusive
-          const cardRect = cardEl.getBoundingClientRect();
-          const titleRect = targetTitle.getBoundingClientRect();
-          const cropY = Math.max(
-            0,
-            Math.round(titleRect.top - cardRect.top + cardEl.scrollTop)
-          );
-          const height = Math.ceil(cardEl.scrollHeight - cropY);
+          // 🔒 Ocultar barra de botones (y cualquier botón) sólo durante la captura
+          const toHide: HTMLElement[] = [
+            ...Array.from(cardEl.querySelectorAll<HTMLElement>('.d-flex.justify-content-center.mb-2')),
+            ...Array.from(cardEl.querySelectorAll<HTMLElement>('button'))
+          ];
+          const prevDisplay = toHide.map(el => el.style.display);
+          toHide.forEach(el => el.style.display = 'none');
 
-          // Captura nítida (fondo blanco, escala alta)
-          const canvas = await html2canvas(cardEl, {
-            y: cropY,
-            height,
-            backgroundColor: '#ffffff',
-            useCORS: true,
-            scale: Math.max(2, window.devicePixelRatio || 1),
-          });
+          try {
+            const cardRect = cardEl.getBoundingClientRect();
+            const titleRect = targetTitle.getBoundingClientRect();
+            const cropY = Math.max(
+              0,
+              Math.round(titleRect.top - cardRect.top + cardEl.scrollTop)
+            );
+            const height = Math.ceil(cardEl.scrollHeight - cropY);
 
-          dataUrl = canvas.toDataURL('image/png');
+            const canvas = await html2canvas(cardEl, {
+              y: cropY,
+              height,
+              backgroundColor: '#ffffff',
+              useCORS: true,
+              scale: Math.max(2, window.devicePixelRatio || 1),
+            });
+
+            dataUrl = canvas.toDataURL('image/png');
+          } finally {
+            // 🔓 Restaurar visibilidad
+            toHide.forEach((el, i) => (el.style.display = prevDisplay[i]));
+          }
         } else {
-          // Fallback si no se encontró la card
           dataUrl = chart.toBase64Image('image/png', 1.0);
         }
       } else {
-        // Fallback si no se encontró el título
         dataUrl = chart.toBase64Image('image/png', 1.0);
       }
     } else {
-      // Resto de los gráficos: comportamiento original
       dataUrl = chart.toBase64Image('image/png', 1.0);
     }
 
-    // 2) Obtener blob de la imagen (sin tocar tu flujo)
     const res = await fetch(dataUrl);
     const blob = await res.blob();
     const file = new File([blob], `${filename}.png`, { type: 'image/png' });
 
     if (this.sectionId) {
-      // 3a) Asociación al informe
       await this.adjuntosService
         .ploadAdjuntoSeccion(file, titleForAssoc, this.sectionId)
         .toPromise();
 
-      // 4a) Éxito
       await Swal.fire('Listo', `${titleForAssoc} asociado correctamente.`, 'success');
-
-      // 5) Volver a la vista anterior
       this.location.back();
     } else {
-      // 3b) Descarga local
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `${filename}.png`;
@@ -225,11 +224,11 @@ async onDownloadOrAssociateChart(
     console.error(err);
     await Swal.fire('Error', 'No se pudo generar la imagen.', 'error');
   } finally {
-    // 6) Ocultar spinner
     this.loading = false;
     this.cdr.detectChanges();
   }
 }
+
 
 
 
