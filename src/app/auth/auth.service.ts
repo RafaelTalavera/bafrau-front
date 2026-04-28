@@ -23,8 +23,9 @@ export class AuthService {
     const loginData = { username, password };
     return this.http.post<any>(this.apiUrl, loginData).pipe(
       tap(response => {
-        if (response?.token) {
-          this.setToken(response.token);
+        const token = response?.token ?? response?.jwt;
+        if (token) {
+          this.setToken(token);
         } else {
           console.error('Token no encontrado en la respuesta:', response);
         }
@@ -39,6 +40,30 @@ export class AuthService {
   getToken(): string | null {
     const t = this.localStorageService.getItem(this.tokenKey);
     return t;
+  }
+
+  getActivoDesdeAuthResponse(response: any): boolean | null {
+    const activo = response?.activo ?? response?.usuario?.activo;
+    if (typeof activo === 'boolean') {
+      return activo;
+    }
+    return null;
+  }
+
+  getActivoDesdeToken(token: string | null): boolean | null {
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const decoded: any = jwtDecode(token);
+      if (typeof decoded?.activo === 'boolean') {
+        return decoded.activo;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   }
   isLoggedIn(): boolean {
     return !!this.getToken();

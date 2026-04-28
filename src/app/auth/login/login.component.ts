@@ -1,4 +1,3 @@
-// src/app/auth/login/login.component.ts
 import Swal from 'sweetalert2';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
@@ -13,11 +12,9 @@ declare var $: any;
   standalone: true,
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule]
 })
 export class LoginComponent implements OnInit {
-  jwt_token!: string;
-
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
@@ -27,36 +24,59 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  onSubmit(form: NgForm) {
+  onSubmit(form: NgForm): void {
     this.authService.login(form.value.username, form.value.password)
-      .subscribe(
-        (data: any) => {
-          if (data?.jwt) {
-            localStorage.setItem('jwt_token', data.jwt);
-            // Navega y luego inicializa AdminLTE
-            this.router.navigate(['/menu']).then(() => {
-              // Toggle sidebar
-              ($('[data-widget="pushmenu"]') as any).PushMenu();
-              // Inicializa submenús
-              ($('[data-widget="treeview"]') as any).Treeview();
-            });
-          } else {
+      .subscribe({
+        next: (data: any) => {
+          const token = data?.token ?? data?.jwt ?? this.authService.getToken();
+          const activoDesdeResponse = this.authService.getActivoDesdeAuthResponse(data);
+          const activoDesdeToken = this.authService.getActivoDesdeToken(token);
+          const activoFinal = activoDesdeResponse ?? activoDesdeToken;
+
+          if (activoFinal === false) {
+            this.authService.logout();
             Swal.fire({
               icon: 'error',
-              title: 'Error de autenticación',
-              text: 'No se recibió token válido.',
+              title: 'Acceso denegado',
+              text: 'Tu usuario esta bloqueado.',
               confirmButtonText: 'Aceptar'
             });
+            return;
           }
+
+          if (!token) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error de autenticacion',
+              text: 'No se recibio token valido.',
+              confirmButtonText: 'Aceptar'
+            });
+            return;
+          }
+
+          this.router.navigate(['/menu']).then(() => {
+            ($('[data-widget="pushmenu"]') as any).PushMenu();
+            ($('[data-widget="treeview"]') as any).Treeview();
+          });
         },
-        error => {
+        error: (error) => {
+          if (error?.status === 403) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Acceso denegado',
+              text: 'Tu usuario esta bloqueado.',
+              confirmButtonText: 'Aceptar'
+            });
+            return;
+          }
+
           Swal.fire({
             icon: 'error',
-            title: 'Error de autenticación',
-            text: 'Usuario o contraseña incorrectos.',
+            title: 'Error de autenticacion',
+            text: 'Usuario o contrasena incorrectos.',
             confirmButtonText: 'Aceptar'
           });
         }
-      );
+      });
   }
 }
