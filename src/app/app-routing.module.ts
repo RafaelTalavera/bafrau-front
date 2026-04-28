@@ -26,14 +26,13 @@ import { ReporteLegalOrganizacionComponent } from './legal/reporte-legal-organiz
 import { PreviewCaratulaComponent } from './informe-auditoria/preview/caratula/preview-caratula.component';
 import { CaratulaComponent } from './informe-auditoria/caratula/caratula.component';
 import { InformePreviewComponent } from './informe-auditoria/preview/informe/informe-preview.component';
+import { ShellLayoutComponent } from './layout/shell-layout/shell-layout.component';
 
 
 
 export const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
-
-  { path: 'usuarios', component: UsuariosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
 
   //Matriz Leopold
   { path: 'matriz-ponderacion', component: PonderacionMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
@@ -44,7 +43,6 @@ export const routes: Routes = [
   { path: 'matriz-accion', component: AccionesComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
 
   //Organización
-  { path: 'organizacion-form', component: OrganizacionFormComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
   { path: 'organizacion-form', component: OrganizacionFormComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
 
   //Legales 
@@ -82,11 +80,15 @@ export const routes: Routes = [
     // Previsualización en caratula 
   { path: 'informes/:id/previewCaraula', component: PreviewCaratulaComponent },
 
-
-
-  { path: 'menu', component: MenuTableComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+  {
+    path: '',
+    component: ShellLayoutComponent,
+    children: [
+      { path: 'menu', component: MenuTableComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'usuarios', component: UsuariosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } }
+    ]
+  },
   { path: '**', redirectTo: 'menu' },
-  { path: '**', redirectTo: '' },
 
 ];
 

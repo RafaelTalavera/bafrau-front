@@ -14,6 +14,7 @@ export class Usuario {
     address: string = '';
     phone: string = '';
     role: string = '';
+    activo: boolean | null = null;
  
     constructor(init?: Partial<Usuario>) {
         Object.assign(this, init);

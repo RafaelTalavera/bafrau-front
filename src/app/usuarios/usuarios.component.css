@@ -1,25 +1,136 @@
+:host {
+  display: block;
+}
+
+.usuarios-content {
+  width: 100%;
+}
+
+.usuarios-card {
+  width: 100%;
+  margin: 1rem 0 0;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.usuarios-card-header {
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 8px 8px 0 0;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.usuarios-card-body {
+  padding: 20px;
+}
+
+.usuarios-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #343a40;
+}
+
+.usuarios-search .form-control {
+  max-width: 280px;
+  margin: 0;
+  height: 38px;
+  font-size: 13px;
+}
+
+.usuarios-table-container {
+  max-height: 64vh;
+  overflow: auto;
+  border: 1px solid #edf1f6;
+  border-radius: 8px;
+}
+
+.usuarios-table {
+  margin-bottom: 0;
+  min-width: 1120px;
+  table-layout: fixed;
+}
+
+.usuarios-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f7f9fc;
+  border-bottom: 1px solid #dfe6ef;
+}
+
 .custom-tr {
-    font-size: 12px; 
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #4a5563;
+  padding: 0.72rem 0.7rem;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .custom-td {
-    font-size: 12px; 
+  font-size: 13px;
+  color: #2d3748;
+  padding: 0.66rem 0.7rem;
+  border-top: 1px solid #eef2f7;
+  vertical-align: middle;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.usuarios-table tbody tr:hover {
+  background-color: #f8fafc;
 }
 
 .custom-button {
-    font-size: 12px; /* Ajusta este valor según tus necesidades */
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 102px;
+  padding: 0.32rem 0.62rem;
+  border-radius: 6px;
 }
 
-.separated-content {
-    margin-top: 20px; /* Ajusta este valor según sea necesario */
+.row-error-text {
+  font-size: 11px;
+  max-width: 170px;
+}
+
+.col-nombre,
+.col-apellido {
+  width: 170px;
+}
+
+.col-email {
+  width: 260px;
+}
+
+.col-username,
+.col-rol {
+  width: 160px;
+}
+
+.col-editar {
+  width: 110px;
+}
+
+.col-accion {
+  width: 150px;
+}
+
+@media (max-width: 992px) {
+  .usuarios-table-container {
+    max-height: 58vh;
   }
 
-  .custom-container {
-    max-width: 90%; /* Cambia este valor para ajustar el ancho a tu preferencia */
-    margin: 0 auto; /* Centra el contenido */
-}
+  .custom-tr {
+    font-size: 11px;
+  }
 
-.content-wrapper {
-    padding: 20px; /* Ajusta el padding del contenedor principal */
-    overflow: hidden; /* Para asegurarte de que no haya desbordes */
+  .custom-td {
+    font-size: 12px;
+  }
 }

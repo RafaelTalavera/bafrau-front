@@ -235,6 +235,18 @@ body.layout-fixed {
     margin-top: 0;
     margin-bottom: 10px;
   }
+
+  .chart-area-actions {
+    width: 100%;
+    max-width: 100%;
+    height: 380px;
+  }
+
+  @media (max-width: 768px) {
+    .chart-area-actions {
+      height: 420px;
+    }
+  }
   
   /* Estilos para el modal de valoración */
   /* Modal de valoración */

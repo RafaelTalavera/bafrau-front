@@ -1,8 +1,6 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NavComponent } from "../nav/nav.component";
-import { FooterComponent } from "../footer/footer.component";
 
 interface MenuItem {
   label: string;
@@ -20,11 +18,21 @@ interface MenuGroup {
 @Component({
   selector: 'app-menu-table',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavComponent, FooterComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './menu-table.component.html',
   styleUrls: ['./menu-table.component.css']
 })
-export class MenuTableComponent {
+export class MenuTableComponent implements OnInit, OnDestroy {
+  constructor(@Inject(DOCUMENT) private document: Document) {}
+
+  ngOnInit(): void {
+    this.document.body.classList.add('menu-route-bg');
+  }
+
+  ngOnDestroy(): void {
+    this.document.body.classList.remove('menu-route-bg');
+  }
+
   groups: MenuGroup[] = [
 
     {

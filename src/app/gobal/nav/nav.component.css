@@ -1,6 +1,56 @@
-.content-wrapper {
-    margin-left: 250px; /* Ancho de la barra lateral */
-    padding-top: 70px; /* Altura de la barra de navegación */
+.main-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--layout-header-height);
+  min-height: var(--layout-header-height);
+  z-index: 1033;
+}
+
+.main-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: var(--layout-sidebar-width);
+  z-index: 1038;
+  overflow-y: auto;
+}
+
+.main-sidebar .brand-link {
+  height: var(--layout-header-height);
+  min-height: var(--layout-header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.main-sidebar .brand-link .brand-text-strong {
+  font-weight: 700;
+}
+
+@media (min-width: 992px) {
+  :host-context(body.sidebar-mini.sidebar-collapse) .main-header,
+  :host-context(body.sidebar-mini-md.sidebar-collapse) .main-header,
+  :host-context(body.sidebar-mini-xs.sidebar-collapse) .main-header {
+    margin-left: 4.6rem !important;
   }
-  
-  
+
+  :host-context(body.sidebar-mini.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand):hover,
+  :host-context(body.sidebar-mini.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand).sidebar-focused,
+  :host-context(body.sidebar-mini-md.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand):hover,
+  :host-context(body.sidebar-mini-md.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand).sidebar-focused,
+  :host-context(body.sidebar-mini-xs.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand):hover,
+  :host-context(body.sidebar-mini-xs.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand).sidebar-focused {
+    width: var(--layout-sidebar-width) !important;
+  }
+
+  :host-context(body.sidebar-mini.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand):hover .sidebar .nav-sidebar .nav-link p,
+  :host-context(body.sidebar-mini.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand).sidebar-focused .sidebar .nav-sidebar .nav-link p,
+  :host-context(body.sidebar-mini-md.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand):hover .sidebar .nav-sidebar .nav-link p,
+  :host-context(body.sidebar-mini-md.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand).sidebar-focused .sidebar .nav-sidebar .nav-link p,
+  :host-context(body.sidebar-mini-xs.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand):hover .sidebar .nav-sidebar .nav-link p,
+  :host-context(body.sidebar-mini-xs.sidebar-collapse) .main-sidebar:not(.sidebar-no-expand).sidebar-focused .sidebar .nav-sidebar .nav-link p {
+    width: auto !important;
+  }
+}

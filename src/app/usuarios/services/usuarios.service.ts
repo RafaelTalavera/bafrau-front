@@ -33,15 +33,28 @@ export class UsuariosService {
   }
 
   create(usuario: Usuario): Observable<Usuario> {
-    return this.http.post<Usuario>(this.baseUrl, usuario);
+    const headers = this.getAuthHeaders();
+    return this.http.post<Usuario>(this.baseUrl, usuario, { headers });
   }
 
   updateUsuario(usuario: Usuario): Observable<Usuario> {
+    const headers = this.getAuthHeaders();
     return this.http
-      .put<Usuario>(`${this.baseUrl}/${usuario.id}`, usuario);
+      .put<Usuario>(`${this.baseUrl}/${usuario.id}`, usuario, { headers });
   }
   
   remove(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    const headers = this.getAuthHeaders();
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { headers });
+  }
+
+  bloquearUsuario(id: number): Observable<Usuario> {
+    const headers = this.getAuthHeaders();
+    return this.http.patch<Usuario>(`${this.baseUrl}/${id}/bloquear`, {}, { headers });
+  }
+
+  desbloquearUsuario(id: number): Observable<Usuario> {
+    const headers = this.getAuthHeaders();
+    return this.http.patch<Usuario>(`${this.baseUrl}/${id}/desbloquear`, {}, { headers });
   }
 }

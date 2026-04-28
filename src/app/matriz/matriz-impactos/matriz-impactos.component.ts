@@ -1342,6 +1342,7 @@ createActionsOnlyChart() {
   );
 
   const ctx = this.actionsOnlyChartRef.nativeElement.getContext('2d')!;
+  const yAxisMinWidth = 170;
 
   if (this.actionsOnlyChart) {
     // 2a) Actualizar datos
@@ -1351,6 +1352,7 @@ createActionsOnlyChart() {
     // 2b) Actualizar opciones en negrita
     const opts = this.actionsOnlyChart.options;
     opts.indexAxis = 'y' as 'y';
+    opts.maintainAspectRatio = false;
     opts.plugins = {
       ...opts.plugins,
       title: {
@@ -1362,6 +1364,14 @@ createActionsOnlyChart() {
         labels: { font: { weight: 'bold' } }
       }
     };
+    opts.layout = {
+      ...(opts.layout || {}),
+      padding: {
+        ...((opts.layout as any)?.padding || {}),
+        left: 8,
+        right: 8
+      }
+    };
     opts.scales = {
       ...opts.scales,
       ['x']: {
@@ -1370,7 +1380,12 @@ createActionsOnlyChart() {
       },
       ['y']: {
         ...(opts.scales?.['y'] as any),
-        ticks: { font: { weight: 'bold' } }
+        ticks: { font: { weight: 'bold' }, autoSkip: false },
+        afterFit: (scale: any) => {
+          if (scale.width < yAxisMinWidth) {
+            scale.width = yAxisMinWidth;
+          }
+        }
       }
     };
 
@@ -1388,6 +1403,13 @@ createActionsOnlyChart() {
       options: {
         responsive: true,
         indexAxis: 'y' as 'y',
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            left: 8,
+            right: 8
+          }
+        },
         plugins: {
           title: {
             display: true,
@@ -1400,7 +1422,14 @@ createActionsOnlyChart() {
         },
         scales: {
           ['x']: { ticks: { font: { weight: 'bold' } } },
-          ['y']: { ticks: { font: { weight: 'bold' } } }
+          ['y']: {
+            ticks: { font: { weight: 'bold' }, autoSkip: false },
+            afterFit: (scale: any) => {
+              if (scale.width < yAxisMinWidth) {
+                scale.width = yAxisMinWidth;
+              }
+            }
+          }
         }
       }
     });

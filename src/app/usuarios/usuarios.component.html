@@ -1,98 +1,73 @@
-<body class="hold-transition sidebar-mini layout-fixed">
-  <div class="wrapper">
-    <app-nav></app-nav>
-    <div class="content-wrapper">
-      <!-- Content Header (Page header) -->
-      <div *ngIf="!showError" class="container-fluid my-4 d-flex justify-content-center">
-        <div class="separated-content w-100">
-          <div class="col">
-            <!-- Formulario para crear o editar un usuario -->
-            <app-form-usuario 
-              (newUsuarioEvent)="addUsuario($event)" 
-              [usuario]="usuarioSelected">
-            </app-form-usuario>
-          </div>
-          
-          <!-- Card para la tabla de usuarios -->
-          <div class="card mt-4" style="width: 100%;">
-            <div class="col mt-3">
-              <!-- Encabezado de la lista de usuarios -->
-              <h5 class="text-center">Lista de Usuarios</h5>
+<div *ngIf="!showError" class="usuarios-content">
+  <app-form-usuario
+    (newUsuarioEvent)="addUsuario($event)"
+    [usuario]="usuarioSelected">
+  </app-form-usuario>
 
-              <!-- Campo de búsqueda por DNI -->
-              <div class="mb-3">
-                <input 
-                  type="text" 
-                  class="custom-tr form-control" 
-                  placeholder="🔎 Buscar por DNI" 
-                  [(ngModel)]="dniBusqueda" 
-                  (input)="buscarPorDNI()" 
-                  style="max-width: 200px; margin: 0 auto;">
-              </div>
+  <div class="card form-card shadow-sm my-4 border-0 usuarios-card">
+    <div class="card-header my-3 text-center bg-light usuarios-card-header">
+      <h5 class="card-title mb-0 usuarios-title">Lista de Usuarios</h5>
+    </div>
+    <div class="card-body usuarios-card-body">
 
-              <!-- Tabla con lista de usuarios -->
-              <div *ngIf="usuariosFiltrados.length > 0" style="max-height: 600px; overflow-y: auto;">
-                <table class="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th class="custom-tr">Nombre</th>
-                      <th class="custom-tr">Apellido</th>
-                      <th class="custom-tr">DNI</th>
-                      <th class="custom-tr">Email</th>
-                      <th class="custom-tr">Organización</th>
-                      <th class="custom-tr">Titulo</th>
-                      <th class="custom-tr">Matricula Provincial</th>
-                      <th class="custom-tr">Matricula Colegio Neuquen</th>
-                      <th class="custom-tr">Matricula Municipal</th>
-                      <th class="custom-tr">Dirección</th>
-                      <th class="custom-tr">Teléfono</th>
-                      <th class="custom-tr">ROL</th>
-                      <th class="custom-tr">Editar</th>
-                      <th class="custom-tr">Eliminar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let usuario of usuariosFiltrados; trackBy: trackByFn">
-                      <td class="custom-td">{{ usuario.nombre }}</td>
-                      <td class="custom-td">{{ usuario.lastname }}</td>
-                      <td class="custom-td">{{ usuario.dni }}</td>
-                      <td class="custom-td">{{ usuario.username }}</td>
-                      <td class="custom-td">{{ usuario.organizacion }}</td>
-                      <td class="custom-td">{{ usuario.titulo }}</td>
-                      <td class="custom-td">{{ usuario.matriculaProvincia }}</td>
-                      <td class="custom-td">{{ usuario.matriculaColegioNeuquen }}</td>
-                      <td class="custom-td">{{ usuario.matriculaMunicipal }}</td>
-                      <td class="custom-td">{{ usuario.address }}</td>
-                      <td class="custom-td">{{ usuario.phone }}</td>
-                      <td class="custom-td">{{ usuario.role }}</td>
-                      <td class="custom-td">
-                        <button 
-                          (click)="onUpdateUsuario(usuario)" 
-                          class="btn btn-sm btn-secondary custom-button">
-                          Editar
-                        </button>
-                      </td>
-                      <td>
-                        <button 
-                          (click)="onRemoveUsuario(usuario.id)" 
-                          class="btn btn-sm btn-danger custom-button">
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+      <div class="mb-3 usuarios-search">
+        <input
+          type="text"
+          class="custom-tr form-control"
+          placeholder="Buscar por DNI"
+          [(ngModel)]="dniBusqueda"
+          (input)="buscarPorDNI()">
+      </div>
 
-              <!-- Mensaje si no se encuentran usuarios -->
-              <div *ngIf="usuariosFiltrados.length === 0" class="alert alert-info text-center">
-                Lo sentimos, no hay información para mostrar
-              </div>
-            </div>
-          </div>
-        </div>
+      <div *ngIf="usuariosFiltrados.length > 0" class="usuarios-table-container">
+        <table class="table table-hover table-striped usuarios-table">
+          <thead>
+            <tr>
+              <th class="custom-tr col-nombre">Nombre</th>
+              <th class="custom-tr col-apellido">Apellido</th>
+              <th class="custom-tr col-email">Correo electronico</th>
+              <th class="custom-tr col-username">Username</th>
+              <th class="custom-tr col-rol">Tipo de acceso</th>
+              <th class="custom-tr col-editar">Editar</th>
+              <th class="custom-tr col-accion">Accion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let usuario of usuariosFiltrados; trackBy: trackByFn">
+              <td class="custom-td col-nombre">{{ usuario.nombre }}</td>
+              <td class="custom-td col-apellido">{{ usuario.lastname }}</td>
+              <td class="custom-td col-email">{{ usuario.username }}</td>
+              <td class="custom-td col-username">{{ getUsernameVisual(usuario) }}</td>
+              <td class="custom-td col-rol">{{ usuario.role }}</td>
+              <td class="custom-td col-editar">
+                <button
+                  (click)="onUpdateUsuario(usuario)"
+                  class="btn btn-sm btn-secondary custom-button"
+                  [disabled]="rowActionLoading[usuario.id]">
+                  Editar
+                </button>
+              </td>
+              <td class="custom-td col-accion">
+                <button
+                  (click)="onToggleBloqueo(usuario)"
+                  class="btn btn-sm custom-button"
+                  [ngClass]="isUsuarioActivo(usuario) ? 'btn-warning' : 'btn-success'"
+                  [disabled]="rowActionLoading[usuario.id]">
+                  <span *ngIf="rowActionLoading[usuario.id]" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>
+                  {{ isUsuarioActivo(usuario) ? 'Bloquear' : 'Desbloquear' }}
+                </button>
+                <div *ngIf="rowActionError[usuario.id]" class="text-danger mt-1 row-error-text">
+                  {{ rowActionError[usuario.id] }}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="usuariosFiltrados.length === 0" class="alert alert-info text-center">
+        Lo sentimos, no hay informacion para mostrar
       </div>
     </div>
-    <app-footer></app-footer>
   </div>
-</body>
+</div>

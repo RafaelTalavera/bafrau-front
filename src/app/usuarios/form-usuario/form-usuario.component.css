@@ -1,6 +1,11 @@
 
 /* styles-form.css */
 
+:host {
+    display: block;
+    width: 100%;
+}
+
 .custom-header {
     font-size: 16px; /* Cambia el tamaño según tus necesidades */
 }
