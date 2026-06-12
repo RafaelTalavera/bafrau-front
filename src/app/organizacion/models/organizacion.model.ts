@@ -6,7 +6,9 @@ export interface Organizacion {
     fechaAlta:string;
     nombreDelProponente: string;
     tipoDeContrato: string;
+    rrpp?: string[];
     razonSocial: string;
+    vigente?: boolean;
     apoderadoLegal: string;
     apoderadoCargo: string;
     domicilioRealProyecto: string;

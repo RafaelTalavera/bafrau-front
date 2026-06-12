@@ -39,10 +39,10 @@ export class OrganizacionService {
       );
   }
 
-  deleteOrganizacion(id: number): Observable<void> {
+  updateVigencia(id: number, vigente: boolean): Observable<Organizacion> {
     const headers = this.getAuthHeaders();
-    const url = `${this.apiUrl}/${id}`;
-    return this.http.delete<void>(url, { headers })
+    const url = `${this.apiUrl}/${id}/vigencia`;
+    return this.http.patch<Organizacion>(url, { vigente }, { headers })
       .pipe(
         catchError(this.handleError)
       );

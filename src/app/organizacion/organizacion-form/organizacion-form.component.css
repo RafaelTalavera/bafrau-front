@@ -1,198 +1,189 @@
-/* estilos personalizados para el formulario */
 .form-wrapper {
-    margin-top: 10px; /* Margen superior */
-    margin-left: 5%; /* Margen izquierdo */
-    margin-right: 5%; /* Margen derecho */
-    /* Puedes ajustar los valores de margen según lo necesites */
-  }
-
-  .content-wrapper {
-    padding: 20px; /* Ajusta el padding del contenedor principal */
-    overflow: hidden; /* Para asegurarte de que no haya desbordes */
+  margin-top: 10px;
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
-  .label-custom, .input-custom {
-    font-size: 12px;
-  }
+.content-wrapper {
+  padding: 20px;
+  overflow: hidden;
+}
 
-  .custom-th, .custom-td {
-    font-size: 12px;
-    padding: 0.3rem;
-    max-width: 100px; /* Limita el ancho máximo de cada celda */
-    text-align: center;
-  }
+.label-custom,
+.input-custom {
+  font-size: 12px;
+}
 
-  .separated-content {
-    margin-top: 20px; /* Ajusta este valor según sea necesario */
-  }
-
-  .separated-content {
-    max-width: 80%;
-  }
-
-  .card {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-  }
-  
-  .card-title {
-    font-size: 16px;
-    font-weight: bold;
-  }
-  
-  .card-text {
-    font-size: 14px;
-  }
-  
-  .card-body {
-    padding: 15px;
-  }
-  
-  button {
-    margin-right: 5px;
-    border-radius: 5px;
-    font-size: 14px;
-    text-align: center;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #ccc;
-    cursor: pointer;
-  }
-
-  /* Estilo general para todos los botones */
-.btn-custom {
-  padding: 10px 20px;
-  font-size: 14px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+.custom-th,
+.custom-td {
+  font-size: 12px;
+  padding: 0.3rem;
+  max-width: 100px;
   text-align: center;
-  width: 100%;
-  max-width: 270px; /* O el valor adecuado según el diseño */
+}
+
+.separated-content {
+  margin-top: 20px;
+  max-width: 80%;
+}
+
+.card {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  margin-top: 100px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  color: #343a40;
+}
+
+.card-text {
+  font-size: 14px;
+}
+
+.card-body {
+  padding: 20px;
+  background-color: #ffffff;
+}
+
+button {
+  margin-right: 5px;
+  border-radius: 5px;
+  font-size: 14px;
+  text-align: center;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #ccc;
+  cursor: pointer;
 }
 
-/* Efecto hover para darle interacción */
+.btn-custom {
+  width: 210px;
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+  max-width: 270px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #198754;
+  color: #fff;
+}
+
 .btn-custom:hover {
-  background-color: #f0f0f0;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #0056b3;
 }
 
-/* Tamaño específico para los iconos dentro de los botones */
 .btn-custom i {
   margin-right: 8px;
   font-size: 16px;
 }
 
-  .wrapper {
-    min-height: 100vh;
-  }
+.wrapper {
+  min-height: 100vh;
+}
 
-  .progress-container {
-    position: relative;
-  }
-  
-  .progress-label {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #000;
-    font-weight: bold;
-    margin-top: 4px;
-  }
+.progress-container {
+  position: relative;
+}
 
-  .header-style {
-    border: 1px solid #dee2e6; /* Borde similar a la tabla */
-    border-radius: 4px; /* Bordes redondeados */
-    background-color: #f8f9fa; /* Fondo claro */
-    padding: 10px; /* Espaciado interno */
-    margin-bottom: 10px; /* Espaciado inferior */
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
-  }
-  .card {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra elegante */
-    border-radius: 8px; /* Bordes redondeados */
-    border: 1px solid #dee2e6; /* Borde sutil */
-    margin-top: 100px; 
-  }
-  
-  .card-header {
-    padding: 15px; /* Asegura suficiente espacio interno */
-    background-color: #0b0f12; /* Color de fondo claro */
-    border-bottom: 1px solid #dee2e6; /* Separador */
-    border-radius: 8px 8px 0 0; /* Bordes redondeados superiores */
-    min-height: 60px; /* Asegura que haya suficiente espacio vertical */
-    display: flex; /* Flexbox para alinear contenido */
-    align-items: center; /* Alinea verticalmente el contenido */
-    justify-content: center; /* Alinea horizontalmente el contenido */
-  }
-  
-  .card-title {
-    font-size: 18px; /* Tamaño de fuente suficiente */
-    font-weight: bold; /* Resalta el texto */
-    margin: 0; /* Evita márgenes adicionales */
-    color: #343a40; /* Color oscuro elegante */
-  }
-  
-  
-  .card-body {
-    padding: 20px;
-    background-color: #ffffff; /* Fondo blanco */
-  }
-  
-  .form-wrapper {
-    padding: 15px; /* Espaciado interno */
-  }
-  
-  .btn-custom {
-    width: 210px;  /* Botón ancho */
-    background-color: #198754;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .btn-custom:hover {
-    background-color: #0056b3; /* Azul más oscuro */
-  }
-  
-  .card.form-card {
-    margin-top: 100px; /* Separación específica para esta tarjeta */
-  }
+.progress-label {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #000;
+  font-weight: bold;
+  margin-top: 4px;
+}
 
-  .input-error {
-    border: 1px solid red !important;
-    background-color: #ffe6e6;
-  }
-  
-  .alert-danger {
-    color: rgb(165, 22, 22);
-    font-size: 0.9em;
-    margin-top: 0.5em;
-    padding: 5px;
-    border: 1px solid black;
-    border-radius: 5px;
-    background-color: #f8d7da;
-  }
+.header-style {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
 
-  .alert-danger {
-    font-size: 0.75rem; /* o el valor que prefieras: 12px, 0.8em, etc. */
-  }
-  
-  /* Control de fuente y estilo para th */
+.card-header {
+  padding: 15px;
+  background-color: #0b0f12;
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 8px 8px 0 0;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card.form-card {
+  margin-top: 100px;
+}
+
+.input-error {
+  border: 1px solid red !important;
+  background-color: #ffe6e6;
+}
+
+.alert-danger {
+  color: rgb(165, 22, 22);
+  font-size: 0.75rem;
+  margin-top: 0.5em;
+  padding: 5px;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: #f8d7da;
+}
+
 .custom-th2 {
-  font-size: 13px;       /* tamaño de letra */
-  font-weight: bold;     /* negrita */
-  color: #333;           /* color de texto */
-  padding: 0.5rem;       /* padding interno */
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  padding: 0.5rem;
 }
 
-/* Control de fuente y estilo para td */
 .custom-td2 {
-  font-size: 12px;       /* tamaño de letra ligeramente menor */
-  color: #555;           /* color secundario */
-  padding: 0.5rem;       /* padding interno */
+  font-size: 12px;
+  color: #555;
+  padding: 0.5rem;
 }
 
+.subnav-container {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.submenu-btn {
+  background-color: #eef2f4;
+  color: #24313a;
+  border: 1px solid #cfd8dd;
+  box-shadow: none;
+}
+
+.submenu-btn-active {
+  background-color: #24313a;
+  color: #fff;
+  border-color: #24313a;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background-color: #d1e7dd;
+  color: #0f5132;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-inactive {
+  background-color: #f8d7da;
+  color: #842029;
+}
