@@ -4,15 +4,10 @@
     <app-spinner [isVisible]="loading"></app-spinner>
 
     <div class="content">
-      <!-- ==================================== -->
-      <!-- CREAR CONTROL / LISTA PRINCIPAL      -->
-      <!-- ==================================== -->
       <ng-container *ngIf="!selectedOrganizacion">
-        <!-- Formulario de creación/edición -->
         <form (ngSubmit)="onSubmit()">
           <h1 class="matriz-title">Registro de Requisitos Legales</h1>
 
-          <!-- Fecha y Organización -->
           <div class="input-row">
             <div class="input-group">
               <label for="organizacion">Organización:</label>
@@ -26,14 +21,11 @@
             </div>
           </div>
 
-          <!-- Agregar ítem -->
           <button type="button" class="btn-primary mb-2" (click)="addItem()">
             <i class="fas fa-plus me-1"></i> Agregar requisito
           </button>
 
-          <!-- Ítems dinámicos -->
           <div *ngFor="let item of controlForm.items; let i = index" class="input-row item-row mb-2">
-            <!-- Jurisdicción -->
             <div class="input-group">
               <label for="juridiccionSelect{{ i }}">Jurisdicción:</label>
               <select id="juridiccionSelect{{ i }}" [(ngModel)]="item.juridiccion" name="juridiccion{{ i }}"
@@ -45,7 +37,6 @@
               </select>
             </div>
 
-            <!-- Documento -->
             <div class="input-group">
               <label for="documentoSelect{{ i }}">Documento:</label>
               <select id="documentoSelect{{ i }}" [(ngModel)]="item.documentoId" name="documento{{ i }}"
@@ -57,7 +48,6 @@
               </select>
             </div>
 
-            <!-- Vencimiento y Presentación -->
             <div class="input-group fecha-group">
               <label for="vencimiento{{ i }}">Vencimiento:</label>
               <input type="date" id="vencimiento{{ i }}" required [(ngModel)]="item.vencimiento"
@@ -69,7 +59,6 @@
                 name="presentacion{{ i }}" class="custom-input narrow" />
             </div>
 
-            <!-- Notificación, Observaciones y Mails -->
             <div class="input-group notification-group">
               <label for="diasNotificacion{{ i }}">Notificación:</label>
               <input type="number" id="diasNotificacion{{ i }}" required [(ngModel)]="item.diasNotificacion"
@@ -88,7 +77,6 @@
               </textarea>
             </div>
 
-            <!-- Estado -->
             <div class="input-group align-items-center">
               <label for="estado{{ i }}" class="me-2">Estado:</label>
               <i id="estado{{ i }}" class="fa-solid" [ngClass]="{
@@ -100,13 +88,11 @@
               <span class="ms-2">{{ item.estado ? 'Abierto' : 'Cerrado' }}</span>
             </div>
 
-            <!-- Eliminar ítem -->
             <button type="button" class="btn-sm btn-danger" (click)="removeItem(i)">
               <i class="fas fa-trash"></i>
             </button>
           </div>
 
-          <!-- Botones Enviar / Limpiar -->
           <div class="input-row pt-2">
             <button type="submit" class="btn-primary">
               <i class="fas fa-save me-1"></i>
@@ -120,7 +106,6 @@
 
         <hr />
 
-        <!-- Controles Existentes -->
         <h2 class="matriz-title">Controles Existentes</h2>
         <div class="col-sm-6 mb-3">
           <input type="text" class="form-control" placeholder="Buscar por razón social" [(ngModel)]="filterRazon"
@@ -148,30 +133,23 @@
         </div>
       </ng-container>
 
-      <!-- ==================================== -->
-      <!-- DETALLE / EDICIÓN DE ÍTEMS            -->
-      <!-- ==================================== -->
-
-
       <div *ngIf="selectedOrganizacion as org" [hidden]="loading" class="detail-container">
         <div class="card card-detalle">
           <h3 class="detail-title mb-5">
             Editar ítems de {{ org?.razonSocial }}
           </h3>
 
-          <!-- Botón para agregar ítem en detalle -->
-          <button type="button" class="btn-primary mb-2" (click)="addDetalleItem()">
+          <button type="button" class="btn-primary mb-2" (click)="addDetalleItem()" [disabled]="!editMode">
             <i class="fas fa-plus me-1"></i> Agregar requisito
           </button>
 
           <form (ngSubmit)="onSubmitDetalle()">
             <div *ngFor="let it of selectedItems; let i = index" class="input-row item-row mb-3">
-              <!-- Jurisdicción -->
               <div class="input-group juridiccion-group">
                 <label for="detJuridiccion{{ i }}">Jurisdicción:</label>
                 <select id="detJuridiccion{{ i }}" [(ngModel)]="selectedItems[i].juridiccion"
                   name="detJuridiccion{{ i }}" class="custom-input" (ngModelChange)="onDetalleJuridiccionChange(i)"
-                  required>
+                  [disabled]="!editMode" required>
                   <option value="" disabled>-- Seleccione --</option>
                   <option *ngFor="let j of juridiccionesUnicas" [value]="j">
                     {{ j }}
@@ -179,11 +157,10 @@
                 </select>
               </div>
 
-              <!-- Documento -->
               <div class="input-group">
                 <label for="detDocumento{{ i }}">Documento:</label>
                 <select id="detDocumento{{ i }}" [(ngModel)]="selectedItems[i].documentoId" name="detDocumento{{ i }}"
-                  class="custom-input" [disabled]="!selectedItems[i].juridiccion"
+                  class="custom-input" [disabled]="!editMode || !selectedItems[i].juridiccion"
                   (ngModelChange)="onDetalleDocumentoChange(i)" required>
                   <option value="" disabled>-- Seleccione --</option>
                   <option *ngFor="let doc of documentos | filterByJurisdiccion : selectedItems[i].juridiccion"
@@ -193,55 +170,52 @@
                 </select>
               </div>
 
-              <!-- Vencimiento y Presentación -->
               <div class="input-group fecha-group">
                 <label for="detVencimiento{{ i }}">Vencimiento:</label>
                 <input type="date" id="detVencimiento{{ i }}" [(ngModel)]="selectedItems[i].vencimiento"
-                  name="detVencimiento{{ i }}" class="custom-input narrow" required />
+                  name="detVencimiento{{ i }}" class="custom-input narrow" [disabled]="!editMode" required />
               </div>
               <div class="input-group fecha-group">
                 <label for="detPresentacion{{ i }}">Presentación:</label>
                 <input type="date" id="detPresentacion{{ i }}" [(ngModel)]="selectedItems[i].presentacion"
-                  name="detPresentacion{{ i }}" class="custom-input narrow" required />
+                  name="detPresentacion{{ i }}" class="custom-input narrow" [disabled]="!editMode" required />
               </div>
 
-              <!-- Notificación, Observaciones y Mails -->
-          
               <div class="input-group notification-group">
                 <label for="detDiasNotificacion{{ i }}">Not:</label>
                 <input type="number" id="detDiasNotificacion{{ i }}" [(ngModel)]="selectedItems[i].diasNotificacion"
-                  name="detDiasNotificacion{{ i }}" class="custom-input" required />
+                  name="detDiasNotificacion{{ i }}" class="custom-input" [disabled]="!editMode" required />
               </div>
 
               <div class="input-group observaciones-group">
                 <label for="detObservaciones{{ i }}">Observaciones:</label>
                 <input id="detObservaciones{{ i }}" [(ngModel)]="selectedItems[i].observaciones"
-                  name="detObservaciones{{ i }}" class="custom-input" />
+                  name="detObservaciones{{ i }}" class="custom-input" [disabled]="!editMode" />
               </div>
 
               <div class="input-group mails-group">
                 <label for="detMails{{ i }}">Mails:</label>
                 <textarea id="detMails{{ i }}" name="detMails{{ i }}" class="custom-input custom-textarea" rows="3"
                   placeholder="Un mail por línea o separado por comas" [ngModel]="selectedItems[i].listMail.join('\n')"
-                  (ngModelChange)="onDetalleListMailChange(selectedItems[i], $event)">
-  </textarea>
+                  (ngModelChange)="onDetalleListMailChange(selectedItems[i], $event)" [disabled]="!editMode">
+                </textarea>
               </div>
 
-              <!-- === ESTADO + ELIMINAR agrupados y compactos === -->
               <div class="input-group estado-acciones">
                 <label>Estado:</label>
                 <i class="fa-solid" [ngClass]="{
        'fa-toggle-on text-success': selectedItems[i].estado,
        'fa-toggle-off text-danger': !selectedItems[i].estado
-     }" (click)="selectedItems[i].estado = !selectedItems[i].estado" style="font-size: 1.5rem; cursor: pointer;"
-                  [attr.title]="selectedItems[i].estado ? 'Abierto' : 'Cerrado'">
+     }" (click)="editMode && (selectedItems[i].estado = !selectedItems[i].estado)" style="font-size: 1.5rem; cursor: pointer;"
+                  [attr.title]="selectedItems[i].estado ? 'Abierto' : 'Cerrado'"
+                  [style.pointer-events]="editMode ? 'auto' : 'none'"
+                  [style.opacity]="editMode ? '1' : '0.6'">
                 </i>
                 <span class="ms-2">
                   {{ selectedItems[i].estado ? 'Abierto' : 'Cerrado' }}
                 </span>
 
-                <!-- Eliminar ítem (ahora junto al toggle) -->
-                <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(i)">
+                <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(i)" [disabled]="!editMode">
                   <i class="fas fa-trash"></i>
                 </button>
 
@@ -249,9 +223,8 @@
 
             </div>
 
-            <!-- Guardar / Cancelar -->
             <div class="input-row">
-              <button type="submit" class="btn-primary">
+              <button type="submit" class="btn-primary" [disabled]="!editMode">
                 <i class="fas fa-save me-1"></i> Guardar cambios
               </button>
               <button type="button" class="btn-secondary ms-2" (click)="backToList()">
