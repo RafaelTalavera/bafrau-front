@@ -41,8 +41,7 @@ interface RequisitoSemaforo {
 export class SemaforoRequisitosComponent implements OnInit {
   requisitos: RequisitoSemaforo[] = [];
   loading = false;
-  filterNombre: string = '';
-  filterRazon: string = '';
+  searchTerm: string = '';
 
   constructor(private controlService: ControlService) { }
 
@@ -100,12 +99,40 @@ export class SemaforoRequisitosComponent implements OnInit {
   }
 
   get requisitosFiltrados(): RequisitoSemaforo[] {
+    const filtro = this.normalizeSearchText(this.searchTerm);
+
     return this.requisitos
       .filter(r => r.estado)
-      .filter(r => r.nombre?.toLowerCase().includes(this.filterNombre.toLowerCase()))
-      .filter(r => r.organizacionRazonSocial!
-        .toLowerCase()
-        .includes(this.filterRazon.toLowerCase()));
+      .filter(r => this.matchesSearch(r, filtro));
+  }
+
+  private matchesSearch(requisito: RequisitoSemaforo, filtro: string): boolean {
+    if (!filtro) {
+      return true;
+    }
+
+    const searchableContent = [
+      requisito.nombre,
+      requisito.organizacionRazonSocial,
+      requisito.juridiccion,
+      requisito.observaciones,
+      requisito.presentacion,
+      requisito.vencimiento
+    ]
+      .filter((value): value is string => !!value)
+      .map(value => this.normalizeSearchText(value))
+      .join(' ');
+
+    return searchableContent.includes(filtro);
+  }
+
+  private normalizeSearchText(value: string | null | undefined): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ');
   }
 
   toggleEstado(r: RequisitoSemaforo) {

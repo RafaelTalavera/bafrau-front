@@ -11,24 +11,21 @@
 
             <app-spinner [isVisible]="loading"></app-spinner>
 
-            <!-- Filtros -->
             <div *ngIf="!loading && requisitos.length > 0" class="row mb-3 gx-2">
-              <div class="col-sm-6">
-                <input type="text" class="form-control" placeholder="Buscar por registro" [(ngModel)]="filterNombre" />
-              </div>
-              <div class="col-sm-6">
-                <input type="text" class="form-control" placeholder="Buscar por razón social"
-                  [(ngModel)]="filterRazon" />
+              <div class="col-12">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar por registro, razón social, jurisdicción u observación"
+                  [(ngModel)]="searchTerm" />
               </div>
             </div>
 
-            <!-- Tabla -->
             <div *ngIf="!loading">
               <div *ngIf="requisitosFiltrados.length > 0" class="tabla-scroll">
                 <table class="table table-hover table-striped">
                   <thead>
                     <tr>
-                   
                       <th class="custom-tr">Razón Social</th>
                       <th class="custom-tr">Fecha Carga</th>
                       <th class="custom-tr">Fecha Modif.</th>
@@ -46,24 +43,23 @@
                   </thead>
                   <tbody>
                     <tr *ngFor="let r of requisitosFiltrados">
-                  
                       <td class="custom-td">{{ r.organizacionRazonSocial }}</td>
                       <td class="custom-td">
-                        {{ r.createdDate ? (r.createdDate | date:'dd/MM/yyyy') : '–' }}
+                        {{ r.createdDate ? (r.createdDate | date:'dd/MM/yyyy') : '-' }}
                       </td>
                       <td class="custom-td">
-                        {{ r.lastModifiedDate ? (r.lastModifiedDate | date:'dd/MM/yyyy') : '–' }}
+                        {{ r.lastModifiedDate ? (r.lastModifiedDate | date:'dd/MM/yyyy') : '-' }}
                       </td>
-                      <td class="custom-td">{{ r.presentacion ? (r.presentacion | date:'dd/MM/yyyy') : '–' }}</td>
-                      <td class="custom-td">{{ r.vencimiento ? (r.vencimiento | date:'dd/MM/yyyy') : '–' }}</td>
+                      <td class="custom-td">{{ r.presentacion ? (r.presentacion | date:'dd/MM/yyyy') : '-' }}</td>
+                      <td class="custom-td">{{ r.vencimiento ? (r.vencimiento | date:'dd/MM/yyyy') : '-' }}</td>
                       <td class="custom-td">{{ r.dias }}</td>
                       <td class="custom-td">{{ r.diasNotificacion }}</td>
                       <td class="custom-td">
                         <span class="semaforo-circle" [ngClass]="r.semaforo"></span>
                       </td>
-                      <td class="custom-td">{{ r.nombre || '–' }}</td>
-                      <td class="custom-td">{{ r.juridiccion || '–' }}</td>
-                      <td class="custom-td">{{ r.observaciones || '–' }}</td>
+                      <td class="custom-td">{{ r.nombre || '-' }}</td>
+                      <td class="custom-td">{{ r.juridiccion || '-' }}</td>
+                      <td class="custom-td">{{ r.observaciones || '-' }}</td>
                       <td class="custom-td">{{ r.estado ? 'Abierto' : 'Cerrado' }}</td>
                       <td class="custom-td text-center">
                         <i class="fa-solid" [ngClass]="{
