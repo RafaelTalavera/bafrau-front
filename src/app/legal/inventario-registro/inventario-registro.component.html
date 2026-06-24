@@ -1,193 +1,292 @@
 <div class="wrapper">
   <app-nav></app-nav>
+
   <div class="content-wrapper">
     <app-spinner [isVisible]="loading"></app-spinner>
 
-    <div class="content">
+    <div class="content page-shell">
       <ng-container *ngIf="!selectedOrganizacion">
-        <h1 class="matriz-title">Registro de Requisitos Legales</h1>
-        <p class="text-muted text-center mb-4">
-          Seleccione una organización vigente para ver sus registros asociados, editarlos o aplicar baja lógica sobre sus requisitos.
-        </p>
-        <div class="col-sm-6 mb-3">
-          <input type="text" class="form-control" placeholder="Buscar por razon social" [(ngModel)]="filterRazon"
-            [ngModelOptions]="{ standalone: true }" />
-        </div>
-        <div class="table-responsive">
-          <table class="table table-hover table-striped">
-            <thead class="table-dark">
-              <tr>
-                <th>Organizacion</th>
-                <th>Estado</th>
-                <th>Accion</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let org of filteredOrganizaciones">
-                <td>{{ org.razonSocial }}</td>
-                <td>Vigente</td>
-                <td class="text-center">
-                  <button class="btn btn-success btn-sm" (click)="viewDetails(org)">
-                    <i class="fas fa-eye me-1"></i> Ver detalles
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div *ngIf="filteredOrganizaciones.length === 0" class="alert alert-info mt-3">
-          No hay organizaciones vigentes para mostrar con el filtro actual.
-        </div>
+        <section class="surface-card page-hero">
+          <div>
+            <span class="eyebrow">Legal</span>
+            <h1 class="page-title">Registro de requisitos legales</h1>
+            <p class="page-description">
+              Seleccione una organización vigente para revisar sus requisitos, actualizar registros o aplicar baja lógica sin perder historial.
+            </p>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-chip">
+              <span class="stat-value">{{ filteredOrganizaciones.length }}</span>
+              <span class="stat-label">organizaciones visibles</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="surface-card list-panel">
+          <div class="panel-toolbar">
+            <div class="search-field">
+              <label for="filterRazon">Buscar organización</label>
+              <input
+                id="filterRazon"
+                type="text"
+                class="form-control soft-input"
+                placeholder="Escriba razón social"
+                [(ngModel)]="filterRazon"
+                [ngModelOptions]="{ standalone: true }" />
+            </div>
+          </div>
+
+          <div class="org-list" *ngIf="filteredOrganizaciones.length > 0; else emptyOrganizations">
+            <article class="org-card" *ngFor="let org of filteredOrganizaciones">
+              <div class="org-card-main">
+                <div class="org-avatar">{{ org.razonSocial.charAt(0) }}</div>
+                <div>
+                  <h2 class="org-name">{{ org.razonSocial }}</h2>
+                  <div class="org-meta">
+                    <span class="status-pill status-active">Vigente</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-primary action-button" (click)="viewDetails(org)">
+                <i class="fas fa-arrow-right me-1"></i>
+                Abrir registro
+              </button>
+            </article>
+          </div>
+
+          <ng-template #emptyOrganizations>
+            <div class="empty-state">
+              <h3>Sin resultados</h3>
+              <p>No hay organizaciones vigentes para mostrar con el filtro actual.</p>
+            </div>
+          </ng-template>
+        </section>
       </ng-container>
 
-      <div *ngIf="selectedOrganizacion as org" [hidden]="loading" class="detail-container">
-        <div class="card card-detalle">
-          <h3 class="detail-title mb-5">
-            Editar requisitos de {{ org.razonSocial }}
-          </h3>
+      <section *ngIf="selectedOrganizacion as org" [hidden]="loading" class="detail-container">
+        <div class="surface-card detail-hero">
+          <div class="detail-hero-main">
+            <button type="button" class="btn-ghost back-button" (click)="backToList()">
+              <i class="fas fa-arrow-left me-1"></i>
+              Volver al listado
+            </button>
 
-          <p class="mb-3 text-muted">
-            Cada bloque corresponde a un registro de control. Desde aquí puede crear nuevos registros, editar requisitos existentes y aplicar baja lógica sin perder historial.
-          </p>
+            <span class="eyebrow">Organización seleccionada</span>
+            <h2 class="detail-title">{{ org.razonSocial }}</h2>
+            <p class="page-description">
+              Cada bloque agrupa un registro de control. Puede crear registros nuevos, editar requisitos existentes y recuperar requisitos dados de baja.
+            </p>
+          </div>
 
-          <div class="input-row mb-4">
+          <div class="detail-summary">
+            <div class="stat-chip">
+              <span class="stat-value">{{ selectedControls.length }}</span>
+              <span class="stat-label">registros</span>
+            </div>
+            <div class="stat-chip subtle">
+              <span class="stat-value">{{ deletedItems.length }}</span>
+              <span class="stat-label">dados de baja</span>
+            </div>
             <button type="button" class="btn-primary" (click)="addNewControlDraft()">
-              <i class="fas fa-plus me-1"></i> Nuevo registro
+              <i class="fas fa-plus me-1"></i>
+              Nuevo registro
             </button>
           </div>
+        </div>
 
-          <div *ngIf="selectedControls.length === 0" class="alert alert-info">
-            Esta organización no tiene registros cargados. Use "Nuevo registro" para crear el primero.
-          </div>
+        <div *ngIf="selectedControls.length === 0" class="surface-card empty-state">
+          <h3>Sin registros cargados</h3>
+          <p>Use "Nuevo registro" para crear el primer bloque de requisitos de esta organización.</p>
+        </div>
 
-          <div *ngFor="let control of selectedControls; let controlIndex = index" class="mb-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h4 class="mb-0">
-                {{ isPersistedControl(control) ? ('Control ' + control.id) : 'Nuevo registro' }}
-              </h4>
-              <button type="button" class="btn-primary" (click)="addDetalleItem(controlIndex)">
-                <i class="fas fa-plus me-1"></i> Agregar requisito
+        <section class="controls-stack" *ngIf="selectedControls.length > 0">
+          <article *ngFor="let control of selectedControls; let controlIndex = index" class="surface-card control-card">
+            <div class="control-header">
+              <div>
+                <span class="control-kicker">Registro</span>
+                <h3 class="control-title">
+                  {{ isPersistedControl(control) ? ('Control ' + control.id) : 'Nuevo registro' }}
+                </h3>
+              </div>
+
+              <button type="button" class="btn-secondary" (click)="addDetalleItem(controlIndex)">
+                <i class="fas fa-plus me-1"></i>
+                Agregar requisito
               </button>
             </div>
 
             <form (ngSubmit)="onSubmitDetalle(controlIndex)">
-              <div *ngFor="let it of control.items; let i = index" class="input-row item-row mb-3">
-                <div class="input-group juridiccion-group">
-                  <label for="detJuridiccion{{ control.id }}_{{ i }}">Jurisdiccion:</label>
-                  <select id="detJuridiccion{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].juridiccion"
-                    name="detJuridiccion{{ control.id }}_{{ i }}" class="custom-input"
-                    (ngModelChange)="onDetalleJuridiccionChange(controlIndex, i)" required>
-                    <option value="" disabled>-- Seleccione --</option>
-                    <option *ngFor="let j of juridiccionesUnicas" [value]="j">
-                      {{ j }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="input-group">
-                  <label for="detDocumento{{ control.id }}_{{ i }}">Documento:</label>
-                  <select id="detDocumento{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].documentoId"
-                    name="detDocumento{{ control.id }}_{{ i }}" class="custom-input"
-                    [disabled]="!control.items[i].juridiccion"
-                    (ngModelChange)="onDetalleDocumentoChange(controlIndex, i)" required>
-                    <option value="" disabled>-- Seleccione --</option>
-                    <option *ngFor="let doc of documentos | filterByJurisdiccion : control.items[i].juridiccion"
-                      [ngValue]="doc.id">
-                      {{ doc.nombre }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="input-group fecha-group">
-                  <label for="detVencimiento{{ control.id }}_{{ i }}">Vencimiento:</label>
-                  <input type="date" id="detVencimiento{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].vencimiento"
-                    name="detVencimiento{{ control.id }}_{{ i }}" class="custom-input narrow" required />
-                </div>
-                <div class="input-group fecha-group">
-                  <label for="detPresentacion{{ control.id }}_{{ i }}">Presentacion:</label>
-                  <input type="date" id="detPresentacion{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].presentacion"
-                    name="detPresentacion{{ control.id }}_{{ i }}" class="custom-input narrow" required />
-                </div>
-
-                <div class="input-group notification-group">
-                  <label for="detDiasNotificacion{{ control.id }}_{{ i }}">Not:</label>
-                  <input type="number" id="detDiasNotificacion{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].diasNotificacion"
-                    name="detDiasNotificacion{{ control.id }}_{{ i }}" class="custom-input" required />
-                </div>
-
-                <div class="input-group observaciones-group">
-                  <label for="detObservaciones{{ control.id }}_{{ i }}">Observaciones:</label>
-                  <input id="detObservaciones{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].observaciones"
-                    name="detObservaciones{{ control.id }}_{{ i }}" class="custom-input" />
-                </div>
-
-                <div class="input-group mails-group">
-                  <label for="detMails{{ control.id }}_{{ i }}">Mails:</label>
-                  <textarea id="detMails{{ control.id }}_{{ i }}" name="detMails{{ control.id }}_{{ i }}"
-                    class="custom-input custom-textarea" rows="3"
-                    placeholder="Un mail por linea o separado por comas" [ngModel]="control.items[i].listMail.join('\n')"
-                    (ngModelChange)="onDetalleListMailChange(control.items[i], $event)">
-                  </textarea>
-                </div>
-
-                <div class="input-group estado-acciones">
-                  <label>Estado:</label>
-                  <i class="fa-solid" [ngClass]="{
-       'fa-toggle-on text-success': control.items[i].estado,
-       'fa-toggle-off text-danger': !control.items[i].estado
-     }" (click)="control.items[i].estado = !control.items[i].estado" style="font-size: 1.5rem; cursor: pointer;"
-                    [attr.title]="control.items[i].estado ? 'Abierto' : 'Cerrado'">
-                  </i>
-                  <span class="ms-2">
-                    {{ control.items[i].estado ? 'Abierto' : 'Cerrado' }}
-                  </span>
-
-                  <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(controlIndex, i)">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-
-                <div class="input-group item-actions-group" *ngIf="isPersistedControl(control)">
-                  <label>&nbsp;</label>
-                  <button type="button" class="btn-primary" (click)="saveDetalleItem(controlIndex, i)">
-                    <i class="fas fa-save me-1"></i> Guardar requisito
-                  </button>
-                </div>
+              <div *ngIf="control.items.length === 0" class="inline-empty">
+                Este registro todavía no tiene requisitos. Agregue uno para comenzar.
               </div>
 
-              <div class="input-row mb-4" *ngIf="!isPersistedControl(control)">
+              <div class="requirements-stack">
+                <section *ngFor="let it of control.items; let i = index" class="requirement-card">
+                  <div class="requirement-header">
+                    <div>
+                      <span class="requirement-index">Requisito {{ i + 1 }}</span>
+                      <h4 class="requirement-title">
+                        {{ control.items[i].nombre || 'Pendiente de seleccionar documento' }}
+                      </h4>
+                    </div>
+
+                    <div class="requirement-actions">
+                      <button
+                        type="button"
+                        class="status-toggle"
+                        [class.is-active]="control.items[i].estado"
+                        (click)="control.items[i].estado = !control.items[i].estado"
+                        [attr.title]="control.items[i].estado ? 'Abierto' : 'Cerrado'">
+                        <i class="fa-solid" [ngClass]="control.items[i].estado ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                        {{ control.items[i].estado ? 'Abierto' : 'Cerrado' }}
+                      </button>
+
+                      <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(controlIndex, i)" title="Eliminar requisito">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="form-grid">
+                    <div class="field-group">
+                      <label for="detJuridiccion{{ control.id }}_{{ i }}">Jurisdicción</label>
+                      <select
+                        id="detJuridiccion{{ control.id }}_{{ i }}"
+                        [(ngModel)]="control.items[i].juridiccion"
+                        name="detJuridiccion{{ control.id }}_{{ i }}"
+                        class="custom-input"
+                        (ngModelChange)="onDetalleJuridiccionChange(controlIndex, i)"
+                        required>
+                        <option value="" disabled>Seleccione</option>
+                        <option *ngFor="let j of juridiccionesUnicas" [value]="j">
+                          {{ j }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="field-group field-wide">
+                      <label for="detDocumento{{ control.id }}_{{ i }}">Documento</label>
+                      <select
+                        id="detDocumento{{ control.id }}_{{ i }}"
+                        [(ngModel)]="control.items[i].documentoId"
+                        name="detDocumento{{ control.id }}_{{ i }}"
+                        class="custom-input"
+                        [disabled]="!control.items[i].juridiccion"
+                        (ngModelChange)="onDetalleDocumentoChange(controlIndex, i)"
+                        required>
+                        <option value="" disabled>Seleccione</option>
+                        <option *ngFor="let doc of documentos | filterByJurisdiccion : control.items[i].juridiccion" [ngValue]="doc.id">
+                          {{ doc.nombre }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="field-group">
+                      <label for="detVencimiento{{ control.id }}_{{ i }}">Vencimiento</label>
+                      <input
+                        type="date"
+                        id="detVencimiento{{ control.id }}_{{ i }}"
+                        [(ngModel)]="control.items[i].vencimiento"
+                        name="detVencimiento{{ control.id }}_{{ i }}"
+                        class="custom-input"
+                        required />
+                    </div>
+
+                    <div class="field-group">
+                      <label for="detPresentacion{{ control.id }}_{{ i }}">Presentación</label>
+                      <input
+                        type="date"
+                        id="detPresentacion{{ control.id }}_{{ i }}"
+                        [(ngModel)]="control.items[i].presentacion"
+                        name="detPresentacion{{ control.id }}_{{ i }}"
+                        class="custom-input"
+                        required />
+                    </div>
+
+                    <div class="field-group">
+                      <label for="detDiasNotificacion{{ control.id }}_{{ i }}">Días de aviso</label>
+                      <input
+                        type="number"
+                        id="detDiasNotificacion{{ control.id }}_{{ i }}"
+                        [(ngModel)]="control.items[i].diasNotificacion"
+                        name="detDiasNotificacion{{ control.id }}_{{ i }}"
+                        class="custom-input"
+                        required />
+                    </div>
+
+                    <div class="field-group field-wide">
+                      <label for="detObservaciones{{ control.id }}_{{ i }}">Observaciones</label>
+                      <input
+                        id="detObservaciones{{ control.id }}_{{ i }}"
+                        [(ngModel)]="control.items[i].observaciones"
+                        name="detObservaciones{{ control.id }}_{{ i }}"
+                        class="custom-input" />
+                    </div>
+
+                    <div class="field-group field-full">
+                      <label for="detMails{{ control.id }}_{{ i }}">Mails de notificación</label>
+                      <textarea
+                        id="detMails{{ control.id }}_{{ i }}"
+                        name="detMails{{ control.id }}_{{ i }}"
+                        class="custom-input custom-textarea"
+                        rows="3"
+                        placeholder="Un mail por línea o separado por comas"
+                        [ngModel]="control.items[i].listMail.join('\n')"
+                        (ngModelChange)="onDetalleListMailChange(control.items[i], $event)">
+                      </textarea>
+                    </div>
+                  </div>
+
+                  <div class="requirement-footer" *ngIf="isPersistedControl(control)">
+                    <button type="button" class="btn-primary" (click)="saveDetalleItem(controlIndex, i)">
+                      <i class="fas fa-save me-1"></i>
+                      Guardar requisito
+                    </button>
+                  </div>
+                </section>
+              </div>
+
+              <div class="control-footer" *ngIf="!isPersistedControl(control)">
                 <button type="submit" class="btn-primary">
                   <i class="fas fa-save me-1"></i>
                   Crear registro
                 </button>
               </div>
             </form>
-          </div>
+          </article>
+        </section>
 
-          <div class="mb-4" *ngIf="deletedItems.length > 0">
-            <h4 class="mb-3">Requisitos dados de baja</h4>
-
-            <div *ngFor="let item of deletedItems" class="border rounded p-3 mb-2 bg-light">
-              <div><strong>Control:</strong> {{ item.controlId }}</div>
-              <div><strong>Documento:</strong> {{ item.nombre }}</div>
-              <div><strong>Jurisdiccion:</strong> {{ item.juridiccion }}</div>
-              <div><strong>Vencimiento:</strong> {{ item.vencimiento || '-' }}</div>
-              <div><strong>Presentacion:</strong> {{ item.presentacion || '-' }}</div>
-              <div><strong>Observaciones:</strong> {{ item.observaciones || '-' }}</div>
-              <button type="button" class="btn btn-sm btn-outline-success mt-2" (click)="restoreDeletedItem(item.id!)">
-                Restaurar requisito
-              </button>
+        <section class="surface-card deleted-panel" *ngIf="deletedItems.length > 0">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">Historial</span>
+              <h3 class="panel-title">Requisitos dados de baja</h3>
             </div>
           </div>
 
-          <div class="input-row">
-            <button type="button" class="btn-secondary ms-2" (click)="backToList()">Volver</button>
+          <div class="deleted-grid">
+            <article *ngFor="let item of deletedItems" class="deleted-card">
+              <div class="deleted-card-header">
+                <span class="status-pill status-muted">Control {{ item.controlId }}</span>
+                <button type="button" class="btn-outline" (click)="restoreDeletedItem(item.id!)">
+                  Restaurar requisito
+                </button>
+              </div>
+
+              <h4 class="deleted-title">{{ item.nombre }}</h4>
+              <div class="deleted-meta">
+                <span>{{ item.juridiccion }}</span>
+                <span>Vence: {{ item.vencimiento || '-' }}</span>
+                <span>Presenta: {{ item.presentacion || '-' }}</span>
+              </div>
+              <p class="deleted-observaciones">{{ item.observaciones || 'Sin observaciones.' }}</p>
+            </article>
           </div>
-        </div>
-      </div>
+        </section>
+      </section>
     </div>
   </div>
-
 </div>
 
 <app-footer></app-footer>
