@@ -36,29 +36,18 @@ import { SpinnerComponent } from '../../utils/spinner/spinner.component';
   styleUrls: ['./inventario-registro.component.css']
 })
 export class InventarioRegistroComponent implements OnInit {
-  controlForm: ControlDTO = {
-    id: 0,
-    organizacionId: 0,
-    fecha: '',
-    organizacionRazonSocial: '',
-    items: []
-  };
-
   organizaciones: OrganizacionDTO[] = [];
   documentos: Documento[] = [];
   juridiccionesUnicas: string[] = [];
-  editMode = false;
-  currentControlId: number | null = null;
 
   filterRazon = '';
-  organizacionesConControles: OrganizacionDTO[] = [];
-
   selectedOrganizacion: OrganizacionDTO | null = null;
-  selectedItems: ItemControlDTO[] = [];
-  selectedControlIds: number[] = [];
+  selectedControls: ControlDTO[] = [];
+  deletedItems: ItemControlDTO[] = [];
 
   loading = true;
   private pendingInitialLoads = 0;
+  private nextDraftControlId = -1;
 
   constructor(
     private controlService: ControlService,
@@ -68,9 +57,8 @@ export class InventarioRegistroComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading = true;
-    this.pendingInitialLoads = 3;
+    this.pendingInitialLoads = 2;
     this.cargarOrganizaciones();
-    this.cargarOrganizacionesConControles();
 
     this.documentoService.findAll().subscribe({
       next: docs => {
@@ -86,13 +74,15 @@ export class InventarioRegistroComponent implements OnInit {
   }
 
   cargarOrganizaciones(): void {
-    this.organizacionService.getOrganizacionesRepresentacionTecnica()
+    this.organizacionService.getAllOrganizaciones()
       .subscribe({
         next: data => {
-          this.organizaciones = data.map(o => ({
-            id: o.id!,
-            razonSocial: o.razonSocial
-          }));
+          this.organizaciones = data
+            .filter(o => o.id != null && o.vigente !== false)
+            .map(o => ({
+              id: o.id!,
+              razonSocial: o.razonSocial
+            }));
           this.checkIfLoadingCompleted();
         },
         error: () => {
@@ -102,29 +92,13 @@ export class InventarioRegistroComponent implements OnInit {
       });
   }
 
-  cargarOrganizacionesConControles(): void {
-    this.controlService.getOrganizaciones().subscribe({
-      next: data => {
-        this.organizacionesConControles = data.map(o => ({
-          id: o.id!,
-          razonSocial: o.razonSocial
-        }));
-        this.checkIfLoadingCompleted();
-      },
-      error: () => {
-        Swal.fire('Error', 'No se pudieron cargar las organizaciones con controles.', 'error');
-        this.checkIfLoadingCompleted();
-      }
-    });
-  }
-
   get filteredOrganizaciones(): OrganizacionDTO[] {
     if (!this.filterRazon.trim()) {
-      return this.organizacionesConControles;
+      return this.organizaciones;
     }
 
     const query = this.filterRazon.toLowerCase();
-    return this.organizacionesConControles.filter(org =>
+    return this.organizaciones.filter(org =>
       org.razonSocial.toLowerCase().includes(query)
     );
   }
@@ -132,179 +106,50 @@ export class InventarioRegistroComponent implements OnInit {
   viewDetails(org: OrganizacionDTO): void {
     this.loading = true;
     this.selectedOrganizacion = org;
-    this.currentControlId = null;
-    this.selectedControlIds = [];
+    this.selectedControls = [];
+    this.deletedItems = [];
 
-    this.controlService.getItemsPorOrganizacion(org.id!).subscribe({
-      next: items => {
-        this.selectedItems = items;
-
-        const controlIds = Array.from(new Set(
-          items
-            .map(item => item.controlId)
-            .filter((controlId): controlId is number => controlId != null)
-        ));
-        this.selectedControlIds = controlIds;
-
-        if (controlIds.length === 1) {
-          this.currentControlId = controlIds[0];
-        } else {
-          this.currentControlId = null;
-          if (controlIds.length > 1) {
-            Swal.fire(
-              'Edicion bloqueada',
-              'Esta organizacion tiene requisitos distribuidos en multiples controles. La edicion conjunta quedo bloqueada para evitar perdida de datos.',
-              'warning'
-            );
-          } else {
-            console.warn('No llego controlId en ninguno de los items');
-          }
-        }
-
-        this.editMode = controlIds.length === 1;
-
-        setTimeout(() => {
-          const detail = document.querySelector('.detail-container') as HTMLElement | null;
-          if (!detail) return;
-
-          const scroller = document.querySelector('.content-wrapper') as HTMLElement | null;
-          const nav = document.querySelector('app-nav') as HTMLElement | null;
-          const navHeight = nav?.offsetHeight ?? 0;
-
-          detail.scrollIntoView({ block: 'start', inline: 'nearest' });
-
-          if (scroller) {
-            scroller.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
-          } else {
-            window.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
-          }
-        }, 0);
-
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        Swal.fire('Error', 'No se pudieron cargar los items.', 'error');
-      }
-    });
+    this.loadOrganizationDetail(org.id!);
   }
 
   backToList(): void {
     this.selectedOrganizacion = null;
-    this.selectedItems = [];
-    this.selectedControlIds = [];
-    this.currentControlId = null;
-    this.editMode = false;
+    this.selectedControls = [];
+    this.deletedItems = [];
   }
 
-  addItem(): void {
-    this.controlForm.items.push({
-      id: null,
-      documentoId: 0,
-      controlId: this.controlForm.id,
-      vencimiento: '',
-      presentacion: '',
-      diasNotificacion: 60,
-      listMail: [],
-      observaciones: null,
-      nombre: '',
-      juridiccion: '',
-      observacionesDocumento: '',
-      estado: false
-    });
-  }
+  removeDetalleItem(controlIndex: number, itemIndex: number): void {
+    const control = this.selectedControls[controlIndex];
+    const item = control.items[itemIndex];
 
-  removeItem(idx: number): void {
-    this.controlForm.items.splice(idx, 1);
-  }
-
-  onListMailChange(item: ItemControlDTO, value: string): void {
-    item.listMail = value
-      .split(/[\n,]+/)
-      .map(email => email.trim())
-      .filter(email => email.length > 0);
-  }
-
-  onJuridiccionChange(index: number): void {
-    this.controlForm.items[index].documentoId = 0;
-  }
-
-  onDocumentoChange(index: number): void {
-    // reservado para datos derivados del documento
-  }
-
-  onSubmit(): void {
-    if (this.selectedOrganizacion) {
-      Swal.fire('Error', 'No se puede usar el formulario principal mientras hay un detalle abierto.', 'error');
-      return;
-    }
-
-    if (this.controlForm.items.length === 0) {
-      Swal.fire('Error', 'Agregue al menos un requisito.', 'error');
-      return;
-    }
-
-    const payload: ControlPayload = {
-      organizacionId: this.controlForm.organizacionId,
-      items: this.controlForm.items.map(i => ({
-        id: i.id,
-        documentoId: i.documentoId,
-        vencimiento: i.vencimiento ?? '',
-        presentacion: i.presentacion ?? '',
-        diasNotificacion: i.diasNotificacion,
-        listMail: [...i.listMail],
-        observaciones: i.observaciones ?? '',
-        nombre: i.nombre,
-        juridiccion: i.juridiccion,
-        observacionesDocumento: i.observacionesDocumento ?? '',
-        estado: i.estado
-      }))
-    };
-
-    this.controlService.createControl(payload).subscribe({
-      next: () => {
-        Swal.fire('Creado', 'Control creado.', 'success');
-        this.resetForm();
-        this.cargarOrganizacionesConControles();
-      },
-      error: () => {
-        Swal.fire('Error', 'No se pudo crear.', 'error');
-      }
-    });
-  }
-
-  resetForm(): void {
-    this.controlForm = {
-      id: 0,
-      organizacionId: 0,
-      fecha: '',
-      organizacionRazonSocial: '',
-      items: []
-    };
-    this.editMode = false;
-    this.currentControlId = null;
-  }
-
-  removeDetalleItem(idx: number): void {
-    if (!this.editMode) {
-      this.showBlockedEditWarning();
-      return;
-    }
-
-    const item = this.selectedItems[idx];
     if (item.id) {
       this.controlService.deleteItem(item.id).subscribe({
         next: () => {
-          this.selectedItems.splice(idx, 1);
-          Swal.fire('Eliminado', 'Item borrado exitosamente.', 'success');
+          this.loadOrganizationDetail(this.selectedOrganizacion!.id!, 'Eliminado', 'Item dado de baja correctamente.');
         },
         error: () => {
           Swal.fire('Error', 'No se pudo eliminar el item.', 'error');
         }
       });
-    } else {
-      this.selectedItems.splice(idx, 1);
+      return;
     }
+
+    control.items.splice(itemIndex, 1);
+  }
+
+  restoreDeletedItem(itemId: number): void {
+    if (!this.selectedOrganizacion) {
+      return;
+    }
+
+    this.controlService.restoreItem(itemId).subscribe({
+      next: () => {
+        this.loadOrganizationDetail(this.selectedOrganizacion!.id!, 'Restaurado', 'Item restaurado correctamente.');
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudo restaurar el item.', 'error');
+      }
+    });
   }
 
   onDetalleListMailChange(item: ItemControlDTO, value: string): void {
@@ -314,56 +159,88 @@ export class InventarioRegistroComponent implements OnInit {
       .filter(e => e.length > 0);
   }
 
-  onDetalleJuridiccionChange(index: number): void {
-    if (!this.editMode) {
-      this.showBlockedEditWarning();
-      return;
-    }
-
-    this.selectedItems[index].documentoId = 0;
+  onDetalleJuridiccionChange(controlIndex: number, itemIndex: number): void {
+    this.selectedControls[controlIndex].items[itemIndex].documentoId = 0;
   }
 
-  onDetalleDocumentoChange(index: number): void {
-    if (!this.editMode) {
-      this.showBlockedEditWarning();
-      return;
-    }
-
+  onDetalleDocumentoChange(_controlIndex: number, _itemIndex: number): void {
     // reservado para datos derivados del documento
   }
 
-  onSubmitDetalle(): void {
+  saveDetalleItem(controlIndex: number, itemIndex: number): void {
     if (!this.selectedOrganizacion) {
       return;
     }
 
-    if (this.selectedControlIds.length !== 1 || this.currentControlId == null) {
-      this.showBlockedEditWarning('error');
+    const control = this.selectedControls[controlIndex];
+    const item = control?.items[itemIndex];
+
+    if (!control || !item) {
+      return;
+    }
+
+    if (!item.documentoId || !item.juridiccion || !item.vencimiento || !item.presentacion) {
+      Swal.fire('Error', 'Complete los datos obligatorios del requisito antes de guardar.', 'error');
+      return;
+    }
+
+    if (!this.isPersistedControl(control)) {
+      Swal.fire('Pendiente', 'Primero cree el registro y luego podrá guardar cada requisito por separado.', 'info');
       return;
     }
 
     const payload: ControlPayload = {
       organizacionId: this.selectedOrganizacion.id!,
-      items: this.selectedItems.map(i => ({
-        id: i.id,
-        documentoId: i.documentoId,
-        vencimiento: i.vencimiento ?? '',
-        presentacion: i.presentacion ?? '',
-        diasNotificacion: i.diasNotificacion,
-        listMail: [...i.listMail],
-        observaciones: i.observaciones ?? '',
-        nombre: i.nombre,
-        juridiccion: i.juridiccion,
-        observacionesDocumento: i.observacionesDocumento ?? '',
-        estado: i.estado
-      }))
+      items: [this.toPayloadItem(item)]
     };
 
-    this.controlService.updateControl(this.currentControlId, payload).subscribe({
+    this.controlService.updateControl(control.id, payload).subscribe({
       next: () => {
-        Swal.fire('Guardado', 'Items actualizados correctamente.', 'success');
-        this.backToList();
-        this.cargarOrganizacionesConControles();
+        this.loadOrganizationDetail(
+          this.selectedOrganizacion!.id!,
+          'Guardado',
+          'El requisito se actualizó correctamente.'
+        );
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudo guardar el requisito.', 'error');
+      }
+    });
+  }
+
+  onSubmitDetalle(controlIndex: number): void {
+    if (!this.selectedOrganizacion) {
+      return;
+    }
+
+    const control = this.selectedControls[controlIndex];
+    if (!control) {
+      return;
+    }
+
+    if (control.items.length === 0) {
+      Swal.fire('Error', 'Agregue al menos un requisito antes de guardar.', 'error');
+      return;
+    }
+
+    const payload: ControlPayload = {
+      organizacionId: this.selectedOrganizacion.id!,
+      items: control.items.map(item => this.toPayloadItem(item))
+    };
+
+    const request$ = this.isPersistedControl(control)
+      ? this.controlService.updateControl(control.id, payload)
+      : this.controlService.createControl(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.loadOrganizationDetail(
+          this.selectedOrganizacion!.id!,
+          this.isPersistedControl(control) ? 'Guardado' : 'Creado',
+          this.isPersistedControl(control)
+            ? `Control ${control.id} actualizado correctamente.`
+            : `Se creó un nuevo registro para ${this.selectedOrganizacion?.razonSocial}.`
+        );
       },
       error: () => {
         Swal.fire('Error', 'No se pudieron guardar los cambios.', 'error');
@@ -376,16 +253,16 @@ export class InventarioRegistroComponent implements OnInit {
     this.loading = this.pendingInitialLoads > 0;
   }
 
-  addDetalleItem(): void {
-    if (this.currentControlId == null) {
-      this.showBlockedEditWarning();
+  addDetalleItem(controlIndex: number): void {
+    const control = this.selectedControls[controlIndex];
+    if (!control) {
       return;
     }
 
-    this.selectedItems.push({
+    control.items.push({
       id: null,
       documentoId: 0,
-      controlId: this.currentControlId,
+      controlId: control.id,
       vencimiento: '',
       presentacion: '',
       diasNotificacion: 60,
@@ -398,11 +275,100 @@ export class InventarioRegistroComponent implements OnInit {
     });
   }
 
-  private showBlockedEditWarning(icon: 'warning' | 'error' = 'warning'): void {
-    Swal.fire(
-      'Edicion bloqueada',
-      'La organizacion tiene items asociados a multiples controles. Esta edicion se bloqueo para evitar borrar requisitos existentes.',
-      icon
-    );
+  addNewControlDraft(): void {
+    if (!this.selectedOrganizacion) {
+      return;
+    }
+
+    const draftExists = this.selectedControls.some(control => !this.isPersistedControl(control));
+    if (draftExists) {
+      Swal.fire('Pendiente', 'Ya hay un registro nuevo sin guardar para esta organización.', 'info');
+      return;
+    }
+
+    this.selectedControls.unshift({
+      id: this.nextDraftControlId--,
+      organizacionId: this.selectedOrganizacion.id,
+      fecha: '',
+      organizacionRazonSocial: this.selectedOrganizacion.razonSocial,
+      items: []
+    });
+  }
+
+  isPersistedControl(control: ControlDTO): boolean {
+    return control.id > 0;
+  }
+
+  private normalizeControl(control: ControlDTO): ControlDTO {
+    return {
+      ...control,
+      items: (control.items ?? []).map(item => ({
+        ...item,
+        listMail: item.listMail ?? []
+      }))
+    };
+  }
+
+  private toPayloadItem(item: ItemControlDTO): ControlPayload['items'][number] {
+    return {
+      id: item.id,
+      documentoId: item.documentoId,
+      vencimiento: item.vencimiento ?? '',
+      presentacion: item.presentacion ?? '',
+      diasNotificacion: item.diasNotificacion,
+      listMail: [...item.listMail],
+      observaciones: item.observaciones ?? '',
+      nombre: item.nombre,
+      juridiccion: item.juridiccion,
+      observacionesDocumento: item.observacionesDocumento ?? '',
+      estado: item.estado
+    };
+  }
+
+  private loadOrganizationDetail(orgId: number, successTitle?: string, successText?: string): void {
+    this.controlService.getControlesPorOrganizacion(orgId).subscribe({
+      next: controls => {
+        this.selectedControls = controls.map(control => this.normalizeControl(control));
+
+        this.controlService.getItemsEliminadosPorOrganizacion(orgId).subscribe({
+          next: deletedItems => {
+            this.deletedItems = deletedItems.map(item => ({
+              ...item,
+              listMail: item.listMail ?? []
+            }));
+            this.loading = false;
+
+            setTimeout(() => {
+              const detail = document.querySelector('.detail-container') as HTMLElement | null;
+              if (!detail) return;
+
+              const scroller = document.querySelector('.content-wrapper') as HTMLElement | null;
+              const nav = document.querySelector('app-nav') as HTMLElement | null;
+              const navHeight = nav?.offsetHeight ?? 0;
+
+              detail.scrollIntoView({ block: 'start', inline: 'nearest' });
+
+              if (scroller) {
+                scroller.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
+              } else {
+                window.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
+              }
+            }, 0);
+
+            if (successTitle && successText) {
+              Swal.fire(successTitle, successText, 'success');
+            }
+          },
+          error: () => {
+            this.loading = false;
+            Swal.fire('Error', 'No se pudieron cargar los items eliminados.', 'error');
+          }
+        });
+      },
+      error: () => {
+        this.loading = false;
+        Swal.fire('Error', 'No se pudieron cargar los controles.', 'error');
+      }
+    });
   }
 }

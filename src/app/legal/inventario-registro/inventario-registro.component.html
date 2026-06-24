@@ -5,123 +5,27 @@
 
     <div class="content">
       <ng-container *ngIf="!selectedOrganizacion">
-        <form (ngSubmit)="onSubmit()">
-          <h1 class="matriz-title">Registro de Requisitos Legales</h1>
-
-          <div class="input-row">
-            <div class="input-group">
-              <label for="organizacion">Organización:</label>
-              <select id="organizacion" required [(ngModel)]="controlForm.organizacionId" name="organizacionId"
-                class="custom-input">
-                <option [ngValue]="0" disabled>-- Seleccione --</option>
-                <option *ngFor="let org of organizaciones" [ngValue]="org.id">
-                  {{ org.razonSocial }}
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <button type="button" class="btn-primary mb-2" (click)="addItem()">
-            <i class="fas fa-plus me-1"></i> Agregar requisito
-          </button>
-
-          <div *ngFor="let item of controlForm.items; let i = index" class="input-row item-row mb-2">
-            <div class="input-group">
-              <label for="juridiccionSelect{{ i }}">Jurisdicción:</label>
-              <select id="juridiccionSelect{{ i }}" [(ngModel)]="item.juridiccion" name="juridiccion{{ i }}"
-                class="custom-input" (ngModelChange)="onJuridiccionChange(i)" required>
-                <option value="" disabled>-- Seleccione Jurisdicción --</option>
-                <option *ngFor="let j of juridiccionesUnicas" [value]="j">
-                  {{ j }}
-                </option>
-              </select>
-            </div>
-
-            <div class="input-group">
-              <label for="documentoSelect{{ i }}">Documento:</label>
-              <select id="documentoSelect{{ i }}" [(ngModel)]="item.documentoId" name="documento{{ i }}"
-                class="custom-input" [disabled]="!item.juridiccion" (ngModelChange)="onDocumentoChange(i)" required>
-                <option value="" disabled>-- Seleccione Documento --</option>
-                <option *ngFor="let doc of documentos | filterByJurisdiccion : item.juridiccion" [ngValue]="doc.id">
-                  {{ doc.nombre }}
-                </option>
-              </select>
-            </div>
-
-            <div class="input-group fecha-group">
-              <label for="vencimiento{{ i }}">Vencimiento:</label>
-              <input type="date" id="vencimiento{{ i }}" required [(ngModel)]="item.vencimiento"
-                name="vencimiento{{ i }}" class="custom-input narrow" />
-            </div>
-            <div class="input-group fecha-group">
-              <label for="presentacion{{ i }}">Presentación:</label>
-              <input type="date" id="presentacion{{ i }}" required [(ngModel)]="item.presentacion"
-                name="presentacion{{ i }}" class="custom-input narrow" />
-            </div>
-
-            <div class="input-group notification-group">
-              <label for="diasNotificacion{{ i }}">Notificación:</label>
-              <input type="number" id="diasNotificacion{{ i }}" required [(ngModel)]="item.diasNotificacion"
-                name="diasNotificacion{{ i }}" class="custom-input" />
-            </div>
-            <div class="input-group observaciones-group">
-              <label for="observaciones{{ i }}">Observaciones:</label>
-              <input id="observaciones{{ i }}" [(ngModel)]="item.observaciones" name="observaciones{{ i }}"
-                class="custom-input" />
-            </div>
-            <div class="input-group mails-group">
-              <label for="mails{{ i }}">Mails:</label>
-              <textarea id="mails{{ i }}" name="mails{{ i }}" class="custom-input custom-textarea" rows="4"
-                placeholder="Un mail por línea o separado por comas" [ngModel]="item.listMail.join('\n')"
-                (ngModelChange)="onListMailChange(item, $event)">
-              </textarea>
-            </div>
-
-            <div class="input-group align-items-center">
-              <label for="estado{{ i }}" class="me-2">Estado:</label>
-              <i id="estado{{ i }}" class="fa-solid" [ngClass]="{
-                   'fa-toggle-on text-success': item.estado,
-                   'fa-toggle-off text-danger': !item.estado
-                 }" (click)="item.estado = !item.estado" style="font-size: 1.5rem; cursor: pointer;"
-                [attr.title]="item.estado ? 'Abierto' : 'Cerrado'" role="button">
-              </i>
-              <span class="ms-2">{{ item.estado ? 'Abierto' : 'Cerrado' }}</span>
-            </div>
-
-            <button type="button" class="btn-sm btn-danger" (click)="removeItem(i)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-
-          <div class="input-row pt-2">
-            <button type="submit" class="btn-primary">
-              <i class="fas fa-save me-1"></i>
-              {{ editMode ? 'Actualizar' : 'Crear' }} Control
-            </button>
-            <button type="button" class="btn-success ms-2" (click)="resetForm()">
-              <i class="fas fa-eraser me-1"></i> Limpiar
-            </button>
-          </div>
-        </form>
-
-        <hr />
-
-        <h2 class="matriz-title">Controles Existentes</h2>
+        <h1 class="matriz-title">Registro de Requisitos Legales</h1>
+        <p class="text-muted text-center mb-4">
+          Seleccione una organización vigente para ver sus registros asociados, editarlos o aplicar baja lógica sobre sus requisitos.
+        </p>
         <div class="col-sm-6 mb-3">
-          <input type="text" class="form-control" placeholder="Buscar por razón social" [(ngModel)]="filterRazon"
+          <input type="text" class="form-control" placeholder="Buscar por razon social" [(ngModel)]="filterRazon"
             [ngModelOptions]="{ standalone: true }" />
         </div>
         <div class="table-responsive">
           <table class="table table-hover table-striped">
             <thead class="table-dark">
               <tr>
-                <th>Organización</th>
-                <th>Acción</th>
+                <th>Organizacion</th>
+                <th>Estado</th>
+                <th>Accion</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let org of filteredOrganizaciones">
                 <td>{{ org.razonSocial }}</td>
+                <td>Vigente</td>
                 <td class="text-center">
                   <button class="btn btn-success btn-sm" (click)="viewDetails(org)">
                     <i class="fas fa-eye me-1"></i> Ver detalles
@@ -131,107 +35,154 @@
             </tbody>
           </table>
         </div>
+        <div *ngIf="filteredOrganizaciones.length === 0" class="alert alert-info mt-3">
+          No hay organizaciones vigentes para mostrar con el filtro actual.
+        </div>
       </ng-container>
 
       <div *ngIf="selectedOrganizacion as org" [hidden]="loading" class="detail-container">
         <div class="card card-detalle">
           <h3 class="detail-title mb-5">
-            Editar ítems de {{ org?.razonSocial }}
+            Editar requisitos de {{ org.razonSocial }}
           </h3>
 
-          <button type="button" class="btn-primary mb-2" (click)="addDetalleItem()" [disabled]="!editMode">
-            <i class="fas fa-plus me-1"></i> Agregar requisito
-          </button>
+          <p class="mb-3 text-muted">
+            Cada bloque corresponde a un registro de control. Desde aquí puede crear nuevos registros, editar requisitos existentes y aplicar baja lógica sin perder historial.
+          </p>
 
-          <form (ngSubmit)="onSubmitDetalle()">
-            <div *ngFor="let it of selectedItems; let i = index" class="input-row item-row mb-3">
-              <div class="input-group juridiccion-group">
-                <label for="detJuridiccion{{ i }}">Jurisdicción:</label>
-                <select id="detJuridiccion{{ i }}" [(ngModel)]="selectedItems[i].juridiccion"
-                  name="detJuridiccion{{ i }}" class="custom-input" (ngModelChange)="onDetalleJuridiccionChange(i)"
-                  [disabled]="!editMode" required>
-                  <option value="" disabled>-- Seleccione --</option>
-                  <option *ngFor="let j of juridiccionesUnicas" [value]="j">
-                    {{ j }}
-                  </option>
-                </select>
+          <div class="input-row mb-4">
+            <button type="button" class="btn-primary" (click)="addNewControlDraft()">
+              <i class="fas fa-plus me-1"></i> Nuevo registro
+            </button>
+          </div>
+
+          <div *ngIf="selectedControls.length === 0" class="alert alert-info">
+            Esta organización no tiene registros cargados. Use "Nuevo registro" para crear el primero.
+          </div>
+
+          <div *ngFor="let control of selectedControls; let controlIndex = index" class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="mb-0">
+                {{ isPersistedControl(control) ? ('Control ' + control.id) : 'Nuevo registro' }}
+              </h4>
+              <button type="button" class="btn-primary" (click)="addDetalleItem(controlIndex)">
+                <i class="fas fa-plus me-1"></i> Agregar requisito
+              </button>
+            </div>
+
+            <form (ngSubmit)="onSubmitDetalle(controlIndex)">
+              <div *ngFor="let it of control.items; let i = index" class="input-row item-row mb-3">
+                <div class="input-group juridiccion-group">
+                  <label for="detJuridiccion{{ control.id }}_{{ i }}">Jurisdiccion:</label>
+                  <select id="detJuridiccion{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].juridiccion"
+                    name="detJuridiccion{{ control.id }}_{{ i }}" class="custom-input"
+                    (ngModelChange)="onDetalleJuridiccionChange(controlIndex, i)" required>
+                    <option value="" disabled>-- Seleccione --</option>
+                    <option *ngFor="let j of juridiccionesUnicas" [value]="j">
+                      {{ j }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="input-group">
+                  <label for="detDocumento{{ control.id }}_{{ i }}">Documento:</label>
+                  <select id="detDocumento{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].documentoId"
+                    name="detDocumento{{ control.id }}_{{ i }}" class="custom-input"
+                    [disabled]="!control.items[i].juridiccion"
+                    (ngModelChange)="onDetalleDocumentoChange(controlIndex, i)" required>
+                    <option value="" disabled>-- Seleccione --</option>
+                    <option *ngFor="let doc of documentos | filterByJurisdiccion : control.items[i].juridiccion"
+                      [ngValue]="doc.id">
+                      {{ doc.nombre }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="input-group fecha-group">
+                  <label for="detVencimiento{{ control.id }}_{{ i }}">Vencimiento:</label>
+                  <input type="date" id="detVencimiento{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].vencimiento"
+                    name="detVencimiento{{ control.id }}_{{ i }}" class="custom-input narrow" required />
+                </div>
+                <div class="input-group fecha-group">
+                  <label for="detPresentacion{{ control.id }}_{{ i }}">Presentacion:</label>
+                  <input type="date" id="detPresentacion{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].presentacion"
+                    name="detPresentacion{{ control.id }}_{{ i }}" class="custom-input narrow" required />
+                </div>
+
+                <div class="input-group notification-group">
+                  <label for="detDiasNotificacion{{ control.id }}_{{ i }}">Not:</label>
+                  <input type="number" id="detDiasNotificacion{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].diasNotificacion"
+                    name="detDiasNotificacion{{ control.id }}_{{ i }}" class="custom-input" required />
+                </div>
+
+                <div class="input-group observaciones-group">
+                  <label for="detObservaciones{{ control.id }}_{{ i }}">Observaciones:</label>
+                  <input id="detObservaciones{{ control.id }}_{{ i }}" [(ngModel)]="control.items[i].observaciones"
+                    name="detObservaciones{{ control.id }}_{{ i }}" class="custom-input" />
+                </div>
+
+                <div class="input-group mails-group">
+                  <label for="detMails{{ control.id }}_{{ i }}">Mails:</label>
+                  <textarea id="detMails{{ control.id }}_{{ i }}" name="detMails{{ control.id }}_{{ i }}"
+                    class="custom-input custom-textarea" rows="3"
+                    placeholder="Un mail por linea o separado por comas" [ngModel]="control.items[i].listMail.join('\n')"
+                    (ngModelChange)="onDetalleListMailChange(control.items[i], $event)">
+                  </textarea>
+                </div>
+
+                <div class="input-group estado-acciones">
+                  <label>Estado:</label>
+                  <i class="fa-solid" [ngClass]="{
+       'fa-toggle-on text-success': control.items[i].estado,
+       'fa-toggle-off text-danger': !control.items[i].estado
+     }" (click)="control.items[i].estado = !control.items[i].estado" style="font-size: 1.5rem; cursor: pointer;"
+                    [attr.title]="control.items[i].estado ? 'Abierto' : 'Cerrado'">
+                  </i>
+                  <span class="ms-2">
+                    {{ control.items[i].estado ? 'Abierto' : 'Cerrado' }}
+                  </span>
+
+                  <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(controlIndex, i)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+
+                <div class="input-group item-actions-group" *ngIf="isPersistedControl(control)">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn-primary" (click)="saveDetalleItem(controlIndex, i)">
+                    <i class="fas fa-save me-1"></i> Guardar requisito
+                  </button>
+                </div>
               </div>
 
-              <div class="input-group">
-                <label for="detDocumento{{ i }}">Documento:</label>
-                <select id="detDocumento{{ i }}" [(ngModel)]="selectedItems[i].documentoId" name="detDocumento{{ i }}"
-                  class="custom-input" [disabled]="!editMode || !selectedItems[i].juridiccion"
-                  (ngModelChange)="onDetalleDocumentoChange(i)" required>
-                  <option value="" disabled>-- Seleccione --</option>
-                  <option *ngFor="let doc of documentos | filterByJurisdiccion : selectedItems[i].juridiccion"
-                    [ngValue]="doc.id">
-                    {{ doc.nombre }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="input-group fecha-group">
-                <label for="detVencimiento{{ i }}">Vencimiento:</label>
-                <input type="date" id="detVencimiento{{ i }}" [(ngModel)]="selectedItems[i].vencimiento"
-                  name="detVencimiento{{ i }}" class="custom-input narrow" [disabled]="!editMode" required />
-              </div>
-              <div class="input-group fecha-group">
-                <label for="detPresentacion{{ i }}">Presentación:</label>
-                <input type="date" id="detPresentacion{{ i }}" [(ngModel)]="selectedItems[i].presentacion"
-                  name="detPresentacion{{ i }}" class="custom-input narrow" [disabled]="!editMode" required />
-              </div>
-
-              <div class="input-group notification-group">
-                <label for="detDiasNotificacion{{ i }}">Not:</label>
-                <input type="number" id="detDiasNotificacion{{ i }}" [(ngModel)]="selectedItems[i].diasNotificacion"
-                  name="detDiasNotificacion{{ i }}" class="custom-input" [disabled]="!editMode" required />
-              </div>
-
-              <div class="input-group observaciones-group">
-                <label for="detObservaciones{{ i }}">Observaciones:</label>
-                <input id="detObservaciones{{ i }}" [(ngModel)]="selectedItems[i].observaciones"
-                  name="detObservaciones{{ i }}" class="custom-input" [disabled]="!editMode" />
-              </div>
-
-              <div class="input-group mails-group">
-                <label for="detMails{{ i }}">Mails:</label>
-                <textarea id="detMails{{ i }}" name="detMails{{ i }}" class="custom-input custom-textarea" rows="3"
-                  placeholder="Un mail por línea o separado por comas" [ngModel]="selectedItems[i].listMail.join('\n')"
-                  (ngModelChange)="onDetalleListMailChange(selectedItems[i], $event)" [disabled]="!editMode">
-                </textarea>
-              </div>
-
-              <div class="input-group estado-acciones">
-                <label>Estado:</label>
-                <i class="fa-solid" [ngClass]="{
-       'fa-toggle-on text-success': selectedItems[i].estado,
-       'fa-toggle-off text-danger': !selectedItems[i].estado
-     }" (click)="editMode && (selectedItems[i].estado = !selectedItems[i].estado)" style="font-size: 1.5rem; cursor: pointer;"
-                  [attr.title]="selectedItems[i].estado ? 'Abierto' : 'Cerrado'"
-                  [style.pointer-events]="editMode ? 'auto' : 'none'"
-                  [style.opacity]="editMode ? '1' : '0.6'">
-                </i>
-                <span class="ms-2">
-                  {{ selectedItems[i].estado ? 'Abierto' : 'Cerrado' }}
-                </span>
-
-                <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(i)" [disabled]="!editMode">
-                  <i class="fas fa-trash"></i>
+              <div class="input-row mb-4" *ngIf="!isPersistedControl(control)">
+                <button type="submit" class="btn-primary">
+                  <i class="fas fa-save me-1"></i>
+                  Crear registro
                 </button>
-
               </div>
+            </form>
+          </div>
 
-            </div>
+          <div class="mb-4" *ngIf="deletedItems.length > 0">
+            <h4 class="mb-3">Requisitos dados de baja</h4>
 
-            <div class="input-row">
-              <button type="submit" class="btn-primary" [disabled]="!editMode">
-                <i class="fas fa-save me-1"></i> Guardar cambios
-              </button>
-              <button type="button" class="btn-secondary ms-2" (click)="backToList()">
-                ← Cancelar
+            <div *ngFor="let item of deletedItems" class="border rounded p-3 mb-2 bg-light">
+              <div><strong>Control:</strong> {{ item.controlId }}</div>
+              <div><strong>Documento:</strong> {{ item.nombre }}</div>
+              <div><strong>Jurisdiccion:</strong> {{ item.juridiccion }}</div>
+              <div><strong>Vencimiento:</strong> {{ item.vencimiento || '-' }}</div>
+              <div><strong>Presentacion:</strong> {{ item.presentacion || '-' }}</div>
+              <div><strong>Observaciones:</strong> {{ item.observaciones || '-' }}</div>
+              <button type="button" class="btn btn-sm btn-outline-success mt-2" (click)="restoreDeletedItem(item.id!)">
+                Restaurar requisito
               </button>
             </div>
-          </form>
+          </div>
+
+          <div class="input-row">
+            <button type="button" class="btn-secondary ms-2" (click)="backToList()">Volver</button>
+          </div>
         </div>
       </div>
     </div>
