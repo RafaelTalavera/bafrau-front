@@ -2,76 +2,131 @@
 <app-spinner [isVisible]="loading" class="position-fixed top-50 start-50 translate-middle"></app-spinner>
 <app-spinner [isVisible]="itemsLoading" class="position-fixed top-50 start-50 translate-middle"></app-spinner>
 
-<!-- Espaciado superior dinámico según vista -->
-<div class="container content-guard-bottom"
-     [ngClass]="showItems ? 'near-navbar' : 'spaced-top'"
-     *ngIf="!loading">
+<div class="page-shell" *ngIf="!loading">
+  <div class="content-frame" [ngClass]="showItems ? 'detail-mode' : 'list-mode'">
+    <ng-container *ngIf="showOrgList">
+      <section class="surface-card page-hero">
+        <div>
+          <span class="eyebrow">Reporte legal</span>
+          <h1 class="page-title">Seguimiento por organización</h1>
+          <p class="page-description">
+            Seleccione una organización para consultar sus ítems de control y exportar un resumen operativo en Excel.
+          </p>
+        </div>
 
-  <!-- LISTADO DE ORGANIZACIONES -->
-  <div *ngIf="showOrgList">
-    <div class="mb-4">
-      <input type="text" class="form-control" placeholder="🔎 Buscar organización..." [(ngModel)]="filtroRazon" />
-    </div>
-    <div *ngIf="!loading">
-      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-        <table *ngIf="filteredOrganizaciones.length" class="table table-hover table-striped">
-          <thead>
-            <tr>
-              <th style="position: sticky; top: 0; background: #fff; z-index: 2;">Razón Social</th>
-              <th style="position: sticky; top: 0; background: #fff; z-index: 2;">Acción</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let org of filteredOrganizaciones">
-              <td>{{ org.razonSocial }}</td>
-              <td>
-                <button class="btn btn-outline-primary" (click)="verReporte(org.id)">
-                  Ver reporte
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p *ngIf="!filteredOrganizaciones.length" class="text-muted">No se encontró ninguna organización.</p>
-    </div>
+        <div class="hero-summary">
+          <div class="stat-chip">
+            <span class="stat-value">{{ filteredOrganizaciones.length }}</span>
+            <span class="stat-label">organizaciones visibles</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="surface-card list-panel">
+        <div class="panel-toolbar">
+          <div class="search-field">
+            <label for="filtroRazon">Buscar organización</label>
+            <input
+              id="filtroRazon"
+              type="text"
+              class="form-control soft-input"
+              placeholder="Escriba razón social"
+              [(ngModel)]="filtroRazon" />
+          </div>
+        </div>
+
+        <div class="org-list" *ngIf="filteredOrganizaciones.length; else noOrganizations">
+          <article class="org-card" *ngFor="let org of filteredOrganizaciones">
+            <div class="org-main">
+              <div class="org-avatar">{{ org.razonSocial.charAt(0) }}</div>
+              <div>
+                <h2 class="org-name">{{ org.razonSocial }}</h2>
+                <p class="org-caption">Acceso directo al reporte y exportación de ítems.</p>
+              </div>
+            </div>
+
+            <button class="btn-primary action-button" (click)="verReporte(org.id)">
+              <i class="fas fa-chart-line me-1"></i>
+              Ver reporte
+            </button>
+          </article>
+        </div>
+
+        <ng-template #noOrganizations>
+          <div class="empty-state">
+            <h3>Sin resultados</h3>
+            <p>No se encontró ninguna organización con el filtro actual.</p>
+          </div>
+        </ng-template>
+      </section>
+    </ng-container>
+
+    <ng-container *ngIf="showItems">
+      <section class="surface-card detail-hero">
+        <div class="detail-main">
+          <button class="btn-ghost back-button" (click)="volverListado()">
+            <i class="fas fa-arrow-left me-1"></i>
+            Volver al listado
+          </button>
+
+          <span class="eyebrow">Organización seleccionada</span>
+          <h2 class="page-title">{{ selectedOrgName }}</h2>
+          <p class="page-description">
+            Visualice los ítems de control activos y exporte el reporte para compartirlo o trabajarlo fuera del sistema.
+          </p>
+        </div>
+
+        <div class="hero-summary">
+          <div class="stat-chip">
+            <span class="stat-value">{{ items.length }}</span>
+            <span class="stat-label">ítems cargados</span>
+          </div>
+          <button class="btn-success export-button" (click)="exportToExcel()">
+            <i class="fas fa-file-excel me-1"></i>
+            Exportar a Excel
+          </button>
+        </div>
+      </section>
+
+      <section *ngIf="!itemsLoading && items.length > 0" class="surface-card report-panel">
+        <div class="panel-header">
+          <div>
+            <span class="eyebrow">Detalle</span>
+            <h3 class="panel-title">Ítems de control</h3>
+          </div>
+        </div>
+
+        <div class="items-grid">
+          <article class="item-card" *ngFor="let it of items">
+            <div class="item-card-header">
+              <h4 class="item-title">{{ it.nombre }}</h4>
+            </div>
+
+            <div class="item-meta">
+              <div class="meta-block">
+                <span class="meta-label">Vencimiento</span>
+                <span class="meta-value">{{ it.vencimiento | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="meta-block">
+                <span class="meta-label">Presentación</span>
+                <span class="meta-value">{{ it.presentacion | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+
+            <div class="item-notes">
+              <span class="meta-label">Observaciones</span>
+              <p>{{ it.observaciones || 'Sin observaciones registradas.' }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section *ngIf="!itemsLoading && items.length === 0" class="surface-card empty-state">
+        <h3>Sin ítems cargados</h3>
+        <p>Esta organización no tiene ítems de control disponibles para el reporte.</p>
+      </section>
+    </ng-container>
   </div>
-
-  <!-- TABLA DE ÍTEMS -->
-  <div *ngIf="showItems" class="mt-3">
-    <button class="btn btn-secondary mb-3" (click)="volverListado()">← Volver</button>
-
-    <!-- TÍTULO con nombre de la organización -->
-    <h4 class="mb-3">Ítems de Control — {{ selectedOrgName }}</h4>
-
-    <!-- Botón de exportación -->
-    <button class="btn btn-success mb-3" (click)="exportToExcel()">Exportar a Excel</button>
-
-    <app-spinner [isVisible]="itemsLoading"></app-spinner>
-
-    <!-- Evita choque con el footer -->
-    <div *ngIf="!itemsLoading" class="table-responsive shadow-sm rounded items-scroll-area">
-      <table class="table table-striped table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Nombre</th>
-            <th>Vencimiento</th>
-            <th>Presentación</th>
-            <th>Observaciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let it of items">
-            <td>{{ it.nombre }}</td>
-            <td>{{ it.vencimiento | date:'dd/MM/yyyy' }}</td>
-            <td>{{ it.presentacion | date:'dd/MM/yyyy' }}</td>
-            <td>{{ it.observaciones }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
 </div>
 
 <app-footer></app-footer>
