@@ -38,7 +38,7 @@ export interface ControlPayload {
     id: number | null;
     documentoId: number;
     vencimiento: string;
-    presentacion: string;
+    presentacion: string | null;
     diasNotificacion: number;
     listMail: string[];
     observaciones?: string;

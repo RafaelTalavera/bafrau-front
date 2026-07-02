@@ -179,7 +179,7 @@ export class InventarioRegistroComponent implements OnInit {
       return;
     }
 
-    if (!item.documentoId || !item.juridiccion || !item.vencimiento || !item.presentacion) {
+    if (!item.documentoId || !item.juridiccion || !item.vencimiento) {
       Swal.fire('Error', 'Complete los datos obligatorios del requisito antes de guardar.', 'error');
       return;
     }
@@ -264,7 +264,7 @@ export class InventarioRegistroComponent implements OnInit {
       documentoId: 0,
       controlId: control.id,
       vencimiento: '',
-      presentacion: '',
+      presentacion: null,
       diasNotificacion: 60,
       listMail: [],
       observaciones: '',
@@ -314,7 +314,7 @@ export class InventarioRegistroComponent implements OnInit {
       id: item.id,
       documentoId: item.documentoId,
       vencimiento: item.vencimiento ?? '',
-      presentacion: item.presentacion ?? '',
+      presentacion: this.normalizeOptionalDate(item.presentacion),
       diasNotificacion: item.diasNotificacion,
       listMail: [...item.listMail],
       observaciones: item.observaciones ?? '',
@@ -323,6 +323,15 @@ export class InventarioRegistroComponent implements OnInit {
       observacionesDocumento: item.observacionesDocumento ?? '',
       estado: item.estado
     };
+  }
+
+  private normalizeOptionalDate(value: string | null): string | null {
+    if (value == null) {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
 
   private loadOrganizationDetail(orgId: number, successTitle?: string, successText?: string): void {

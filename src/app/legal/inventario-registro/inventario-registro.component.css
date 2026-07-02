@@ -180,6 +180,10 @@
   resize: vertical;
 }
 
+.custom-textarea-observaciones {
+  min-height: 140px;
+}
+
 .org-list,
 .controls-stack,
 .requirements-stack,

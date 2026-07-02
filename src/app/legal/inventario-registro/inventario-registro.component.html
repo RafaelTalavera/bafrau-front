@@ -200,8 +200,7 @@
                         id="detPresentacion{{ control.id }}_{{ i }}"
                         [(ngModel)]="control.items[i].presentacion"
                         name="detPresentacion{{ control.id }}_{{ i }}"
-                        class="custom-input"
-                        required />
+                        class="custom-input" />
                     </div>
 
                     <div class="field-group">
@@ -215,13 +214,15 @@
                         required />
                     </div>
 
-                    <div class="field-group field-wide">
+                    <div class="field-group field-full">
                       <label for="detObservaciones{{ control.id }}_{{ i }}">Observaciones</label>
-                      <input
+                      <textarea
                         id="detObservaciones{{ control.id }}_{{ i }}"
                         [(ngModel)]="control.items[i].observaciones"
                         name="detObservaciones{{ control.id }}_{{ i }}"
-                        class="custom-input" />
+                        class="custom-input custom-textarea custom-textarea-observaciones"
+                        rows="4">
+                      </textarea>
                     </div>
 
                     <div class="field-group field-full">
