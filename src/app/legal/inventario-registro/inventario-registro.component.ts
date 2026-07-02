@@ -74,7 +74,7 @@ export class InventarioRegistroComponent implements OnInit {
   }
 
   cargarOrganizaciones(): void {
-    this.organizacionService.getAllOrganizaciones()
+    this.organizacionService.getOrganizacionesRepresentacionTecnica()
       .subscribe({
         next: data => {
           this.organizaciones = data
