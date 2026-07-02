@@ -171,11 +171,24 @@ export class InventarioRegistroComponent implements OnInit {
   }
 
   onDetalleJuridiccionChange(controlIndex: number, itemIndex: number): void {
-    this.selectedControls[controlIndex].items[itemIndex].documentoId = 0;
+    const item = this.selectedControls[controlIndex].items[itemIndex];
+    item.documentoId = 0;
+    item.nombre = '';
+    item.observacionesDocumento = '';
   }
 
-  onDetalleDocumentoChange(_controlIndex: number, _itemIndex: number): void {
-    // reservado para datos derivados del documento
+  onDetalleDocumentoChange(controlIndex: number, itemIndex: number): void {
+    const item = this.selectedControls[controlIndex].items[itemIndex];
+    const documento = this.documentos.find(doc => doc.id === item.documentoId);
+    if (!documento) {
+      item.nombre = '';
+      item.observacionesDocumento = '';
+      return;
+    }
+
+    item.nombre = documento.nombre;
+    item.juridiccion = documento.juridiccion;
+    item.observacionesDocumento = documento.observaciones ?? '';
   }
 
   saveDetalleItem(controlIndex: number, itemIndex: number): void {
@@ -190,10 +203,16 @@ export class InventarioRegistroComponent implements OnInit {
       return;
     }
 
-    if (!item.documentoId || !item.juridiccion || !item.vencimiento) {
+    this.hydrateItemFromSelectedDocument(item);
+
+    const normalizedVencimiento = this.normalizeRequiredDate(item.vencimiento);
+    if (!item.documentoId || !normalizedVencimiento) {
       Swal.fire('Error', 'Complete los datos obligatorios del requisito antes de guardar.', 'error');
       return;
     }
+
+    item.vencimiento = normalizedVencimiento;
+    item.presentacion = this.normalizeOptionalDate(item.presentacion);
 
     if (!this.isPersistedControl(control)) {
       Swal.fire('Pendiente', 'Primero cree el registro y luego podrá guardar cada requisito por separado.', 'info');
@@ -232,6 +251,19 @@ export class InventarioRegistroComponent implements OnInit {
     if (control.items.length === 0) {
       Swal.fire('Error', 'Agregue al menos un requisito antes de guardar.', 'error');
       return;
+    }
+
+    for (const item of control.items) {
+      this.hydrateItemFromSelectedDocument(item);
+
+      const normalizedVencimiento = this.normalizeRequiredDate(item.vencimiento);
+      if (!item.documentoId || !normalizedVencimiento) {
+        Swal.fire('Error', 'Complete los datos obligatorios del requisito antes de guardar.', 'error');
+        return;
+      }
+
+      item.vencimiento = normalizedVencimiento;
+      item.presentacion = this.normalizeOptionalDate(item.presentacion);
     }
 
     const payload: ControlPayload = {
@@ -324,7 +356,7 @@ export class InventarioRegistroComponent implements OnInit {
     return {
       id: item.id,
       documentoId: item.documentoId,
-      vencimiento: item.vencimiento ?? '',
+      vencimiento: this.normalizeRequiredDate(item.vencimiento) ?? '',
       presentacion: this.normalizeOptionalDate(item.presentacion),
       diasNotificacion: item.diasNotificacion,
       listMail: [...item.listMail],
@@ -332,17 +364,51 @@ export class InventarioRegistroComponent implements OnInit {
       nombre: item.nombre,
       juridiccion: item.juridiccion,
       observacionesDocumento: item.observacionesDocumento ?? '',
-      estado: item.estado
+      estado: item.estado,
+      deleted: item.deleted ?? false
     };
   }
 
+  private hydrateItemFromSelectedDocument(item: ItemControlDTO): void {
+    const documento = this.documentos.find(doc => doc.id === item.documentoId);
+    if (!documento) {
+      return;
+    }
+
+    item.nombre = documento.nombre;
+    item.juridiccion = documento.juridiccion;
+    item.observacionesDocumento = documento.observaciones ?? '';
+  }
+
+  private normalizeRequiredDate(value: string | null): string | null {
+    return this.normalizeDateInput(value);
+  }
+
   private normalizeOptionalDate(value: string | null): string | null {
+    return this.normalizeDateInput(value);
+  }
+
+  private normalizeDateInput(value: string | null): string | null {
     if (value == null) {
       return null;
     }
 
     const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
+    if (!trimmed) {
+      return null;
+    }
+
+    const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+    if (isoMatch) {
+      return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+    }
+
+    const localMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+    if (localMatch) {
+      return `${localMatch[3]}-${localMatch[2]}-${localMatch[1]}`;
+    }
+
+    return null;
   }
 
   private loadOrganizationDetail(orgId: number, successTitle?: string, successText?: string): void {

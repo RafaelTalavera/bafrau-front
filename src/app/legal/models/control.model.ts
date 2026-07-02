@@ -46,5 +46,6 @@ export interface ControlPayload {
     juridiccion: string;
     observacionesDocumento?: string;
     estado: boolean;
+    deleted?: boolean;
   }[];
 }
