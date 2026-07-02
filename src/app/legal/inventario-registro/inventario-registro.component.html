@@ -81,12 +81,12 @@
 
           <div class="detail-summary">
             <div class="stat-chip">
-              <span class="stat-value">{{ selectedControls.length }}</span>
-              <span class="stat-label">registros</span>
+              <span class="stat-value">{{ activeRequirementsCount }}</span>
+              <span class="stat-label">requisitos activos</span>
             </div>
             <div class="stat-chip subtle">
-              <span class="stat-value">{{ deletedItems.length }}</span>
-              <span class="stat-label">dados de baja</span>
+              <span class="stat-value">{{ closedRequirementsCount }}</span>
+              <span class="stat-label">requisitos cerrados</span>
             </div>
             <button type="button" class="btn-primary" (click)="addNewControlDraft()">
               <i class="fas fa-plus me-1"></i>
@@ -106,7 +106,7 @@
               <div>
                 <span class="control-kicker">Registro</span>
                 <h3 class="control-title">
-                  {{ isPersistedControl(control) ? ('Control ' + control.id) : 'Nuevo registro' }}
+                  {{ isPersistedControl(control) ? 'Registro cargado' : 'Nuevo registro' }}
                 </h3>
               </div>
 
@@ -269,7 +269,7 @@
           <div class="deleted-grid">
             <article *ngFor="let item of deletedItems" class="deleted-card">
               <div class="deleted-card-header">
-                <span class="status-pill status-muted">Control {{ item.controlId }}</span>
+                <span class="status-pill status-muted">Requisito dado de baja</span>
                 <button type="button" class="btn-outline" (click)="restoreDeletedItem(item.id!)">
                   Restaurar requisito
                 </button>

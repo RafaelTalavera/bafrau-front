@@ -103,6 +103,17 @@ export class InventarioRegistroComponent implements OnInit {
     );
   }
 
+  get activeRequirementsCount(): number {
+    return this.selectedControls.reduce((total, control) => total + (control.items?.length ?? 0), 0);
+  }
+
+  get closedRequirementsCount(): number {
+    return this.selectedControls.reduce(
+      (total, control) => total + (control.items?.filter(item => item.estado !== true).length ?? 0),
+      0
+    );
+  }
+
   viewDetails(org: OrganizacionDTO): void {
     this.loading = true;
     this.selectedOrganizacion = org;
@@ -238,7 +249,7 @@ export class InventarioRegistroComponent implements OnInit {
           this.selectedOrganizacion!.id!,
           this.isPersistedControl(control) ? 'Guardado' : 'Creado',
           this.isPersistedControl(control)
-            ? `Control ${control.id} actualizado correctamente.`
+            ? 'Registro actualizado correctamente.'
             : `Se creó un nuevo registro para ${this.selectedOrganizacion?.razonSocial}.`
         );
       },
