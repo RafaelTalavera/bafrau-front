@@ -31,3 +31,9 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 Global layout rules for `nav`, `navbar`, `content-wrapper` and `footer` are documented in:
 
 - `docs/layout-global-rules.md`
+
+## Registro Inventario
+
+Recent changes and functional notes for `registro-inventario` are documented in:
+
+- `docs/registro-inventario-cambios-ui-y-carga.md`
