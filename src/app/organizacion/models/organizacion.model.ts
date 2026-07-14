@@ -5,6 +5,7 @@ export interface Organizacion {
     id?: number;
     fechaAlta:string;
     nombreDelProponente: string;
+    descripcion?: string;
     tipoDeContrato: string;
     rrpp?: string[];
     razonSocial: string;

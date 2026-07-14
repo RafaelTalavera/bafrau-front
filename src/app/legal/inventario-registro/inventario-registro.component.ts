@@ -100,7 +100,8 @@ export class InventarioRegistroComponent implements OnInit {
           .filter(o => o.id != null && o.vigente !== false)
           .map(o => ({
             id: o.id!,
-            razonSocial: o.razonSocial
+            razonSocial: o.razonSocial,
+            descripcion: o.descripcion ?? null
           }));
 
         this.documentos = documentos;

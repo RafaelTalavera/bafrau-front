@@ -74,8 +74,8 @@
 
             <span class="eyebrow">Organizacion seleccionada</span>
             <h2 class="detail-title">{{ org.razonSocial }}</h2>
-            <p class="page-description">
-              Cada bloque agrupa un registro de control. Puede crear registros nuevos, editar requisitos existentes y recuperar requisitos dados de baja.
+            <p class="page-description" *ngIf="org.descripcion">
+              {{ org.descripcion }}
             </p>
           </div>
 

@@ -3,6 +3,7 @@
 export interface OrganizacionDTO {
   id: number;
   razonSocial: string;
+  descripcion?: string | null;
 }
 
 export interface ItemControlDTO {

@@ -119,6 +119,16 @@
                 </div>
               </div>
 
+              <div class="field-group field-span-4">
+                <label for="descripcion">Descripcion breve de la empresa</label>
+                <textarea
+                  id="descripcion"
+                  formControlName="descripcion"
+                  class="custom-input custom-textarea"
+                  rows="4"
+                  placeholder="Ingrese una descripcion breve de la empresa"></textarea>
+              </div>
+
               <div class="field-group">
                 <label for="cuit">CUIT</label>
                 <input id="cuit" type="number" maxlength="11" formControlName="cuit" class="custom-input" />
@@ -130,7 +140,7 @@
                 </div>
               </div>
 
-              <div class="field-group field-span-4">
+              <div class="field-group field-span-full">
                 <label for="domicilioRealProyecto">Domicilio real del proyecto</label>
                 <input id="domicilioRealProyecto" formControlName="domicilioRealProyecto" class="custom-input" />
                 <div *ngIf="organizacionForm.get('domicilioRealProyecto')?.invalid && organizacionForm.get('domicilioRealProyecto')?.touched" class="field-error">
@@ -138,7 +148,7 @@
                 </div>
               </div>
 
-              <div class="field-group field-span-4">
+              <div class="field-group field-span-full">
                 <label for="domicilioLegalProyecto">Domicilio legal del proyecto</label>
                 <input id="domicilioLegalProyecto" formControlName="domicilioLegalProyecto" class="custom-input" />
                 <div *ngIf="organizacionForm.get('domicilioLegalProyecto')?.invalid && organizacionForm.get('domicilioLegalProyecto')?.touched" class="field-error">
