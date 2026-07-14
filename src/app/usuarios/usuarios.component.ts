@@ -1,9 +1,10 @@
-﻿import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
-import Swal from 'sweetalert2';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, finalize, of } from 'rxjs';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { catchError, finalize, of } from 'rxjs';
+import Swal from 'sweetalert2';
+import { CanComponentDeactivate } from '../guards/pending-changes.guard';
 import { FormUsuarioComponent } from './form-usuario/form-usuario.component';
 import { Usuario } from './usuario';
 import { UsuariosService } from './services/usuarios.service';
@@ -16,7 +17,9 @@ import { UsuariosService } from './services/usuarios.service';
   styleUrls: ['./usuarios.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class UsuariosComponent implements OnInit {
+export class UsuariosComponent implements OnInit, CanComponentDeactivate {
+  @ViewChild(FormUsuarioComponent) private formUsuarioComponent?: FormUsuarioComponent;
+
   usuarios: Usuario[] = [];
   showError = false;
   dniBusqueda = '';
@@ -34,6 +37,24 @@ export class UsuariosComponent implements OnInit {
   });
 
   constructor(private service: UsuariosService) {}
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.hasPendingChanges()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  get usuariosActivosCount(): number {
+    return this.usuarios.filter((usuario) => this.isUsuarioActivo(usuario)).length;
+  }
+
+  get usuariosBloqueadosCount(): number {
+    return this.usuarios.length - this.usuariosActivosCount;
+  }
 
   ngOnInit(): void {
     this.service.findAll().pipe(
@@ -54,12 +75,14 @@ export class UsuariosComponent implements OnInit {
       this.service.updateUsuario(usuario).subscribe((usuarioUpdated) => {
         this.usuarios = this.usuarios.map((u) => u.id === usuario.id ? usuarioUpdated : u);
         this.buscarPorDNI();
+        this.formUsuarioComponent?.markAsPristine();
         Swal.fire('Usuario actualizado', 'El usuario se ha actualizado con exito', 'success');
       });
     } else {
       this.service.create(usuario).subscribe((usuarioNew) => {
         this.usuarios.push(usuarioNew);
         this.buscarPorDNI();
+        this.formUsuarioComponent?.markAsPristine();
         Swal.fire('Usuario creado', 'El usuario se ha creado con exito', 'success');
       });
     }
@@ -67,8 +90,13 @@ export class UsuariosComponent implements OnInit {
     this.usuarioSelected = new Usuario();
   }
 
-  onUpdateUsuario(usuarioRow: Usuario): void {
+  async onUpdateUsuario(usuarioRow: Usuario): Promise<void> {
+    if (!(await this.confirmDiscardChanges())) {
+      return;
+    }
+
     this.usuarioSelected = { ...usuarioRow };
+    this.formUsuarioComponent?.markAsPristine();
   }
 
   onToggleBloqueo(usuario: Usuario): void {
@@ -78,7 +106,7 @@ export class UsuariosComponent implements OnInit {
 
     Swal.fire({
       title: `${accionCapitalizada} usuario`,
-      text: `¿Confirmas ${accion} este usuario?`,
+      text: `Confirmas ${accion} este usuario?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: `Si, ${accion}`,
@@ -109,7 +137,7 @@ export class UsuariosComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           const errorMessage = error.status === 403
-            ? 'No tenés permisos para esta acción'
+            ? 'No tenes permisos para esta accion'
             : 'No se pudo actualizar el estado del usuario';
 
           this.rowActionError[usuario.id] = errorMessage;
@@ -161,9 +189,35 @@ export class UsuariosComponent implements OnInit {
     const valor = usuario.username || '';
     return valor.includes('@') ? valor.split('@')[0] : valor;
   }
+
+  canDeactivate(): boolean | Promise<boolean> {
+    return this.confirmDiscardChanges();
+  }
+
   private upsertUsuario(usuarioActualizado: Usuario): void {
     this.usuarios = this.usuarios.map((u) => u.id === usuarioActualizado.id ? usuarioActualizado : u);
     this.usuariosFiltrados = this.usuariosFiltrados.map((u) => u.id === usuarioActualizado.id ? usuarioActualizado : u);
   }
-}
 
+  private hasPendingChanges(): boolean {
+    return this.formUsuarioComponent?.hasUnsavedChanges() ?? false;
+  }
+
+  private async confirmDiscardChanges(): Promise<boolean> {
+    if (!this.hasPendingChanges()) {
+      return true;
+    }
+
+    const result = await Swal.fire({
+      title: 'Cambios sin guardar',
+      text: 'Hay cambios sin guardar. Queres salir de esta pantalla sin guardar?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Salir sin guardar',
+      cancelButtonText: 'Continuar editando',
+      reverseButtons: true
+    });
+
+    return result.isConfirmed;
+  }
+}

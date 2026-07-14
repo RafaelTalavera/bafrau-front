@@ -37,3 +37,9 @@ Global layout rules for `nav`, `navbar`, `content-wrapper` and `footer` are docu
 Recent changes and functional notes for `registro-inventario` are documented in:
 
 - `docs/registro-inventario-cambios-ui-y-carga.md`
+
+## Unsaved Changes
+
+Navigation guards and confirmation behavior for pending edits are documented in:
+
+- `docs/unsaved-changes-guards.md`

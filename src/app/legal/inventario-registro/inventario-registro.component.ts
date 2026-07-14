@@ -1,6 +1,5 @@
 // src/app/legal/inventario-registro/inventario-registro.component.ts
-
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { catchError, finalize, forkJoin, of, timeout } from 'rxjs';
@@ -21,6 +20,7 @@ import { FooterComponent } from '../../gobal/footer/footer.component';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FilterByJurisdiccionPipe } from './filter-by-jurisdiccion.pipe';
 import { SpinnerComponent } from '../../utils/spinner/spinner.component';
+import { CanComponentDeactivate } from '../../guards/pending-changes.guard';
 
 type RequirementFilter = 'all' | 'active' | 'closed';
 
@@ -50,7 +50,7 @@ interface VisibleControlView {
   templateUrl: './inventario-registro.component.html',
   styleUrls: ['./inventario-registro.component.css']
 })
-export class InventarioRegistroComponent implements OnInit {
+export class InventarioRegistroComponent implements OnInit, CanComponentDeactivate {
   organizaciones: OrganizacionDTO[] = [];
   documentos: Documento[] = [];
   juridiccionesUnicas: string[] = [];
@@ -65,12 +65,23 @@ export class InventarioRegistroComponent implements OnInit {
   loading = true;
   private nextDraftControlId = -1;
   private readonly requestTimeoutMs = 15000;
+  private originalControlsSnapshot = '';
 
   constructor(
     private controlService: ControlService,
     private organizacionService: OrganizacionService,
     private documentoService: DocumentoService,
   ) {}
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.hasPendingChanges()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  }
 
   ngOnInit(): void {
     this.loading = true;
@@ -169,23 +180,33 @@ export class InventarioRegistroComponent implements OnInit {
     return 'todos';
   }
 
-  viewDetails(org: OrganizacionDTO): void {
+  async viewDetails(org: OrganizacionDTO): Promise<void> {
+    if (!(await this.confirmDiscardChanges())) {
+      return;
+    }
+
     this.loading = true;
     this.selectedOrganizacion = org;
     this.selectedControls = [];
     this.deletedItems = [];
     this.requirementFilter = 'all';
     this.visibleControlViews = [];
+    this.originalControlsSnapshot = '';
 
     this.loadOrganizationDetail(org.id!);
   }
 
-  backToList(): void {
+  async backToList(): Promise<void> {
+    if (!(await this.confirmDiscardChanges())) {
+      return;
+    }
+
     this.selectedOrganizacion = null;
     this.selectedControls = [];
     this.deletedItems = [];
     this.requirementFilter = 'all';
     this.visibleControlViews = [];
+    this.originalControlsSnapshot = '';
   }
 
   setRequirementFilter(filter: RequirementFilter): void {
@@ -416,6 +437,10 @@ export class InventarioRegistroComponent implements OnInit {
     return control.id > 0;
   }
 
+  canDeactivate(): boolean | Promise<boolean> {
+    return this.confirmDiscardChanges();
+  }
+
   private normalizeControl(control: ControlDTO): ControlDTO {
     return {
       ...control,
@@ -553,6 +578,7 @@ export class InventarioRegistroComponent implements OnInit {
           this.selectedControls = (controls ?? []).map(control => this.normalizeControl(control));
           this.sortSelectedControls();
           this.refreshVisibleControlViews();
+          this.originalControlsSnapshot = this.createControlsSnapshot();
 
           this.deletedItems = (deletedItems ?? []).map(item => ({
             ...item,
@@ -585,5 +611,55 @@ export class InventarioRegistroComponent implements OnInit {
           Swal.fire('Error', 'No se pudieron cargar los controles.', 'error');
         }
       });
+  }
+
+  private hasPendingChanges(): boolean {
+    if (!this.selectedOrganizacion) {
+      return false;
+    }
+
+    return this.originalControlsSnapshot !== this.createControlsSnapshot();
+  }
+
+  private async confirmDiscardChanges(): Promise<boolean> {
+    if (!this.hasPendingChanges()) {
+      return true;
+    }
+
+    const result = await Swal.fire({
+      title: 'Cambios sin guardar',
+      text: 'Hay cambios sin guardar. Queres salir de esta pantalla sin guardar?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Salir sin guardar',
+      cancelButtonText: 'Continuar editando',
+      reverseButtons: true
+    });
+
+    return result.isConfirmed;
+  }
+
+  private createControlsSnapshot(): string {
+    return JSON.stringify(
+      this.selectedControls.map(control => ({
+        id: control.id,
+        organizacionId: control.organizacionId,
+        fecha: control.fecha ?? '',
+        items: (control.items ?? []).map(item => ({
+          id: item.id,
+          documentoId: item.documentoId,
+          vencimiento: item.vencimiento ?? null,
+          presentacion: item.presentacion ?? null,
+          diasNotificacion: item.diasNotificacion,
+          listMail: [...(item.listMail ?? [])],
+          observaciones: item.observaciones ?? '',
+          nombre: item.nombre ?? '',
+          juridiccion: item.juridiccion ?? '',
+          observacionesDocumento: item.observacionesDocumento ?? '',
+          estado: item.estado,
+          deleted: item.deleted ?? false
+        }))
+      }))
+    );
   }
 }

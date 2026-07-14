@@ -27,6 +27,7 @@ import { PreviewCaratulaComponent } from './informe-auditoria/preview/caratula/p
 import { CaratulaComponent } from './informe-auditoria/caratula/caratula.component';
 import { InformePreviewComponent } from './informe-auditoria/preview/informe/informe-preview.component';
 import { ShellLayoutComponent } from './layout/shell-layout/shell-layout.component';
+import { pendingChangesGuard } from './guards/pending-changes.guard';
 
 
 
@@ -56,7 +57,7 @@ export const routes: Routes = [
   { path: 'residuo-inventario', component: ResiduoInventarioComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
 
   //legal
-  { path: 'registro-inventario', component: InventarioRegistroComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+  { path: 'registro-inventario', component: InventarioRegistroComponent, canActivate: [roleGuard], canDeactivate: [pendingChangesGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
   { path: 'registro-semaforo', component: SemaforoRequisitosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
   { path: 'reporte-legal-organizacion', component: ReporteLegalOrganizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
 
@@ -85,7 +86,7 @@ export const routes: Routes = [
     component: ShellLayoutComponent,
     children: [
       { path: 'menu', component: MenuTableComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-      { path: 'usuarios', component: UsuariosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } }
+      { path: 'usuarios', component: UsuariosComponent, canActivate: [roleGuard], canDeactivate: [pendingChangesGuard], data: { roles: ['ADMINISTRATOR'] } }
     ]
   },
   { path: '**', redirectTo: 'menu' },
