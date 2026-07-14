@@ -111,6 +111,23 @@
   gap: 4px;
 }
 
+.stat-chip-filter {
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.stat-chip-filter:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.stat-chip-filter.is-selected {
+  border-color: rgba(31, 111, 235, 0.35);
+  background: rgba(31, 111, 235, 0.08);
+  box-shadow: 0 12px 26px rgba(31, 111, 235, 0.14);
+}
+
 .stat-chip.subtle {
   background: #f8fafc;
 }

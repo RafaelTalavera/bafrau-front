@@ -11,7 +11,7 @@
             <span class="eyebrow">Legal</span>
             <h1 class="page-title">Registro de requisitos legales</h1>
             <p class="page-description">
-              Seleccione una organización vigente para revisar sus requisitos, actualizar registros o aplicar baja lógica sin perder historial.
+              Seleccione una organizacion vigente para revisar sus requisitos, actualizar registros o aplicar baja logica sin perder historial.
             </p>
           </div>
           <div class="hero-stats">
@@ -25,12 +25,12 @@
         <section class="surface-card list-panel">
           <div class="panel-toolbar">
             <div class="search-field">
-              <label for="filterRazon">Buscar organización</label>
+              <label for="filterRazon">Buscar organizacion</label>
               <input
                 id="filterRazon"
                 type="text"
                 class="form-control soft-input"
-                placeholder="Escriba razón social"
+                placeholder="Escriba razon social"
                 [(ngModel)]="filterRazon"
                 [ngModelOptions]="{ standalone: true }" />
             </div>
@@ -72,7 +72,7 @@
               Volver al listado
             </button>
 
-            <span class="eyebrow">Organización seleccionada</span>
+            <span class="eyebrow">Organizacion seleccionada</span>
             <h2 class="detail-title">{{ org.razonSocial }}</h2>
             <p class="page-description">
               Cada bloque agrupa un registro de control. Puede crear registros nuevos, editar requisitos existentes y recuperar requisitos dados de baja.
@@ -80,14 +80,22 @@
           </div>
 
           <div class="detail-summary">
-            <div class="stat-chip">
+            <button
+              type="button"
+              class="stat-chip stat-chip-filter"
+              [class.is-selected]="isRequirementFilterSelected('active')"
+              (click)="setRequirementFilter('active')">
               <span class="stat-value">{{ activeRequirementsCount }}</span>
               <span class="stat-label">requisitos activos</span>
-            </div>
-            <div class="stat-chip subtle">
+            </button>
+            <button
+              type="button"
+              class="stat-chip stat-chip-filter subtle"
+              [class.is-selected]="isRequirementFilterSelected('closed')"
+              (click)="setRequirementFilter('closed')">
               <span class="stat-value">{{ closedRequirementsCount }}</span>
               <span class="stat-label">requisitos cerrados</span>
-            </div>
+            </button>
             <button type="button" class="btn-primary" (click)="addNewControlDraft()">
               <i class="fas fa-plus me-1"></i>
               Nuevo registro
@@ -97,37 +105,42 @@
 
         <div *ngIf="selectedControls.length === 0" class="surface-card empty-state">
           <h3>Sin registros cargados</h3>
-          <p>Use "Nuevo registro" para crear el primer bloque de requisitos de esta organización.</p>
+          <p>Use "Nuevo registro" para crear el primer bloque de requisitos de esta organizacion.</p>
         </div>
 
-        <section class="controls-stack" *ngIf="selectedControls.length > 0">
-          <article *ngFor="let control of selectedControls; let controlIndex = index" class="surface-card control-card">
+        <div *ngIf="selectedControls.length > 0 && visibleControlViews.length === 0" class="surface-card empty-state">
+          <h3>Sin requisitos {{ currentRequirementFilterLabel }}</h3>
+          <p>No hay requisitos {{ currentRequirementFilterLabel }} para mostrar con el filtro actual.</p>
+        </div>
+
+        <section class="controls-stack" *ngIf="visibleControlViews.length > 0">
+          <article *ngFor="let controlView of visibleControlViews" class="surface-card control-card">
             <div class="control-header">
               <div>
                 <span class="control-kicker">Registro</span>
                 <h3 class="control-title">
-                  {{ isPersistedControl(control) ? 'Registro cargado' : 'Nuevo registro' }}
+                  {{ isPersistedControl(controlView.control) ? 'Registro cargado' : 'Nuevo registro' }}
                 </h3>
               </div>
 
-              <button type="button" class="btn-secondary" (click)="addDetalleItem(controlIndex)">
+              <button type="button" class="btn-secondary" (click)="addDetalleItem(controlView.controlIndex)">
                 <i class="fas fa-plus me-1"></i>
                 Agregar requisito
               </button>
             </div>
 
-            <form (ngSubmit)="onSubmitDetalle(controlIndex)">
-              <div *ngIf="control.items.length === 0" class="inline-empty">
-                Este registro todavía no tiene requisitos. Agregue uno para comenzar.
+            <form (ngSubmit)="onSubmitDetalle(controlView.controlIndex)">
+              <div *ngIf="controlView.control.items.length === 0" class="inline-empty">
+                Este registro todavia no tiene requisitos. Agregue uno para comenzar.
               </div>
 
               <div class="requirements-stack">
-                <section *ngFor="let it of control.items; let i = index" class="requirement-card">
+                <section *ngFor="let itemView of controlView.visibleItems" class="requirement-card">
                   <div class="requirement-header">
                     <div>
-                      <span class="requirement-index">Requisito {{ i + 1 }}</span>
+                      <span class="requirement-index">Requisito {{ itemView.displayIndex }}</span>
                       <h4 class="requirement-title">
-                        {{ control.items[i].nombre || 'Pendiente de seleccionar documento' }}
+                        {{ itemView.item.nombre || 'Pendiente de seleccionar documento' }}
                       </h4>
                     </div>
 
@@ -135,14 +148,14 @@
                       <button
                         type="button"
                         class="status-toggle"
-                        [class.is-active]="control.items[i].estado"
-                        (click)="control.items[i].estado = !control.items[i].estado"
-                        [attr.title]="control.items[i].estado ? 'Abierto' : 'Cerrado'">
-                        <i class="fa-solid" [ngClass]="control.items[i].estado ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
-                        {{ control.items[i].estado ? 'Abierto' : 'Cerrado' }}
+                        [class.is-active]="itemView.item.estado"
+                        (click)="toggleDetalleEstado(itemView.item)"
+                        [attr.title]="itemView.item.estado ? 'Abierto' : 'Cerrado'">
+                        <i class="fa-solid" [ngClass]="itemView.item.estado ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                        {{ itemView.item.estado ? 'Abierto' : 'Cerrado' }}
                       </button>
 
-                      <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(controlIndex, i)" title="Eliminar requisito">
+                      <button type="button" class="btn-icon btn-danger" (click)="removeDetalleItem(controlView.controlIndex, itemView.itemIndex)" title="Eliminar requisito">
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>
@@ -150,13 +163,13 @@
 
                   <div class="form-grid">
                     <div class="field-group">
-                      <label for="detJuridiccion{{ control.id }}_{{ i }}">Jurisdicción</label>
+                      <label for="detJuridiccion{{ controlView.control.id }}_{{ itemView.itemIndex }}">Jurisdiccion</label>
                       <select
-                        id="detJuridiccion{{ control.id }}_{{ i }}"
-                        [(ngModel)]="control.items[i].juridiccion"
-                        name="detJuridiccion{{ control.id }}_{{ i }}"
+                        id="detJuridiccion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.juridiccion"
+                        name="detJuridiccion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input"
-                        (ngModelChange)="onDetalleJuridiccionChange(controlIndex, i)"
+                        (ngModelChange)="onDetalleJuridiccionChange(controlView.controlIndex, itemView.itemIndex)"
                         required>
                         <option value="" disabled>Seleccione</option>
                         <option *ngFor="let j of juridiccionesUnicas" [value]="j">
@@ -166,81 +179,81 @@
                     </div>
 
                     <div class="field-group field-wide">
-                      <label for="detDocumento{{ control.id }}_{{ i }}">Documento</label>
+                      <label for="detDocumento{{ controlView.control.id }}_{{ itemView.itemIndex }}">Documento</label>
                       <select
-                        id="detDocumento{{ control.id }}_{{ i }}"
-                        [(ngModel)]="control.items[i].documentoId"
-                        name="detDocumento{{ control.id }}_{{ i }}"
+                        id="detDocumento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.documentoId"
+                        name="detDocumento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input"
-                        [disabled]="!control.items[i].juridiccion"
-                        (ngModelChange)="onDetalleDocumentoChange(controlIndex, i)"
+                        [disabled]="!itemView.item.juridiccion"
+                        (ngModelChange)="onDetalleDocumentoChange(controlView.controlIndex, itemView.itemIndex)"
                         required>
                         <option value="" disabled>Seleccione</option>
-                        <option *ngFor="let doc of documentos | filterByJurisdiccion : control.items[i].juridiccion" [ngValue]="doc.id">
+                        <option *ngFor="let doc of documentos | filterByJurisdiccion : itemView.item.juridiccion" [ngValue]="doc.id">
                           {{ doc.nombre }}
                         </option>
                       </select>
                     </div>
 
                     <div class="field-group">
-                      <label for="detVencimiento{{ control.id }}_{{ i }}">Vencimiento</label>
+                      <label for="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}">Vencimiento</label>
                       <input
                         type="date"
-                        id="detVencimiento{{ control.id }}_{{ i }}"
-                        [(ngModel)]="control.items[i].vencimiento"
-                        name="detVencimiento{{ control.id }}_{{ i }}"
+                        id="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.vencimiento"
+                        name="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input"
                         required />
                     </div>
 
                     <div class="field-group">
-                      <label for="detPresentacion{{ control.id }}_{{ i }}">Presentación</label>
+                      <label for="detPresentacion{{ controlView.control.id }}_{{ itemView.itemIndex }}">Presentacion</label>
                       <input
                         type="date"
-                        id="detPresentacion{{ control.id }}_{{ i }}"
-                        [(ngModel)]="control.items[i].presentacion"
-                        name="detPresentacion{{ control.id }}_{{ i }}"
+                        id="detPresentacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.presentacion"
+                        name="detPresentacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input" />
                     </div>
 
                     <div class="field-group">
-                      <label for="detDiasNotificacion{{ control.id }}_{{ i }}">Días de aviso</label>
+                      <label for="detDiasNotificacion{{ controlView.control.id }}_{{ itemView.itemIndex }}">Dias de aviso</label>
                       <input
                         type="number"
-                        id="detDiasNotificacion{{ control.id }}_{{ i }}"
-                        [(ngModel)]="control.items[i].diasNotificacion"
-                        name="detDiasNotificacion{{ control.id }}_{{ i }}"
+                        id="detDiasNotificacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.diasNotificacion"
+                        name="detDiasNotificacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input"
                         required />
                     </div>
 
                     <div class="field-group field-full">
-                      <label for="detObservaciones{{ control.id }}_{{ i }}">Observaciones</label>
+                      <label for="detObservaciones{{ controlView.control.id }}_{{ itemView.itemIndex }}">Observaciones</label>
                       <textarea
-                        id="detObservaciones{{ control.id }}_{{ i }}"
-                        [(ngModel)]="control.items[i].observaciones"
-                        name="detObservaciones{{ control.id }}_{{ i }}"
+                        id="detObservaciones{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.observaciones"
+                        name="detObservaciones{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input custom-textarea custom-textarea-observaciones"
                         rows="4">
                       </textarea>
                     </div>
 
                     <div class="field-group field-full">
-                      <label for="detMails{{ control.id }}_{{ i }}">Mails de notificación</label>
+                      <label for="detMails{{ controlView.control.id }}_{{ itemView.itemIndex }}">Mails de notificacion</label>
                       <textarea
-                        id="detMails{{ control.id }}_{{ i }}"
-                        name="detMails{{ control.id }}_{{ i }}"
+                        id="detMails{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        name="detMails{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input custom-textarea"
                         rows="3"
-                        placeholder="Un mail por línea o separado por comas"
-                        [ngModel]="control.items[i].listMail.join('\n')"
-                        (ngModelChange)="onDetalleListMailChange(control.items[i], $event)">
+                        placeholder="Un mail por linea o separado por comas"
+                        [ngModel]="itemView.item.listMail.join('\n')"
+                        (ngModelChange)="onDetalleListMailChange(itemView.item, $event)">
                       </textarea>
                     </div>
                   </div>
 
-                  <div class="requirement-footer" *ngIf="isPersistedControl(control)">
-                    <button type="button" class="btn-primary" (click)="saveDetalleItem(controlIndex, i)">
+                  <div class="requirement-footer" *ngIf="isPersistedControl(controlView.control)">
+                    <button type="button" class="btn-primary" (click)="saveDetalleItem(controlView.controlIndex, itemView.itemIndex)">
                       <i class="fas fa-save me-1"></i>
                       Guardar requisito
                     </button>
@@ -248,7 +261,7 @@
                 </section>
               </div>
 
-              <div class="control-footer" *ngIf="!isPersistedControl(control)">
+              <div class="control-footer" *ngIf="!isPersistedControl(controlView.control)">
                 <button type="submit" class="btn-primary">
                   <i class="fas fa-save me-1"></i>
                   Crear registro

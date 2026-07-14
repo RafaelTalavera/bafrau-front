@@ -3,6 +3,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { catchError, finalize, forkJoin, of, timeout } from 'rxjs';
 import Swal from 'sweetalert2';
 
 import {
@@ -20,6 +21,20 @@ import { FooterComponent } from '../../gobal/footer/footer.component';
 import { NavComponent } from '../../gobal/nav/nav.component';
 import { FilterByJurisdiccionPipe } from './filter-by-jurisdiccion.pipe';
 import { SpinnerComponent } from '../../utils/spinner/spinner.component';
+
+type RequirementFilter = 'all' | 'active' | 'closed';
+
+interface VisibleRequirementItem {
+  item: ItemControlDTO;
+  itemIndex: number;
+  displayIndex: number;
+}
+
+interface VisibleControlView {
+  control: ControlDTO;
+  controlIndex: number;
+  visibleItems: VisibleRequirementItem[];
+}
 
 @Component({
   selector: 'app-inventario-registro',
@@ -44,10 +59,12 @@ export class InventarioRegistroComponent implements OnInit {
   selectedOrganizacion: OrganizacionDTO | null = null;
   selectedControls: ControlDTO[] = [];
   deletedItems: ItemControlDTO[] = [];
+  requirementFilter: RequirementFilter = 'all';
+  visibleControlViews: VisibleControlView[] = [];
 
   loading = true;
-  private pendingInitialLoads = 0;
   private nextDraftControlId = -1;
+  private readonly requestTimeoutMs = 15000;
 
   constructor(
     private controlService: ControlService,
@@ -57,38 +74,37 @@ export class InventarioRegistroComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading = true;
-    this.pendingInitialLoads = 2;
-    this.cargarOrganizaciones();
-
-    this.documentoService.findAll().subscribe({
-      next: docs => {
-        this.documentos = docs;
-        this.juridiccionesUnicas = Array.from(new Set(docs.map(d => d.juridiccion)));
-        this.checkIfLoadingCompleted();
-      },
-      error: err => {
-        console.error('Error al cargar documentos', err);
-        this.checkIfLoadingCompleted();
-      }
-    });
-  }
-
-  cargarOrganizaciones(): void {
-    this.organizacionService.getOrganizacionesRepresentacionTecnica()
-      .subscribe({
-        next: data => {
-          this.organizaciones = data
-            .filter(o => o.id != null && o.vigente !== false)
-            .map(o => ({
-              id: o.id!,
-              razonSocial: o.razonSocial
-            }));
-          this.checkIfLoadingCompleted();
-        },
-        error: () => {
+    forkJoin({
+      organizaciones: this.organizacionService.getOrganizacionesRepresentacionTecnica().pipe(
+        timeout(this.requestTimeoutMs),
+        catchError(err => {
+          console.error('Error al cargar organizaciones', err);
           Swal.fire('Error', 'No se pudieron cargar organizaciones.', 'error');
-          this.checkIfLoadingCompleted();
-        }
+          return of([]);
+        })
+      ),
+      documentos: this.documentoService.findAll().pipe(
+        timeout(this.requestTimeoutMs),
+        catchError(err => {
+          console.error('Error al cargar documentos', err);
+          Swal.fire('Error', 'No se pudieron cargar documentos.', 'error');
+          return of([]);
+        })
+      )
+    })
+      .pipe(finalize(() => {
+        this.loading = false;
+      }))
+      .subscribe(({ organizaciones, documentos }) => {
+        this.organizaciones = organizaciones
+          .filter(o => o.id != null && o.vigente !== false)
+          .map(o => ({
+            id: o.id!,
+            razonSocial: o.razonSocial
+          }));
+
+        this.documentos = documentos;
+        this.juridiccionesUnicas = Array.from(new Set(documentos.map(d => d.juridiccion)));
       });
   }
 
@@ -104,7 +120,10 @@ export class InventarioRegistroComponent implements OnInit {
   }
 
   get activeRequirementsCount(): number {
-    return this.selectedControls.reduce((total, control) => total + (control.items?.length ?? 0), 0);
+    return this.selectedControls.reduce(
+      (total, control) => total + (control.items?.filter(item => item.estado === true).length ?? 0),
+      0
+    );
   }
 
   get closedRequirementsCount(): number {
@@ -114,11 +133,48 @@ export class InventarioRegistroComponent implements OnInit {
     );
   }
 
+  private refreshVisibleControlViews(): void {
+    let displayIndex = 0;
+
+    this.visibleControlViews = this.selectedControls
+      .map((control, controlIndex) => ({
+        control,
+        controlIndex,
+        visibleItems: (control.items ?? [])
+          .map((item, itemIndex) => ({ item, itemIndex }))
+          .filter(({ item }) => this.matchesRequirementFilter(item))
+          .map(({ item, itemIndex }) => ({
+            item,
+            itemIndex,
+            displayIndex: ++displayIndex
+          }))
+      }))
+      .filter(view => this.requirementFilter === 'all' || view.visibleItems.length > 0);
+  }
+
+  get isFilteringRequirements(): boolean {
+    return this.requirementFilter !== 'all';
+  }
+
+  get currentRequirementFilterLabel(): string {
+    if (this.requirementFilter === 'active') {
+      return 'activos';
+    }
+
+    if (this.requirementFilter === 'closed') {
+      return 'cerrados';
+    }
+
+    return 'todos';
+  }
+
   viewDetails(org: OrganizacionDTO): void {
     this.loading = true;
     this.selectedOrganizacion = org;
     this.selectedControls = [];
     this.deletedItems = [];
+    this.requirementFilter = 'all';
+    this.visibleControlViews = [];
 
     this.loadOrganizationDetail(org.id!);
   }
@@ -127,6 +183,17 @@ export class InventarioRegistroComponent implements OnInit {
     this.selectedOrganizacion = null;
     this.selectedControls = [];
     this.deletedItems = [];
+    this.requirementFilter = 'all';
+    this.visibleControlViews = [];
+  }
+
+  setRequirementFilter(filter: RequirementFilter): void {
+    this.requirementFilter = this.requirementFilter === filter ? 'all' : filter;
+    this.refreshVisibleControlViews();
+  }
+
+  isRequirementFilterSelected(filter: RequirementFilter): boolean {
+    return this.requirementFilter === filter;
   }
 
   removeDetalleItem(controlIndex: number, itemIndex: number): void {
@@ -146,6 +213,7 @@ export class InventarioRegistroComponent implements OnInit {
     }
 
     control.items.splice(itemIndex, 1);
+    this.refreshVisibleControlViews();
   }
 
   restoreDeletedItem(itemId: number): void {
@@ -189,6 +257,11 @@ export class InventarioRegistroComponent implements OnInit {
     item.nombre = documento.nombre;
     item.juridiccion = documento.juridiccion;
     item.observacionesDocumento = documento.observaciones ?? '';
+  }
+
+  toggleDetalleEstado(item: ItemControlDTO): void {
+    item.estado = !item.estado;
+    this.refreshVisibleControlViews();
   }
 
   saveDetalleItem(controlIndex: number, itemIndex: number): void {
@@ -291,11 +364,6 @@ export class InventarioRegistroComponent implements OnInit {
     });
   }
 
-  private checkIfLoadingCompleted(): void {
-    this.pendingInitialLoads = Math.max(0, this.pendingInitialLoads - 1);
-    this.loading = this.pendingInitialLoads > 0;
-  }
-
   addDetalleItem(controlIndex: number): void {
     const control = this.selectedControls[controlIndex];
     if (!control) {
@@ -316,6 +384,8 @@ export class InventarioRegistroComponent implements OnInit {
       observacionesDocumento: '',
       estado: false
     });
+
+    this.refreshVisibleControlViews();
   }
 
   addNewControlDraft(): void {
@@ -329,13 +399,16 @@ export class InventarioRegistroComponent implements OnInit {
       return;
     }
 
-    this.selectedControls.unshift({
+    this.selectedControls.push({
       id: this.nextDraftControlId--,
       organizacionId: this.selectedOrganizacion.id,
       fecha: '',
       organizacionRazonSocial: this.selectedOrganizacion.razonSocial,
       items: []
     });
+
+    this.sortSelectedControls();
+    this.refreshVisibleControlViews();
   }
 
   isPersistedControl(control: ControlDTO): boolean {
@@ -411,50 +484,105 @@ export class InventarioRegistroComponent implements OnInit {
     return null;
   }
 
-  private loadOrganizationDetail(orgId: number, successTitle?: string, successText?: string): void {
-    this.controlService.getControlesPorOrganizacion(orgId).subscribe({
-      next: controls => {
-        this.selectedControls = controls.map(control => this.normalizeControl(control));
+  private sortSelectedControls(): void {
+    this.selectedControls = [...this.selectedControls].sort((a, b) => {
+      const timeA = this.parseControlDate(a.fecha);
+      const timeB = this.parseControlDate(b.fecha);
 
-        this.controlService.getItemsEliminadosPorOrganizacion(orgId).subscribe({
-          next: deletedItems => {
-            this.deletedItems = deletedItems.map(item => ({
-              ...item,
-              listMail: item.listMail ?? []
-            }));
-            this.loading = false;
-
-            setTimeout(() => {
-              const detail = document.querySelector('.detail-container') as HTMLElement | null;
-              if (!detail) return;
-
-              const scroller = document.querySelector('.content-wrapper') as HTMLElement | null;
-              const nav = document.querySelector('app-nav') as HTMLElement | null;
-              const navHeight = nav?.offsetHeight ?? 0;
-
-              detail.scrollIntoView({ block: 'start', inline: 'nearest' });
-
-              if (scroller) {
-                scroller.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
-              } else {
-                window.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
-              }
-            }, 0);
-
-            if (successTitle && successText) {
-              Swal.fire(successTitle, successText, 'success');
-            }
-          },
-          error: () => {
-            this.loading = false;
-            Swal.fire('Error', 'No se pudieron cargar los items eliminados.', 'error');
-          }
-        });
-      },
-      error: () => {
-        this.loading = false;
-        Swal.fire('Error', 'No se pudieron cargar los controles.', 'error');
+      if (timeA === null && timeB === null) {
+        return a.id - b.id;
       }
+
+      if (timeA === null) {
+        return 1;
+      }
+
+      if (timeB === null) {
+        return -1;
+      }
+
+      if (timeA !== timeB) {
+        return timeA - timeB;
+      }
+
+      return a.id - b.id;
     });
+  }
+
+  private parseControlDate(value: string | null | undefined): number | null {
+    const normalized = this.normalizeDateInput(value ?? null);
+    if (!normalized) {
+      return null;
+    }
+
+    return new Date(`${normalized}T00:00:00`).getTime();
+  }
+
+  private matchesRequirementFilter(item: ItemControlDTO): boolean {
+    if (this.requirementFilter === 'active') {
+      return item.estado === true;
+    }
+
+    if (this.requirementFilter === 'closed') {
+      return item.estado !== true;
+    }
+
+    return true;
+  }
+
+  private loadOrganizationDetail(orgId: number, successTitle?: string, successText?: string): void {
+    forkJoin({
+      controls: this.controlService.getControlesPorOrganizacion(orgId).pipe(
+        timeout(this.requestTimeoutMs)
+      ),
+      deletedItems: this.controlService.getItemsEliminadosPorOrganizacion(orgId).pipe(
+        timeout(this.requestTimeoutMs),
+        catchError(err => {
+          console.error('Error al cargar items eliminados', err);
+          Swal.fire('Error', 'No se pudieron cargar los items eliminados.', 'error');
+          return of([]);
+        })
+      )
+    })
+      .pipe(finalize(() => {
+        this.loading = false;
+      }))
+      .subscribe({
+        next: ({ controls, deletedItems }) => {
+          this.selectedControls = (controls ?? []).map(control => this.normalizeControl(control));
+          this.sortSelectedControls();
+          this.refreshVisibleControlViews();
+
+          this.deletedItems = (deletedItems ?? []).map(item => ({
+            ...item,
+            listMail: item.listMail ?? []
+          }));
+
+          setTimeout(() => {
+            const detail = document.querySelector('.detail-container') as HTMLElement | null;
+            if (!detail) return;
+
+            const scroller = document.querySelector('.content-wrapper') as HTMLElement | null;
+            const nav = document.querySelector('app-nav') as HTMLElement | null;
+            const navHeight = nav?.offsetHeight ?? 0;
+
+            detail.scrollIntoView({ block: 'start', inline: 'nearest' });
+
+            if (scroller) {
+              scroller.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
+            } else {
+              window.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
+            }
+          }, 0);
+
+          if (successTitle && successText) {
+            Swal.fire(successTitle, successText, 'success');
+          }
+        },
+        error: err => {
+          console.error('Error al cargar controles', err);
+          Swal.fire('Error', 'No se pudieron cargar los controles.', 'error');
+        }
+      });
   }
 }
