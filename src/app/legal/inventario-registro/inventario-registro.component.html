@@ -1,5 +1,4 @@
 <div class="wrapper">
-  <app-nav></app-nav>
 
   <div class="content-wrapper">
     <app-spinner [isVisible]="loading"></app-spinner>
@@ -135,7 +134,11 @@
               </div>
 
               <div class="requirements-stack">
-                <section *ngFor="let itemView of controlView.visibleItems" class="requirement-card">
+                <section
+                  *ngFor="let itemView of controlView.visibleItems; trackBy: trackRequirementById"
+                  class="requirement-card"
+                  [class.requirement-card-highlighted]="itemView.item.id === highlightedItemId"
+                  [attr.data-item-id]="itemView.item.id">
                   <div class="requirement-header">
                     <div>
                       <span class="requirement-index">Requisito {{ itemView.displayIndex }}</span>
@@ -303,4 +306,3 @@
   </div>
 </div>
 
-<app-footer></app-footer>

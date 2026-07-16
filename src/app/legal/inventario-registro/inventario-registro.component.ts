@@ -2,6 +2,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, finalize, forkJoin, of, timeout } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -36,6 +37,12 @@ interface VisibleControlView {
   visibleItems: VisibleRequirementItem[];
 }
 
+interface RegistroInventarioTarget {
+  orgId: number;
+  controlId: number;
+  itemId: number;
+}
+
 @Component({
   selector: 'app-inventario-registro',
   standalone: true,
@@ -61,16 +68,20 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   deletedItems: ItemControlDTO[] = [];
   requirementFilter: RequirementFilter = 'all';
   visibleControlViews: VisibleControlView[] = [];
+  highlightedItemId: number | null = null;
 
   loading = true;
   private nextDraftControlId = -1;
   private readonly requestTimeoutMs = 15000;
   private originalControlsSnapshot = '';
+  private pendingNavigationTarget: RegistroInventarioTarget | null = null;
 
   constructor(
     private controlService: ControlService,
     private organizacionService: OrganizacionService,
     private documentoService: DocumentoService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   @HostListener('window:beforeunload', ['$event'])
@@ -117,6 +128,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
         this.documentos = documentos;
         this.juridiccionesUnicas = Array.from(new Set(documentos.map(d => d.juridiccion)));
+        this.tryOpenTargetFromRoute();
       });
   }
 
@@ -164,6 +176,10 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       .filter(view => this.requirementFilter === 'all' || view.visibleItems.length > 0);
   }
 
+  trackRequirementById(_: number, itemView: VisibleRequirementItem): number | null {
+    return itemView.item.id;
+  }
+
   get isFilteringRequirements(): boolean {
     return this.requirementFilter !== 'all';
   }
@@ -207,6 +223,13 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     this.requirementFilter = 'all';
     this.visibleControlViews = [];
     this.originalControlsSnapshot = '';
+    this.highlightedItemId = null;
+    this.pendingNavigationTarget = null;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {},
+      replaceUrl: true
+    });
   }
 
   setRequirementFilter(filter: RequirementFilter): void {
@@ -577,6 +600,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         next: ({ controls, deletedItems }) => {
           this.selectedControls = (controls ?? []).map(control => this.normalizeControl(control));
           this.sortSelectedControls();
+          this.requirementFilter = 'all';
           this.refreshVisibleControlViews();
           this.originalControlsSnapshot = this.createControlsSnapshot();
 
@@ -600,6 +624,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
             } else {
               window.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
             }
+
+            this.focusPendingRequirement(orgId);
           }, 0);
 
           if (successTitle && successText) {
@@ -661,5 +687,51 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         }))
       }))
     );
+  }
+
+  private tryOpenTargetFromRoute(): void {
+    const orgId = Number(this.route.snapshot.queryParamMap.get('orgId'));
+    const controlId = Number(this.route.snapshot.queryParamMap.get('controlId'));
+    const itemId = Number(this.route.snapshot.queryParamMap.get('itemId'));
+
+    if (!Number.isInteger(orgId) || orgId <= 0 || !Number.isInteger(controlId) || controlId <= 0 || !Number.isInteger(itemId) || itemId <= 0) {
+      return;
+    }
+
+    const org = this.organizaciones.find(organizacion => organizacion.id === orgId);
+    if (!org) {
+      Swal.fire('Error', 'No se encontro la organizacion asociada al requisito.', 'error');
+      return;
+    }
+
+    this.pendingNavigationTarget = { orgId, controlId, itemId };
+    void this.viewDetails(org);
+  }
+
+  private focusPendingRequirement(orgId: number): void {
+    const target = this.pendingNavigationTarget;
+    if (!target || target.orgId !== orgId) {
+      return;
+    }
+
+    const targetExists = this.selectedControls.some(control =>
+      control.id === target.controlId &&
+      (control.items ?? []).some(item => item.id === target.itemId)
+    );
+
+    if (!targetExists) {
+      this.pendingNavigationTarget = null;
+      this.highlightedItemId = null;
+      Swal.fire('Aviso', 'El requisito seleccionado no esta disponible para edicion.', 'info');
+      return;
+    }
+
+    this.highlightedItemId = target.itemId;
+    const targetElement = document.querySelector(`[data-item-id="${target.itemId}"]`) as HTMLElement | null;
+    if (targetElement) {
+      targetElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    this.pendingNavigationTarget = null;
   }
 }

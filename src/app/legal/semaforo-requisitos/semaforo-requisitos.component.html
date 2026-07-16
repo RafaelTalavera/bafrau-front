@@ -1,89 +1,137 @@
 <!-- src/app/legal/semaforo-requisitos/semaforo-requisitos.component.html -->
 <div class="wrapper">
-  <app-nav></app-nav>
 
   <div class="content-wrapper">
-    <div class="container my-4 d-flex justify-content-center">
-      <div class="separated-content">
-        <div class="card" style="width: 100%;">
-          <div class="col mt-3">
-            <h5 class="text-center custom-font-size">Semáforo de Requisitos</h5>
+    <div class="page-shell">
+      <section class="table-panel">
+        <div class="panel-header">
+          <div>
+            <span class="panel-kicker">Gestion legal</span>
+            <h1>Semaforo de requisitos</h1>
+            <p>Seguimiento de vencimientos y alertas en una vista compacta.</p>
+          </div>
 
-            <app-spinner [isVisible]="loading"></app-spinner>
-
-            <div *ngIf="!loading && requisitos.length > 0" class="row mb-3 gx-2">
-              <div class="col-12">
-                <input
-                  type="text"
-                  class="form-control"
-                  placeholder="Buscar por registro, razón social, jurisdicción u observación"
-                  [(ngModel)]="searchTerm" />
-              </div>
-            </div>
-
-            <div *ngIf="!loading">
-              <div *ngIf="requisitosFiltrados.length > 0" class="tabla-scroll">
-                <table class="table table-hover table-striped">
-                  <thead>
-                    <tr>
-                      <th class="custom-tr">Razón Social</th>
-                      <th class="custom-tr">Fecha Carga</th>
-                      <th class="custom-tr">Fecha Modif.</th>
-                      <th class="custom-tr">Presentación</th>
-                      <th class="custom-tr">Vencimiento</th>
-                      <th class="custom-tr">Días Rest.</th>
-                      <th class="custom-tr">Días Aviso</th>
-                      <th class="custom-tr">Semáforo</th>
-                      <th class="custom-tr">Registro</th>
-                      <th class="custom-tr">Jurisdicción</th>
-                      <th class="custom-tr">Observación</th>
-                      <th class="custom-tr">Estado</th>
-                      <th class="custom-tr">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let r of requisitosFiltrados">
-                      <td class="custom-td">{{ r.organizacionRazonSocial }}</td>
-                      <td class="custom-td">
-                        {{ r.createdDate ? (r.createdDate | date:'dd/MM/yyyy') : '-' }}
-                      </td>
-                      <td class="custom-td">
-                        {{ r.lastModifiedDate ? (r.lastModifiedDate | date:'dd/MM/yyyy') : '-' }}
-                      </td>
-                      <td class="custom-td">{{ r.presentacion ? (r.presentacion | date:'dd/MM/yyyy') : '-' }}</td>
-                      <td class="custom-td">{{ r.vencimiento ? (r.vencimiento | date:'dd/MM/yyyy') : '-' }}</td>
-                      <td class="custom-td">{{ r.dias }}</td>
-                      <td class="custom-td">{{ r.diasNotificacion }}</td>
-                      <td class="custom-td">
-                        <span class="semaforo-circle" [ngClass]="r.semaforo"></span>
-                      </td>
-                      <td class="custom-td">{{ r.nombre || '-' }}</td>
-                      <td class="custom-td">{{ r.juridiccion || '-' }}</td>
-                      <td class="custom-td">{{ r.observaciones || '-' }}</td>
-                      <td class="custom-td">{{ r.estado ? 'Abierto' : 'Cerrado' }}</td>
-                      <td class="custom-td text-center">
-                        <i class="fa-solid" [ngClass]="{
-                            'fa-toggle-on text-success': r.estado,
-                            'fa-toggle-off text-danger': !r.estado
-                          }" (click)="toggleEstado(r)" style="font-size: 1.5rem; cursor: pointer;"
-                          [attr.title]="r.estado ? 'Cerrar requisito' : 'Abrir requisito'"
-                          [attr.aria-label]="r.estado ? 'Cerrar requisito' : 'Abrir requisito'" role="button"></i>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div *ngIf="requisitosFiltrados.length === 0" class="alert alert-info">
-                No se encontraron requisitos con esos filtros
-              </div>
-            </div>
-
+          <div class="toolbar-meta" *ngIf="!loading">
+            <button
+              type="button"
+              class="meta-chip"
+              [ngClass]="{ 'is-active': isSemaforoFilterActive('all') }"
+              (click)="setSemaforoFilter('all')">
+              {{ totalActivos }} totales
+            </button>
+            <button
+              type="button"
+              class="meta-chip"
+              [ngClass]="{ 'is-active': isSemaforoFilterActive('red') }"
+              (click)="setSemaforoFilter('red')">
+              <span class="semaforo-circle red"></span>
+              {{ totalRojos }} criticos
+            </button>
+            <button
+              type="button"
+              class="meta-chip"
+              [ngClass]="{ 'is-active': isSemaforoFilterActive('yellow') }"
+              (click)="setSemaforoFilter('yellow')">
+              <span class="semaforo-circle yellow"></span>
+              {{ totalAmarillos }} alertas
+            </button>
+            <button
+              type="button"
+              class="meta-chip"
+              [ngClass]="{ 'is-active': isSemaforoFilterActive('green') }"
+              (click)="setSemaforoFilter('green')">
+              <span class="semaforo-circle green"></span>
+              {{ totalVerdes }} controlados
+            </button>
           </div>
         </div>
-      </div>
+
+        <div class="panel-toolbar" *ngIf="!loading && requisitos.length > 0">
+          <label class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              placeholder="Buscar por registro, organizacion, jurisdiccion u observacion"
+              [(ngModel)]="searchTerm" />
+          </label>
+
+          <div class="toolbar-summary">
+            <span>{{ requisitosFiltrados.length }} registros</span>
+          </div>
+        </div>
+
+        <app-spinner [isVisible]="loading"></app-spinner>
+
+        <div *ngIf="!loading && requisitosFiltrados.length > 0" class="table-shell">
+          <table class="requirements-table">
+            <thead>
+              <tr>
+                <th>Semaforo</th>
+                <th>Organizacion</th>
+                <th>Registro</th>
+                <th>Jurisdiccion</th>
+                <th>Presentacion</th>
+                <th>Vencimiento</th>
+                <th>Dias</th>
+                <th>Aviso</th>
+                <th>Observacion</th>
+                <th>Estado</th>
+                <th>Accion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let r of requisitosFiltrados; trackBy: trackById"
+                (dblclick)="openRegistroInventario(r)"
+                title="Doble click para editar este requisito en Registro de requisitos legales">
+                <td>
+                  <span class="traffic-pill" [ngClass]="r.semaforo">
+                    <span class="semaforo-circle" [ngClass]="r.semaforo"></span>
+                    {{ getSemaforoLabel(r.semaforo) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="cell-main">{{ r.organizacionRazonSocial || '-' }}</div>
+                  <div class="cell-sub">
+                    Carga: {{ r.createdDate ? (r.createdDate | date:'dd/MM/yyyy') : '-' }}
+                  </div>
+                </td>
+                <td>{{ r.nombre || '-' }}</td>
+                <td>{{ r.juridiccion || '-' }}</td>
+                <td>{{ r.presentacion ? (r.presentacion | date:'dd/MM/yyyy') : '-' }}</td>
+                <td>{{ r.vencimiento ? (r.vencimiento | date:'dd/MM/yyyy') : '-' }}</td>
+                <td>
+                  <span class="days-pill" [ngClass]="r.semaforo">
+                    {{ getDiasLabel(r.dias) }}
+                  </span>
+                </td>
+                <td>{{ r.diasNotificacion }} dias</td>
+                <td class="observation-cell">{{ r.observaciones || '-' }}</td>
+                <td>
+                  <span class="status-pill" [ngClass]="r.estado ? 'is-open' : 'is-closed'">
+                    {{ r.estado ? 'Abierto' : 'Cerrado' }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="toggle-button"
+                    (click)="toggleEstado(r)"
+                    [attr.title]="r.estado ? 'Cerrar requisito' : 'Abrir requisito'"
+                    [attr.aria-label]="r.estado ? 'Cerrar requisito' : 'Abrir requisito'">
+                    <i class="fa-solid" [ngClass]="r.estado ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="!loading && requisitosFiltrados.length === 0" class="empty-state">
+          No se encontraron requisitos con ese filtro.
+        </div>
+      </section>
     </div>
   </div>
-
-  <app-footer></app-footer>
 </div>
+

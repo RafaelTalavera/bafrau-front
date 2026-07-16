@@ -360,6 +360,12 @@
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  scroll-margin-top: calc(var(--nav-height) + 24px);
+}
+
+.requirement-card-highlighted {
+  border-color: rgba(31, 111, 235, 0.45);
+  box-shadow: 0 0 0 4px rgba(31, 111, 235, 0.12), 0 20px 35px rgba(31, 111, 235, 0.12);
 }
 
 .requirement-title {

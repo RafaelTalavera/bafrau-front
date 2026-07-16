@@ -10,6 +10,7 @@ export interface ItemControlDTO {
   id: number | null;
   documentoId: number;
   controlId: number;
+  organizacionId?: number | null;
   vencimiento: string | null;
   presentacion: string | null;
   diasNotificacion: number;
