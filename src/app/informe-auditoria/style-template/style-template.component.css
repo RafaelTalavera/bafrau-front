@@ -35,7 +35,6 @@
 
 .separated-content {
   margin-top: 20px;
-  /* Ajusta este valor según sea necesario */
 }
 
 .separated-content {
@@ -43,19 +42,5 @@
 }
 
 .wrapper {
-  min-height: 100vh;
-}
-
-/* Basado en AdminLTE v3 docs y buenas prácticas de CSS — confiabilidad: alta */
-.content-wrapper {
-  margin-left: 250px; /* ancho del sidebar (por defecto 250px en AdminLTE) */
-  margin-top: 56px;   /* alto del navbar/top header (ajusta si es distinto) */
-  padding: 20px;      /* espacio interno para que no toque los bordes */
-}
-
-/* Asegura que el header y sidebar estén por encima */
-.main-header,
-.main-sidebar {
-  position: fixed;
-  z-index: 1000;
+  min-height: 100%;
 }

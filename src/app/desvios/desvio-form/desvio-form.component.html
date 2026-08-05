@@ -1,0 +1,16 @@
+<div class="content-wrapper desvio-page"><section class="content p-3 p-md-4"><div class="mx-auto form-shell">
+  <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="mb-0">Nuevo desvío</h2><small class="text-muted">El número y el inspector se asignan automáticamente</small></div><a routerLink="/desvios" class="btn btn-outline-secondary">Volver</a></div>
+  <div class="alert alert-danger" *ngIf="error">{{error}}</div>
+  <form [formGroup]="form" (ngSubmit)="guardar()"><div class="card mb-3"><div class="card-header"><b>Detección</b></div><div class="card-body row g-3">
+    <div class="col-12 col-md-8"><label class="form-label">Razón social *</label><select class="form-control organization-select" formControlName="organizacionId" (change)="onOrganizacion()" aria-label="Seleccionar razón social"><option value="">Seleccionar organización</option><option *ngFor="let o of organizaciones" [value]="o.id">{{o.razonSocial}}</option></select></div>
+    <div class="col-12 col-md-4"><label class="form-label">Fecha *</label><input type="date" class="form-control" formControlName="fechaDeteccion"></div>
+    <div class="col-12"><label class="form-label">Sitio del establecimiento *</label><input class="form-control" formControlName="sitioEstablecimiento" placeholder="Dirección o sector visitado"></div>
+  </div></div>
+  <div class="card mb-3"><div class="card-header"><b>Descripción y acción</b></div><div class="card-body row g-3">
+    <div class="col-12"><label class="form-label">Descripción del desvío *</label><textarea rows="4" class="form-control" formControlName="descripcion"></textarea></div>
+    <div class="col-12"><label class="form-label">Acción correctiva sugerida *</label><textarea rows="4" class="form-control" formControlName="accionCorrectivaSugerida"></textarea></div>
+    <div class="col-12"><label class="form-label">Responsables y referentes afectados</label><textarea rows="2" class="form-control" formControlName="responsablesReferentes"></textarea></div>
+  </div></div>
+  <div class="card mb-3"><div class="card-header"><b>Evidencias fotográficas</b></div><div class="card-body"><div class="photo-actions d-flex flex-wrap mb-3"><label class="btn btn-outline-primary mb-0"><i class="fas fa-camera action-icon"></i>Sacar foto<input type="file" class="d-none" accept="image/*" capture="environment" (change)="onFiles($event)"></label><label class="btn btn-outline-secondary mb-0"><i class="fas fa-images action-icon"></i>Elegir imágenes<input type="file" class="d-none" accept="image/jpeg,image/png,image/webp" multiple (change)="onFiles($event)"></label></div><div class="preview-grid"><div class="preview" *ngFor="let p of previews; let i=index"><img [src]="p" alt="Vista previa"><button type="button" (click)="quitar(i)" aria-label="Quitar">×</button></div></div><small class="text-muted">JPG, PNG o WebP. Máximo 10 MB por imagen.</small></div></div>
+  <div class="form-actions d-flex justify-content-end"><a routerLink="/desvios" class="btn btn-outline-secondary">Cancelar</a><button class="btn btn-primary" [disabled]="saving">{{saving ? 'Guardando…' : 'Crear desvío'}}</button></div></form>
+</div></section></div>

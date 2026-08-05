@@ -1,26 +1,61 @@
+<main class="content-wrapper usuarios-page">
 <div *ngIf="!showError" class="usuarios-content">
-  <app-form-usuario
-    (newUsuarioEvent)="addUsuario($event)"
-    [usuario]="usuarioSelected">
-  </app-form-usuario>
-
-  <div class="card form-card shadow-sm my-4 border-0 usuarios-card">
-    <div class="card-header my-3 text-center bg-light usuarios-card-header">
-      <h5 class="card-title mb-0 usuarios-title">Lista de Usuarios</h5>
+  <section class="surface-card page-hero">
+    <div>
+      <span class="eyebrow">Configuracion</span>
+      <h1 class="page-title">Gestion de usuarios</h1>
+      <p class="page-description">
+        Administre altas, ediciones y bloqueos desde una sola vista, con el mismo criterio visual del resto del panel administrativo.
+      </p>
     </div>
-    <div class="card-body usuarios-card-body">
 
-      <div class="mb-3 usuarios-search">
+    <div class="hero-stats">
+      <div class="stat-chip">
+        <span class="stat-value">{{ usuariosFiltrados.length }}</span>
+        <span class="stat-label">usuarios visibles</span>
+      </div>
+      <div class="stat-chip subtle">
+        <span class="stat-value">{{ usuariosActivosCount }}</span>
+        <span class="stat-label">usuarios activos</span>
+      </div>
+      <div class="stat-chip subtle">
+        <span class="stat-value">{{ usuariosBloqueadosCount }}</span>
+        <span class="stat-label">usuarios bloqueados</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="surface-card usuarios-form-panel">
+    <div class="panel-header">
+      <div>
+        <span class="eyebrow">Alta y edicion</span>
+        <h2 class="panel-title">Datos del usuario</h2>
+      </div>
+    </div>
+
+    <app-form-usuario
+      (newUsuarioEvent)="addUsuario($event)"
+      [usuario]="usuarioSelected">
+    </app-form-usuario>
+  </section>
+
+  <section class="surface-card usuarios-list-panel">
+    <div class="panel-toolbar">
+      <div class="search-field">
+        <label for="usuariosDniFilter">Buscar usuario por DNI</label>
         <input
+          id="usuariosDniFilter"
           type="text"
-          class="custom-tr form-control"
-          placeholder="Buscar por DNI"
+          class="form-control soft-input"
+          placeholder="Escriba un DNI"
           [(ngModel)]="dniBusqueda"
           (input)="buscarPorDNI()">
       </div>
+    </div>
 
-      <div *ngIf="usuariosFiltrados.length > 0" class="usuarios-table-container">
-        <table class="table table-hover table-striped usuarios-table">
+    <div *ngIf="usuariosFiltrados.length > 0; else emptyUsuarios" class="usuarios-table-shell">
+      <div class="usuarios-table-container">
+        <table class="table usuarios-table">
           <thead>
             <tr>
               <th class="custom-tr col-nombre">Nombre</th>
@@ -28,6 +63,7 @@
               <th class="custom-tr col-email">Correo electronico</th>
               <th class="custom-tr col-username">Username</th>
               <th class="custom-tr col-rol">Tipo de acceso</th>
+              <th class="custom-tr col-estado">Estado</th>
               <th class="custom-tr col-editar">Editar</th>
               <th class="custom-tr col-accion">Accion</th>
             </tr>
@@ -39,35 +75,52 @@
               <td class="custom-td col-email">{{ usuario.username }}</td>
               <td class="custom-td col-username">{{ getUsernameVisual(usuario) }}</td>
               <td class="custom-td col-rol">{{ usuario.role }}</td>
+              <td class="custom-td col-estado">
+                <span class="status-pill" [ngClass]="isUsuarioActivo(usuario) ? 'status-active' : 'status-muted'">
+                  {{ getEstadoLabel(usuario) }}
+                </span>
+              </td>
               <td class="custom-td col-editar">
                 <button
                   (click)="onUpdateUsuario(usuario)"
-                  class="btn btn-sm btn-secondary custom-button"
+                  class="action-button btn-secondary"
                   [disabled]="rowActionLoading[usuario.id]">
                   Editar
                 </button>
               </td>
               <td class="custom-td col-accion">
-                <button
-                  (click)="onToggleBloqueo(usuario)"
-                  class="btn btn-sm custom-button"
-                  [ngClass]="isUsuarioActivo(usuario) ? 'btn-warning' : 'btn-success'"
-                  [disabled]="rowActionLoading[usuario.id]">
-                  <span *ngIf="rowActionLoading[usuario.id]" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>
-                  {{ isUsuarioActivo(usuario) ? 'Bloquear' : 'Desbloquear' }}
-                </button>
-                <div *ngIf="rowActionError[usuario.id]" class="text-danger mt-1 row-error-text">
-                  {{ rowActionError[usuario.id] }}
+                <div class="action-stack">
+                  <button
+                    (click)="onToggleBloqueo(usuario)"
+                    class="action-button"
+                    [ngClass]="isUsuarioActivo(usuario) ? 'btn-warning-soft' : 'btn-success-soft'"
+                    [disabled]="rowActionLoading[usuario.id]">
+                    <span *ngIf="rowActionLoading[usuario.id]" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    {{ isUsuarioActivo(usuario) ? 'Bloquear' : 'Desbloquear' }}
+                  </button>
+
+                  <div *ngIf="rowActionError[usuario.id]" class="row-error-text">
+                    {{ rowActionError[usuario.id] }}
+                  </div>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <div *ngIf="usuariosFiltrados.length === 0" class="alert alert-info text-center">
-        Lo sentimos, no hay informacion para mostrar
-      </div>
     </div>
-  </div>
+
+    <ng-template #emptyUsuarios>
+      <div class="empty-state">
+        <h3>Sin resultados</h3>
+        <p>No hay usuarios para mostrar con el filtro actual.</p>
+      </div>
+    </ng-template>
+  </section>
 </div>
+
+<div *ngIf="showError" class="surface-card empty-state usuarios-error">
+  <h3>No se pudo cargar la gestion de usuarios</h3>
+  <p>Revise la conexion con el servicio e intente nuevamente.</p>
+</div>
+</main>

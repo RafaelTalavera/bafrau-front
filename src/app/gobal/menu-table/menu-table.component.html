@@ -1,33 +1,35 @@
-<section class="menu-surface">
-  <main class="menu-layout container-fluid">
-    <header class="menu-intro">
-      <h2>Menu de accesos</h2>
-      <p>Selecciona un modulo para continuar.</p>
-    </header>
+<div class="content-wrapper menu-content-wrapper">
+  <section class="menu-surface">
+    <main class="menu-layout container-fluid">
+      <header class="menu-intro">
+        <h2>Menu de accesos</h2>
+        <p>Selecciona un modulo para continuar.</p>
+      </header>
 
-    <div class="row menu-grid">
-      <div *ngFor="let g of groups" class="menu-col col-12 col-sm-6 col-lg-6 col-xl-4 col-xxl-3">
-        <div class="dashboard-card" [style.--card-color]="g.color">
-          <div class="card-body">
-            <div class="group-title">
-              <span class="group-icon">
-                <i class="{{ g.items[0].icon || 'fas fa-layer-group' }}"></i>
-              </span>
-              <h5 class="mb-0">{{ g.title }}</h5>
+      <div class="row menu-grid">
+        <div *ngFor="let g of groups" class="menu-col col-12 col-sm-6 col-lg-6 col-xl-4 col-xxl-3">
+          <div class="dashboard-card" [style.--card-color]="g.color">
+            <div class="card-body">
+              <div class="group-title">
+                <span class="group-icon">
+                  <i class="{{ g.items[0].icon || 'fas fa-layer-group' }}"></i>
+                </span>
+                <h5 class="mb-0">{{ g.title }}</h5>
+              </div>
+
+              <ul class="list-unstyled">
+                <li *ngFor="let i of g.items">
+                  <i class="{{ i.icon }} nav-icon"></i>
+                  <a [routerLink]="i.path" class="menu-link">
+                    {{ i.label }}
+                  </a>
+                  <i class="fas fa-angle-right item-arrow"></i>
+                </li>
+              </ul>
             </div>
-
-            <ul class="list-unstyled">
-              <li *ngFor="let i of g.items">
-                <i class="{{ i.icon }} nav-icon"></i>
-                <a [routerLink]="i.path" class="menu-link">
-                  {{ i.label }}
-                </a>
-                <i class="fas fa-angle-right item-arrow"></i>
-              </li>
-            </ul>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-</section>
+    </main>
+  </section>
+</div>

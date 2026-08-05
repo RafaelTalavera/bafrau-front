@@ -28,68 +28,61 @@ import { CaratulaComponent } from './informe-auditoria/caratula/caratula.compone
 import { InformePreviewComponent } from './informe-auditoria/preview/informe/informe-preview.component';
 import { ShellLayoutComponent } from './layout/shell-layout/shell-layout.component';
 import { pendingChangesGuard } from './guards/pending-changes.guard';
-
-
+import { DesviosListComponent } from './desvios/desvios-list/desvios-list.component';
+import { DesvioFormComponent } from './desvios/desvio-form/desvio-form.component';
+import { DesvioDetailComponent } from './desvios/desvio-detail/desvio-detail.component';
 
 export const routes: Routes = [
-
   { path: 'login', component: LoginComponent },
-
-  //Matriz Leopold
-  { path: 'matriz-ponderacion', component: PonderacionMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-impacto', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-causa-efecto', component: MatrizCausaEfectoV1Component, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-causa-efecto-visualizacion', component: MatrizCausaEfectoV1VisualizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-factor', component: FactoresComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
-  { path: 'matriz-accion', component: AccionesComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
-
-  //Organización
-  { path: 'organizacion-form', component: OrganizacionFormComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-
-  //Legales 
-  { path: 'documento-form', component: FormDocumentoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'documento', component: DocumentoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-
-  //Residuos
-  { path: 'residuo', component: ResiduoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-
-  //Inventario 
-  { path: 'residuo-inventario', component: ResiduoInventarioComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-
-  //legal
-  { path: 'registro-inventario', component: InventarioRegistroComponent, canActivate: [roleGuard], canDeactivate: [pendingChangesGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'registro-semaforo', component: SemaforoRequisitosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'reporte-legal-organizacion', component: ReporteLegalOrganizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-
-  //Informe
-  { path: 'informe-formato', component: StyleTemplateComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'informe', component: InformeAuditoriaComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'capitulos/:informeId', component: CapituloComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'capitulo/:capituloId/seccion', component: SeccionComponent },
-  { path: 'matriz-causa-efecto-v1-visualizacion/:razonSocial/:sectionId', component: MatrizCausaEfectoV1VisualizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-ponderacion/:razonSocial/:sectionId', component: PonderacionMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-impactos/:seccionId', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'matriz-impacto/:razonSocial/:sectionId', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'encabezado/:informeId', component: EncabezadoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-  { path: 'caratula/:informeId', component: CaratulaComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
-
-  // Previsualización en nueva página
-  { path: 'informes/:id/preview', component: InformePreviewComponent },
-
-
-
-    // Previsualización en caratula 
-  { path: 'informes/:id/previewCaraula', component: PreviewCaratulaComponent },
-
   {
     path: '',
     component: ShellLayoutComponent,
     children: [
+      // Matriz Leopold
+      { path: 'matriz-ponderacion', component: PonderacionMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-impacto', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-causa-efecto', component: MatrizCausaEfectoV1Component, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-causa-efecto-visualizacion', component: MatrizCausaEfectoV1VisualizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-causa-efecto-v1-visualizacion/:razonSocial/:sectionId', component: MatrizCausaEfectoV1VisualizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-ponderacion/:razonSocial/:sectionId', component: PonderacionMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-impactos/:seccionId', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-impacto/:razonSocial/:sectionId', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-factor', component: FactoresComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
+      { path: 'matriz-accion', component: AccionesComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR'] } },
+
+      // Organizacion
+      { path: 'organizacion-form', component: OrganizacionFormComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+
+      // Legales
+      { path: 'documento-form', component: FormDocumentoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'documento', component: DocumentoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'registro-inventario', component: InventarioRegistroComponent, canActivate: [roleGuard], canDeactivate: [pendingChangesGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'registro-semaforo', component: SemaforoRequisitosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'reporte-legal-organizacion', component: ReporteLegalOrganizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+
+      // Residuos
+      { path: 'residuo', component: ResiduoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'residuo-inventario', component: ResiduoInventarioComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+
+      // Desvios y seguimientos
+      { path: 'desvios', component: DesviosListComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'desvios/nuevo', component: DesvioFormComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'desvios/:id', component: DesvioDetailComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+
+      // Informe
+      { path: 'informe-formato', component: StyleTemplateComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'informe', component: InformeAuditoriaComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'capitulos/:informeId', component: CapituloComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'capitulo/:capituloId/seccion', component: SeccionComponent },
+      { path: 'encabezado/:informeId', component: EncabezadoComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'caratula/:informeId', component: CaratulaComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'informes/:id/preview', component: InformePreviewComponent },
+      { path: 'informes/:id/previewCaraula', component: PreviewCaratulaComponent },
+
+      // Configuracion y menu
       { path: 'menu', component: MenuTableComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'usuarios', component: UsuariosComponent, canActivate: [roleGuard], canDeactivate: [pendingChangesGuard], data: { roles: ['ADMINISTRATOR'] } }
     ]
   },
-  { path: '**', redirectTo: 'menu' },
-
+  { path: '**', redirectTo: 'menu' }
 ];
-

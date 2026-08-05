@@ -1,5 +1,5 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 interface MenuItem {
@@ -22,17 +22,7 @@ interface MenuGroup {
   templateUrl: './menu-table.component.html',
   styleUrls: ['./menu-table.component.css']
 })
-export class MenuTableComponent implements OnInit, OnDestroy {
-  constructor(@Inject(DOCUMENT) private document: Document) {}
-
-  ngOnInit(): void {
-    this.document.body.classList.add('menu-route-bg');
-  }
-
-  ngOnDestroy(): void {
-    this.document.body.classList.remove('menu-route-bg');
-  }
-
+export class MenuTableComponent {
   groups: MenuGroup[] = [
 
     {
@@ -97,6 +87,16 @@ export class MenuTableComponent implements OnInit, OnDestroy {
 
         { label: 'Inventario Residuos', path: '/residuo-inventario', icon: 'fas fa-pencil' },
         { label: 'Alta de Residuos', path: '/residuo', icon: 'fas fa-trash' },
+      ]
+    },
+
+    {
+      title: 'Desvíos',
+      icon: '',
+      color: '#0f766e',
+      items: [
+        { label: 'Seguimiento de desvíos', path: '/desvios', icon: 'fas fa-list-check' },
+        { label: 'Nuevo desvío', path: '/desvios/nuevo', icon: 'fas fa-camera' }
       ]
     },
 

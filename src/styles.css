@@ -3,6 +3,7 @@
   --layout-header-height: 3.5rem;
   --layout-sidebar-width: 250px;
   --layout-sidebar-collapsed-width: 4.6rem;
+  --layout-frame-offset: var(--layout-sidebar-width);
   --layout-footer-height: 3.5rem;
   --layout-content-gap: 1rem;
   --layout-content-gutter: 1rem;
@@ -26,82 +27,63 @@ app-navbar {
   display: block;
 }
 
-/* Route-specific background for /menu covering the whole shell area. */
-body.menu-route-bg .app-shell {
-  background-image: url("/assets/dist/img/fondo.jpg");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
-/* New global shell layout. */
-.app-shell .app-content {
-  margin-left: var(--layout-sidebar-width);
-  min-height: calc(100vh - var(--layout-header-height) - var(--layout-footer-height));
-  height: auto;
-  padding-top: calc(var(--layout-header-height) + var(--layout-content-gap));
-  padding-right: var(--layout-content-gutter);
-  padding-bottom: var(--layout-content-gap);
-  padding-left: var(--layout-content-gutter);
-  overflow-x: auto;
-}
-
-/* In shell layout, footer should be part of normal flow to avoid visual gaps. */
-.app-shell app-footer .main-footer {
-  margin-left: var(--layout-sidebar-width);
-}
-
-/* Default content frame for views that render <app-nav> + .content-wrapper + <app-footer>. */
 body .wrapper {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+body .wrapper .main-header,
+body .wrapper .main-footer {
+  margin-left: 0 !important;
+}
+
+body .wrapper .main-sidebar,
+body .wrapper .main-sidebar .brand-link,
+body .wrapper .main-sidebar .sidebar {
+  margin-top: 0 !important;
 }
 
 body .wrapper .content-wrapper {
-  margin-left: var(--layout-sidebar-width) !important;
+  margin-left: var(--layout-frame-offset) !important;
+  height: calc(100vh - var(--layout-header-height) - var(--layout-footer-height)) !important;
   min-height: calc(100vh - var(--layout-header-height) - var(--layout-footer-height)) !important;
-  height: auto !important;
-  padding-top: calc(var(--layout-header-height) + var(--layout-content-gap)) !important;
+  margin-top: var(--layout-header-height) !important;
+  margin-bottom: var(--layout-footer-height) !important;
+  padding-top: var(--layout-content-gap) !important;
   padding-right: var(--layout-content-gutter) !important;
   padding-bottom: var(--layout-content-gap) !important;
   padding-left: var(--layout-content-gutter) !important;
   overflow-x: auto;
+  overflow-y: auto !important;
+  box-sizing: border-box;
 }
 
-body.sidebar-mini.sidebar-collapse .app-shell .app-content {
-  margin-left: var(--layout-sidebar-collapsed-width);
+body.layout-navbar-fixed .wrapper .main-header,
+body.layout-navbar-fixed .wrapper .main-footer,
+body.sidebar-mini.sidebar-collapse .wrapper .main-header,
+body.sidebar-mini.sidebar-collapse .wrapper .main-footer,
+body.sidebar-mini-md.sidebar-collapse .wrapper .main-header,
+body.sidebar-mini-md.sidebar-collapse .wrapper .main-footer,
+body.sidebar-mini-xs.sidebar-collapse .wrapper .main-header,
+body.sidebar-mini-xs.sidebar-collapse .wrapper .main-footer {
+  margin-left: 0 !important;
 }
 
-body.sidebar-mini.sidebar-collapse .app-shell app-footer .main-footer {
-  margin-left: var(--layout-sidebar-collapsed-width);
-}
-
-body.sidebar-mini.sidebar-collapse .wrapper .content-wrapper {
-  margin-left: var(--layout-sidebar-collapsed-width) !important;
-}
-
-/* Optional helper when a view needs internal vertical scrolling in content only. */
-body .wrapper .content-wrapper.layout-scroll-y {
-  overflow-y: auto;
+body.layout-navbar-fixed.layout-fixed .wrapper .sidebar,
+body.layout-navbar-fixed.layout-fixed .wrapper .brand-link ~ .sidebar {
+  margin-top: 0 !important;
 }
 
 @media (max-width: 991.98px) {
-  .app-shell .app-content {
-    margin-left: 0;
-    padding-top: calc(var(--layout-header-height) + 0.75rem);
-    padding-bottom: 0.75rem;
-    padding-right: 0.75rem;
-    padding-left: 0.75rem;
-  }
-
-  .app-shell app-footer .main-footer {
-    margin-left: 0;
-  }
-
   body .wrapper .content-wrapper {
     margin-left: 0 !important;
-    padding-top: calc(var(--layout-header-height) + 0.75rem) !important;
+    height: calc(100vh - var(--layout-header-height) - var(--layout-footer-height)) !important;
+    min-height: calc(100vh - var(--layout-header-height) - var(--layout-footer-height)) !important;
+    margin-top: var(--layout-header-height) !important;
+    margin-bottom: var(--layout-footer-height) !important;
+    padding-top: 0.75rem !important;
     padding-bottom: 0.75rem !important;
     padding-right: 0.75rem !important;
     padding-left: 0.75rem !important;

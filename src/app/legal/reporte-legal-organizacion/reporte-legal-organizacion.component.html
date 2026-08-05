@@ -1,7 +1,7 @@
-<app-nav></app-nav>
 <app-spinner [isVisible]="loading" class="position-fixed top-50 start-50 translate-middle"></app-spinner>
 <app-spinner [isVisible]="itemsLoading" class="position-fixed top-50 start-50 translate-middle"></app-spinner>
 
+<div class="content-wrapper">
 <div class="page-shell" *ngIf="!loading">
   <div class="content-frame" [ngClass]="showItems ? 'detail-mode' : 'list-mode'">
     <ng-container *ngIf="showOrgList">
@@ -126,7 +126,6 @@
         <p>Esta organización no tiene ítems de control disponibles para el reporte.</p>
       </section>
     </ng-container>
-  </div>
 </div>
-
-<app-footer></app-footer>
+</div>
+</div>

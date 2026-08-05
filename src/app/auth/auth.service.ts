@@ -81,10 +81,28 @@ export class AuthService {
 
     try {
       const decoded: any = jwtDecode(token);
-      const rol = decoded.role as string | undefined;
-      return rol ? [rol] : [];
+      const rawRoles = decoded?.roles ?? decoded?.authorities ?? decoded?.role;
+      const roles = Array.isArray(rawRoles) ? rawRoles : rawRoles ? [rawRoles] : [];
+
+      return roles
+        .map(role => this.normalizeRole(role))
+        .filter((role): role is string => !!role);
     } catch (e) {
       return [];
     }
+  }
+
+  private normalizeRole(role: unknown): string | null {
+    if (typeof role !== 'string' || !role.trim()) {
+      return null;
+    }
+
+    const normalized = role.trim().replace(/^ROLE_/, '').toUpperCase();
+
+    if (normalized === 'ADMIN') {
+      return 'ADMINISTRATOR';
+    }
+
+    return normalized;
   }
 }

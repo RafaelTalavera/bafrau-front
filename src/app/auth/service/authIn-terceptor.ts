@@ -8,7 +8,7 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private localStorageService: LocalStorageService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.localStorageService.getItem('token');
+    const token = this.localStorageService.getItem('jwt_token');
 
     if (token) {
       const cloned = req.clone({
