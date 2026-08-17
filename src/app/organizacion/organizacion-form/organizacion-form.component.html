@@ -14,14 +14,24 @@
         </div>
 
         <div class="hero-stats">
-          <div class="stat-chip">
-            <span class="stat-value">{{ filteredOrganizaciones.length }}</span>
+          <button
+            type="button"
+            class="stat-chip"
+            [class.is-active]="filtroOrganizaciones === 'vigentes'"
+            [attr.aria-pressed]="filtroOrganizaciones === 'vigentes'"
+            (click)="seleccionarFiltroOrganizaciones('vigentes')">
+            <span class="stat-value">{{ organizacionesVigentesCount }}</span>
             <span class="stat-label">organizaciones vigentes</span>
-          </div>
-          <div class="stat-chip subtle">
+          </button>
+          <button
+            type="button"
+            class="stat-chip subtle"
+            [class.is-active]="filtroOrganizaciones === 'todas'"
+            [attr.aria-pressed]="filtroOrganizaciones === 'todas'"
+            (click)="seleccionarFiltroOrganizaciones('todas')">
             <span class="stat-value">{{ organizacion.length }}</span>
             <span class="stat-label">organizaciones totales</span>
-          </div>
+          </button>
         </div>
       </section>
 
@@ -171,7 +181,7 @@
               <span class="eyebrow">Listado</span>
               <h2 class="panel-title">Organizaciones cargadas</h2>
               <p class="panel-description">
-                El listado muestra solo organizaciones vigentes y permite abrir una carga existente para editarla.
+                Filtre por vigencia desde las tarjetas superiores y abra una organizacion para editarla.
               </p>
             </div>
           </div>
@@ -227,7 +237,7 @@
 
           <ng-template #noData>
             <div class="empty-state" *ngIf="!loading">
-              <h3>Sin organizaciones vigentes</h3>
+              <h3>{{ filtroOrganizaciones === 'vigentes' ? 'Sin organizaciones vigentes' : 'Sin organizaciones' }}</h3>
               <p>No hay organizaciones cargadas para mostrar con el filtro actual.</p>
             </div>
           </ng-template>

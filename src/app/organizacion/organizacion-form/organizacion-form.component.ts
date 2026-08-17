@@ -30,6 +30,7 @@ export class OrganizacionFormComponent implements OnInit {
   organizacionIdEnEdicion: number | null = null;
   filtroRazon = '';
   filtroVigencia = '';
+  filtroOrganizaciones: 'vigentes' | 'todas' = 'vigentes';
   loading = false;
   vistaActiva: 'formulario' | 'vigencia' = 'formulario';
 
@@ -57,11 +58,22 @@ export class OrganizacionFormComponent implements OnInit {
 
   get filteredOrganizaciones(): Organizacion[] {
     const term = this.filtroRazon.trim().toLowerCase();
-    const vigentes = this.organizacion.filter(o => o.vigente !== false);
-    if (!term) return vigentes;
-    return vigentes.filter(o =>
+    const organizaciones = this.filtroOrganizaciones === 'vigentes'
+      ? this.organizacion.filter(o => o.vigente !== false)
+      : this.organizacion;
+    if (!term) return organizaciones;
+    return organizaciones.filter(o =>
       o.razonSocial?.toLowerCase().includes(term)
     );
+  }
+
+  get organizacionesVigentesCount(): number {
+    return this.organizacion.filter(o => o.vigente !== false).length;
+  }
+
+  seleccionarFiltroOrganizaciones(filtro: 'vigentes' | 'todas'): void {
+    this.filtroOrganizaciones = filtro;
+    this.vistaActiva = 'formulario';
   }
 
   get organizacionesParaVigencia(): Organizacion[] {
