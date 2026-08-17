@@ -10,15 +10,16 @@
     </li>
   </ul>
 
-  <ul class="navbar-nav ml-auto">
-    <li class="nav-item">
-      <a class="navbar-brand" [routerLink]="['/for-inicial-cliente']">
-        <img src="assets/dist/img/logo-letras.png" alt="bafrau logo" style="height: 40px;">
+  <ul class="navbar-nav ml-auto navbar-actions">
+    <li class="nav-item brand-item">
+      <a class="navbar-brand app-logo" [routerLink]="['/for-inicial-cliente']">
+        <img src="assets/dist/img/logo-letras.png" alt="bafrau logo">
       </a>
     </li>
-    <li class="nav-item">
-      <button class="btn btn-danger ml-3" (click)="logout()">
-        <i class="fas fa-sign-out-alt"></i> Salir
+    <li class="nav-item logout-item">
+      <button type="button" class="logout-button" (click)="logout()" aria-label="Cerrar sesión">
+        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+        <span>Cerrar sesión</span>
       </button>
     </li>
   </ul>
@@ -85,6 +86,12 @@
               <a [routerLink]="['/matriz-causa-efecto-visualizacion']" routerLinkActive="active" class="nav-link">
                 <i class="nav-icon fa-solid fa-eye"></i>
                 <p>Ver causa y efecto</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a [routerLink]="['/matriz-copiar']" routerLinkActive="active" class="nav-link">
+                <i class="nav-icon fa-solid fa-copy"></i>
+                <p>Copiar matriz</p>
               </a>
             </li>
             <li class="nav-item">

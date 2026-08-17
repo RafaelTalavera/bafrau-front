@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ItemUIPUpdateDTO } from '../matriz-ponderacion/ponderacion-matriz.component';
 import { environment } from '../../../environments/environment';
-import { Matriz } from '../models/matriz';
+import { CopiaMatrizResultado, CopiarMatrizRequest, Matriz, MatrizCopiaResumen } from '../models/matriz';
 
 @Injectable({
   providedIn: 'root'
@@ -83,6 +83,20 @@ export class MatrizService {
     console.log('Payload de actualización UIP:', JSON.stringify(updates, null, 2));
     return this.http
       .put<Matriz>(endpoint, updates, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  getMatricesDisponiblesParaCopia(): Observable<MatrizCopiaResumen[]> {
+    return this.http
+      .get<MatrizCopiaResumen[]>(`${this.baseUrl}/copias/origenes`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  copiarMatriz(matrizOrigenId: number, request: CopiarMatrizRequest): Observable<CopiaMatrizResultado> {
+    return this.http
+      .post<CopiaMatrizResultado>(`${this.baseUrl}/${matrizOrigenId}/copias`, request, {
+        headers: this.getAuthHeaders()
+      })
       .pipe(catchError(err => throwError(() => err)));
   }
 }

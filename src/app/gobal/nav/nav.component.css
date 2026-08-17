@@ -9,6 +9,69 @@
   z-index: 1033;
 }
 
+.navbar-actions,
+.brand-item,
+.logout-item {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-actions {
+  gap: 0.75rem;
+  height: 100%;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.app-logo img {
+  display: block;
+  width: auto;
+  height: 2.25rem;
+  object-fit: contain;
+}
+
+.logout-button {
+  min-height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid rgba(190, 24, 93, 0.2);
+  border-radius: 0.75rem;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.logout-button:hover {
+  background: #ffe4e6;
+  border-color: rgba(190, 24, 93, 0.32);
+  box-shadow: 0 6px 14px rgba(190, 24, 93, 0.12);
+  transform: translateY(-1px);
+}
+
+.logout-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+}
+
 .main-sidebar {
   position: fixed;
   top: 0;
@@ -55,6 +118,25 @@
 
   .main-sidebar .sidebar {
     height: calc(100vh - var(--layout-header-height));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .navbar-actions {
+    gap: 0.45rem;
+  }
+
+  .app-logo img {
+    height: 1.9rem;
+  }
+
+  .logout-button {
+    width: 2.35rem;
+    padding: 0;
+  }
+
+  .logout-button span {
+    display: none;
   }
 }
 

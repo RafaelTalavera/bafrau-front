@@ -17,7 +17,7 @@ export class NavComponent implements OnInit, OnDestroy {
   private readonly layoutFrameOffsetVar = '--layout-frame-offset';
   private readonly sectionMatchers: Record<NavSection, string[]> = {
     auditoria: ['/informe', '/informe-formato', '/capitulos/', '/capitulo/', '/encabezado/', '/caratula/', '/informes/'],
-    matriz: ['/matriz-causa-efecto', '/matriz-causa-efecto-visualizacion', '/matriz-ponderacion', '/matriz-impacto', '/matriz-impactos', '/matriz-factor', '/matriz-accion'],
+    matriz: ['/matriz-causa-efecto', '/matriz-causa-efecto-visualizacion', '/matriz-copiar', '/matriz-ponderacion', '/matriz-impacto', '/matriz-impactos', '/matriz-factor', '/matriz-accion'],
     tecnica: ['/registro-semaforo', '/reporte-legal-organizacion', '/registro-inventario', '/documento', '/documento-form', '/residuo-inventario', '/residuo', '/residuo-form'],
     desvios: ['/desvios'],
     configuracion: ['/usuarios']

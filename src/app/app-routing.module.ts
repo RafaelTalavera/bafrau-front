@@ -9,6 +9,7 @@ import { PonderacionMatrizComponent } from './matriz/matriz-ponderacion/ponderac
 import { MatrizImpactosComponent } from './matriz/matriz-impactos/matriz-impactos.component';
 import { MatrizCausaEfectoV1Component } from './matriz/matriz-causa-efecto-v1/matriz-causa-efecto-v1.component';
 import { MatrizCausaEfectoV1VisualizacionComponent } from './matriz/matriz-causa-efecto-v1-visualizacion/matriz-causa-efecto-v1-visualizacion.component';
+import { CopiarMatrizComponent } from './matriz/copiar-matriz/copiar-matriz.component';
 import { roleGuard } from './auth/service/role-guard';
 import { FormDocumentoComponent } from './legal/form-documento/form-documento.component';
 import { DocumentoComponent } from './legal/documento/documento.component';
@@ -43,6 +44,7 @@ export const routes: Routes = [
       { path: 'matriz-impacto', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'matriz-causa-efecto', component: MatrizCausaEfectoV1Component, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'matriz-causa-efecto-visualizacion', component: MatrizCausaEfectoV1VisualizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
+      { path: 'matriz-copiar', component: CopiarMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'matriz-causa-efecto-v1-visualizacion/:razonSocial/:sectionId', component: MatrizCausaEfectoV1VisualizacionComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'matriz-ponderacion/:razonSocial/:sectionId', component: PonderacionMatrizComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'matriz-impactos/:seccionId', component: MatrizImpactosComponent, canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },

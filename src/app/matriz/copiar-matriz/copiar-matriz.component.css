@@ -1,0 +1,15 @@
+.copy-container { max-width: 960px; margin: 0 auto; padding: 2rem; }
+.copy-container h1 { margin-bottom: .35rem; }
+.intro { color: #5f6b76; margin-bottom: 1.5rem; }
+.copy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .4rem; }
+.form-group label { font-weight: 600; }
+.form-group select, .form-group input { min-height: 42px; padding: .5rem .65rem; border: 1px solid #ced4da; border-radius: .35rem; background: #fff; }
+.summary { margin: 1.5rem 0; padding: 1rem 1.25rem; border: 1px solid #dfe3e7; border-radius: .5rem; background: #f8f9fa; }
+.summary h2 { font-size: 1.15rem; }
+.summary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.summary dl div { display: flex; gap: .35rem; }
+.summary dt::after { content: ':'; }
+.summary dd { margin: 0; }
+.warning { color: #8a5700; background: #fff3cd; padding: .75rem; border-radius: .35rem; }
+@media (max-width: 700px) { .copy-grid, .summary dl { grid-template-columns: 1fr; } .copy-container { padding: 1rem; } }

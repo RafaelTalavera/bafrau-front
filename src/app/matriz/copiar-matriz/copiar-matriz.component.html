@@ -1,0 +1,64 @@
+<app-spinner [isVisible]="loading"></app-spinner>
+
+<div class="content-wrapper">
+  <section class="copy-container">
+    <h1>Copiar matriz</h1>
+    <p class="intro">Crea una matriz independiente para otra organización sin modificar la información original.</p>
+
+    <div class="copy-grid">
+      <div class="form-group">
+        <label for="organizacionOrigen">Organización de origen</label>
+        <select id="organizacionOrigen" [(ngModel)]="organizacionOrigenId" (ngModelChange)="seleccionarOrigen()">
+          <option [ngValue]="null">Seleccionar organización</option>
+          <option *ngFor="let organizacion of organizacionesOrigen" [ngValue]="organizacion.id">
+            {{ organizacion.razonSocial }}{{ organizacion.vigente ? '' : ' (no vigente)' }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="matrizOrigen">Matriz de origen</label>
+        <select id="matrizOrigen" [(ngModel)]="matrizOrigenId" [disabled]="!organizacionOrigenId">
+          <option [ngValue]="null">Seleccionar matriz</option>
+          <option *ngFor="let matriz of matricesOrigen" [ngValue]="matriz.matrizId">
+            #{{ matriz.matrizId }} · {{ matriz.fecha | date:'dd/MM/yyyy' }} · {{ matriz.cantidadItems }} ítems
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="organizacionDestino">Organización de destino</label>
+        <select id="organizacionDestino" [(ngModel)]="organizacionDestinoId">
+          <option [ngValue]="null">Seleccionar organización</option>
+          <option *ngFor="let organizacion of destinosDisponibles" [ngValue]="organizacion.id">
+            {{ organizacion.razonSocial }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fecha">Fecha de la nueva matriz</label>
+        <input id="fecha" type="date" [(ngModel)]="fecha">
+      </div>
+    </div>
+
+    <div *ngIf="matrizSeleccionada as matriz" class="summary">
+      <h2>Resumen de la copia</h2>
+      <dl>
+        <div><dt>Origen</dt><dd>{{ matriz.razonSocial }}</dd></div>
+        <div><dt>Fecha original</dt><dd>{{ matriz.fecha | date:'dd/MM/yyyy' }}</dd></div>
+        <div><dt>Ítems</dt><dd>{{ matriz.cantidadItems }}</dd></div>
+        <div><dt>Destino</dt><dd>{{ destinoSeleccionado?.razonSocial || 'Pendiente' }}</dd></div>
+      </dl>
+      <p *ngIf="cantidadMatricesDestino > 0" class="warning">
+        La organización destino ya tiene {{ cantidadMatricesDestino }} matriz/matrices. Se creará una adicional.
+      </p>
+      <p>La matriz original permanecerá sin cambios. La copia se abrirá en edición para revisar sus valoraciones.</p>
+    </div>
+
+    <button class="btn btn-primary" type="button" [disabled]="loading || !matrizOrigenId || !organizacionDestinoId || !fecha"
+      (click)="confirmarCopia()">
+      <i class="fa-solid fa-copy me-1"></i> Revisar y copiar
+    </button>
+  </section>
+</div>

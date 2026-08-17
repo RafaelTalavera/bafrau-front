@@ -83,6 +83,12 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   ngOnInit(): void {
     this.loading = true;
     this.route.paramMap.subscribe(params => {
+      const matrixId = Number(this.route.snapshot.queryParamMap.get('matrixId'));
+      const abrirEnEdicion = this.route.snapshot.queryParamMap.get('edit') === 'true';
+      if (Number.isInteger(matrixId) && matrixId > 0) {
+        this.loadMatrixById(matrixId, abrirEnEdicion);
+        return;
+      }
       const rs = params.get('razonSocial');
       this.razonSocial = rs ?? undefined;
       this.sectionId = params.get('sectionId') ? +params.get('sectionId')! : undefined;
@@ -91,6 +97,26 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
         this.loadByRazonSocial(this.razonSocial);
       } else {
         this.loadMatrices();
+      }
+    });
+  }
+
+  private loadMatrixById(matrixId: number, abrirEnEdicion: boolean): void {
+    this.loadingDetail = true;
+    this.matrizService.getMatrizById(matrixId).subscribe({
+      next: full => {
+        this.selectedMatrix = full;
+        this.selectedViewMode = 'complete';
+        this.editMode = abrirEnEdicion;
+        this.buildGrid(full);
+        this.loadingDetail = false;
+        this.loading = false;
+      },
+      error: () => {
+        this.loadingDetail = false;
+        this.loading = false;
+        Swal.fire('Error', 'No se pudo abrir la matriz copiada.', 'error')
+          .then(() => this.loadMatrices());
       }
     });
   }
@@ -298,18 +324,14 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   }
 
   onMatrixSaved(updated: Matriz): void {
-    this.matrizService.updateMatriz(updated.id, updated).subscribe(
-      () => {
-        // 1) Traer la matriz UNA VEZ ACTUALIZADA
-        this.matrizService.getMatrizById(updated.id).subscribe(full => {
-          this.selectedMatrix = full;
-          this.editMode = false;
-          this.buildGrid(full);
-          Swal.fire('Éxito', 'Matriz actualizada correctamente.', 'success');
-        });
+    this.matrizService.getMatrizById(updated.id).subscribe({
+      next: full => {
+        this.selectedMatrix = full;
+        this.editMode = false;
+        this.buildGrid(full);
       },
-      () => Swal.fire('Error', 'No se pudo actualizar la matriz.', 'error')
-    );
+      error: () => Swal.fire('Error', 'La matriz se guardó, pero no se pudo recargar.', 'error')
+    });
   }
 
 

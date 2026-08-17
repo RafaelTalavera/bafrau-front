@@ -33,6 +33,7 @@ export class MenuTableComponent {
 
         { label: 'Causa-Efecto (Edición)', path: '/matriz-causa-efecto', icon: 'fas fa-industry' },
         { label: 'Causa-Efecto (Visual)', path: '/matriz-causa-efecto-visualizacion', icon: 'fas fa-eye' },
+        { label: 'Copiar matriz', path: '/matriz-copiar', icon: 'fas fa-copy' },
         { label: 'Ponderación', path: '/matriz-ponderacion', icon: 'fas fa-calculator' },
         { label: 'Impacto', path: '/matriz-impacto', icon: 'fas fa-bolt' },
         { label: 'Factores', path: '/matriz-factor', icon: 'fas fa-fire' },

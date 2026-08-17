@@ -39,3 +39,26 @@ export class Matriz {
   items!: ItemMatriz[];
   informe!: string;
 }
+
+export interface MatrizCopiaResumen {
+  matrizId: number;
+  fecha: string;
+  organizacionId: number;
+  razonSocial: string;
+  organizacionVigente: boolean;
+  cantidadItems: number;
+}
+
+export interface CopiarMatrizRequest {
+  organizacionDestinoId: number;
+  fecha: string;
+}
+
+export interface CopiaMatrizResultado {
+  matrizOrigenId: number;
+  matrizCreadaId: number;
+  organizacionOrigenId: number;
+  organizacionDestinoId: number;
+  itemsCopiados: number;
+  fecha: string;
+}
