@@ -95,16 +95,16 @@
               <span class="stat-value">{{ closedRequirementsCount }}</span>
               <span class="stat-label">requisitos cerrados</span>
             </button>
-            <button type="button" class="btn-primary" (click)="addNewControlDraft()">
+            <button type="button" class="btn-primary" (click)="addRequirement()">
               <i class="fas fa-plus me-1"></i>
-              Nuevo registro
+              Agregar requisito
             </button>
           </div>
         </div>
 
         <div *ngIf="selectedControls.length === 0" class="surface-card empty-state">
-          <h3>Sin registros cargados</h3>
-          <p>Use "Nuevo registro" para crear el primer bloque de requisitos de esta organizacion.</p>
+          <h3>Sin requisitos cargados</h3>
+          <p>Use "Agregar requisito" para cargar el primero de esta organizacion.</p>
         </div>
 
         <div *ngIf="selectedControls.length > 0 && visibleControlViews.length === 0" class="surface-card empty-state">
@@ -118,14 +118,10 @@
               <div>
                 <span class="control-kicker">Registro</span>
                 <h3 class="control-title">
-                  {{ isPersistedControl(controlView.control) ? 'Registro cargado' : 'Nuevo registro' }}
+                  {{ isPersistedControl(controlView.control) ? 'Registro cargado' : 'Requisitos nuevos' }}
                 </h3>
               </div>
 
-              <button type="button" class="btn-secondary" (click)="addDetalleItem(controlView.controlIndex)">
-                <i class="fas fa-plus me-1"></i>
-                Agregar requisito
-              </button>
             </div>
 
             <form (ngSubmit)="onSubmitDetalle(controlView.controlIndex)">
@@ -267,7 +263,7 @@
               <div class="control-footer" *ngIf="!isPersistedControl(controlView.control)">
                 <button type="submit" class="btn-primary">
                   <i class="fas fa-save me-1"></i>
-                  Crear registro
+                  Guardar requisitos
                 </button>
               </div>
             </form>

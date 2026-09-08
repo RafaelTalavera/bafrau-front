@@ -400,7 +400,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
           this.isPersistedControl(control) ? 'Guardado' : 'Creado',
           this.isPersistedControl(control)
             ? 'Registro actualizado correctamente.'
-            : `Se creó un nuevo registro para ${this.selectedOrganizacion?.razonSocial}.`
+            : `Los requisitos de ${this.selectedOrganizacion?.razonSocial} se guardaron correctamente.`
         );
       },
       error: () => {
@@ -409,7 +409,31 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     });
   }
 
-  addDetalleItem(controlIndex: number): void {
+  addRequirement(): void {
+    if (!this.selectedOrganizacion) {
+      return;
+    }
+
+    this.requirementFilter = 'all';
+
+    const draftIndex = this.selectedControls.findIndex(control => !this.isPersistedControl(control));
+    if (draftIndex >= 0) {
+      this.addDetalleItem(draftIndex);
+      return;
+    }
+
+    if (this.selectedControls.length === 0) {
+      this.addNewControlDraft();
+      const newDraftIndex = this.selectedControls.findIndex(control => !this.isPersistedControl(control));
+      this.addDetalleItem(newDraftIndex);
+      return;
+    }
+
+    // Los controles se mantienen ordenados por fecha ascendente: el ultimo es el mas reciente.
+    this.addDetalleItem(this.selectedControls.length - 1);
+  }
+
+  private addDetalleItem(controlIndex: number): void {
     const control = this.selectedControls[controlIndex];
     if (!control) {
       return;
@@ -433,7 +457,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     this.refreshVisibleControlViews();
   }
 
-  addNewControlDraft(): void {
+  private addNewControlDraft(): void {
     if (!this.selectedOrganizacion) {
       return;
     }
