@@ -95,6 +95,16 @@
               <span class="stat-value">{{ closedRequirementsCount }}</span>
               <span class="stat-label">requisitos cerrados</span>
             </button>
+            <button
+              *ngIf="selectedControls.length > 0"
+              type="button"
+              class="btn-outline"
+              (click)="toggleDueDateSort()"
+              [attr.aria-label]="dueDateSortDirection === 'asc' ? 'Ordenar requisitos por vencimiento descendente' : 'Ordenar requisitos por vencimiento ascendente'"
+              [title]="dueDateSortDirection === 'asc' ? 'Próximos a vencer primero. Cambiar el orden' : 'Vencimientos más lejanos primero. Cambiar el orden'">
+              <i class="fas me-1" [ngClass]="dueDateSortDirection === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'" aria-hidden="true"></i>
+              Vencimiento: {{ dueDateSortDirection === 'asc' ? 'próximos primero' : 'más lejanos primero' }}
+            </button>
             <button type="button" class="btn-primary" (click)="addRequirement()">
               <i class="fas fa-plus me-1"></i>
               Agregar requisito

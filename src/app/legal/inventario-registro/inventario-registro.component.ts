@@ -23,7 +23,7 @@ import { FilterByJurisdiccionPipe } from './filter-by-jurisdiccion.pipe';
 import { SpinnerComponent } from '../../utils/spinner/spinner.component';
 import { CanComponentDeactivate } from '../../guards/pending-changes.guard';
 
-type RequirementFilter = 'all' | 'active' | 'closed';
+type RequirementFilter = 'active' | 'closed';
 
 interface VisibleRequirementItem {
   item: ItemControlDTO;
@@ -66,7 +66,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   selectedOrganizacion: OrganizacionDTO | null = null;
   selectedControls: ControlDTO[] = [];
   deletedItems: ItemControlDTO[] = [];
-  requirementFilter: RequirementFilter = 'all';
+  requirementFilter: RequirementFilter = 'active';
+  dueDateSortDirection: 'asc' | 'desc' = 'asc';
   visibleControlViews: VisibleControlView[] = [];
   highlightedItemId: number | null = null;
 
@@ -95,6 +96,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   }
 
   ngOnInit(): void {
+    this.dueDateSortDirection = 'asc';
     this.loading = true;
     forkJoin({
       organizaciones: this.organizacionService.getOrganizacionesRepresentacionTecnica().pipe(
@@ -158,30 +160,48 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   }
 
   private refreshVisibleControlViews(): void {
-    let displayIndex = 0;
+    // Sort across persisted records without changing the indices used by edit actions.
+    const requirements = this.selectedControls.flatMap((control, controlIndex) =>
+      this.isPersistedControl(control)
+        ? (control.items ?? []).map((item, itemIndex) => ({ control, controlIndex, item, itemIndex }))
+        : []
+    ).filter(({ item }) => this.matchesRequirementFilter(item))
+      .sort((a, b) => {
+        const timeA = this.parseControlDate(a.item.vencimiento);
+        const timeB = this.parseControlDate(b.item.vencimiento);
+        if (timeA === null) return timeB === null ? 0 : 1;
+        if (timeB === null) return -1;
+        return this.dueDateSortDirection === 'asc' ? timeA - timeB : timeB - timeA;
+      });
 
-    this.visibleControlViews = this.selectedControls
-      .map((control, controlIndex) => ({
-        control,
-        controlIndex,
-        visibleItems: (control.items ?? [])
-          .map((item, itemIndex) => ({ item, itemIndex }))
-          .filter(({ item }) => this.matchesRequirementFilter(item))
-          .map(({ item, itemIndex }) => ({
-            item,
-            itemIndex,
-            displayIndex: ++displayIndex
-          }))
-      }))
-      .filter(view => this.requirementFilter === 'all' || view.visibleItems.length > 0);
+    const views: VisibleControlView[] = [];
+    let displayIndex = 0;
+    for (const { control, controlIndex, item, itemIndex } of requirements) {
+      // Only combine adjacent requirements: grouping all items by record would break the order.
+      let view = views[views.length - 1];
+      if (!view || view.controlIndex !== controlIndex) {
+        view = { control, controlIndex, visibleItems: [] };
+        views.push(view);
+      }
+      view.visibleItems.push({ item, itemIndex, displayIndex: ++displayIndex });
+    }
+
+    // Keep new records together so their complete creation form remains available.
+    this.selectedControls.forEach((control, controlIndex) => {
+      if (this.isPersistedControl(control) && control.items.length > 0) return;
+      const visibleItems = (control.items ?? [])
+        .map((item, itemIndex) => ({ item, itemIndex }))
+        .filter(({ item }) => this.matchesRequirementFilter(item))
+        .map(({ item, itemIndex }) => ({ item, itemIndex, displayIndex: ++displayIndex }));
+      if (visibleItems.length > 0) {
+        views.push({ control, controlIndex, visibleItems });
+      }
+    });
+    this.visibleControlViews = views;
   }
 
   trackRequirementById(_: number, itemView: VisibleRequirementItem): number | null {
     return itemView.item.id;
-  }
-
-  get isFilteringRequirements(): boolean {
-    return this.requirementFilter !== 'all';
   }
 
   get currentRequirementFilterLabel(): string {
@@ -193,7 +213,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return 'cerrados';
     }
 
-    return 'todos';
+    return 'cerrados';
   }
 
   async viewDetails(org: OrganizacionDTO): Promise<void> {
@@ -203,9 +223,10 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
     this.loading = true;
     this.selectedOrganizacion = org;
+    this.dueDateSortDirection = 'asc';
     this.selectedControls = [];
     this.deletedItems = [];
-    this.requirementFilter = 'all';
+    this.requirementFilter = 'active';
     this.visibleControlViews = [];
     this.originalControlsSnapshot = '';
 
@@ -220,7 +241,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     this.selectedOrganizacion = null;
     this.selectedControls = [];
     this.deletedItems = [];
-    this.requirementFilter = 'all';
+    this.requirementFilter = 'active';
     this.visibleControlViews = [];
     this.originalControlsSnapshot = '';
     this.highlightedItemId = null;
@@ -233,7 +254,13 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   }
 
   setRequirementFilter(filter: RequirementFilter): void {
-    this.requirementFilter = this.requirementFilter === filter ? 'all' : filter;
+    this.requirementFilter = filter;
+    this.dueDateSortDirection = 'asc';
+    this.refreshVisibleControlViews();
+  }
+
+  toggleDueDateSort(): void {
+    this.dueDateSortDirection = this.dueDateSortDirection === 'asc' ? 'desc' : 'asc';
     this.refreshVisibleControlViews();
   }
 
@@ -414,7 +441,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return;
     }
 
-    this.requirementFilter = 'all';
+    this.requirementFilter = 'closed';
+    this.dueDateSortDirection = 'asc';
 
     const draftIndex = this.selectedControls.findIndex(control => !this.isPersistedControl(control));
     if (draftIndex >= 0) {
@@ -558,28 +586,30 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   }
 
   private sortSelectedControls(): void {
-    this.selectedControls = [...this.selectedControls].sort((a, b) => {
-      const timeA = this.parseControlDate(a.fecha);
-      const timeB = this.parseControlDate(b.fecha);
+    this.selectedControls = [...this.selectedControls].sort((a, b) => this.compareControlsByDate(a, b, 'asc'));
+  }
 
-      if (timeA === null && timeB === null) {
-        return a.id - b.id;
-      }
+  private compareControlsByDate(a: ControlDTO, b: ControlDTO, direction: 'asc' | 'desc'): number {
+    const timeA = this.parseControlDate(a.fecha);
+    const timeB = this.parseControlDate(b.fecha);
 
-      if (timeA === null) {
-        return 1;
-      }
-
-      if (timeB === null) {
-        return -1;
-      }
-
-      if (timeA !== timeB) {
-        return timeA - timeB;
-      }
-
+    if (timeA === null && timeB === null) {
       return a.id - b.id;
-    });
+    }
+
+    if (timeA === null) {
+      return 1;
+    }
+
+    if (timeB === null) {
+      return -1;
+    }
+
+    if (timeA !== timeB) {
+      return direction === 'asc' ? timeA - timeB : timeB - timeA;
+    }
+
+    return a.id - b.id;
   }
 
   private parseControlDate(value: string | null | undefined): number | null {
@@ -588,7 +618,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return null;
     }
 
-    return new Date(`${normalized}T00:00:00`).getTime();
+    const time = new Date(`${normalized}T00:00:00`).getTime();
+    return Number.isFinite(time) ? time : null;
   }
 
   private matchesRequirementFilter(item: ItemControlDTO): boolean {
@@ -596,11 +627,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return item.estado === true;
     }
 
-    if (this.requirementFilter === 'closed') {
-      return item.estado !== true;
-    }
-
-    return true;
+    return item.estado !== true;
   }
 
   private loadOrganizationDetail(orgId: number, successTitle?: string, successText?: string): void {
@@ -624,7 +651,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         next: ({ controls, deletedItems }) => {
           this.selectedControls = (controls ?? []).map(control => this.normalizeControl(control));
           this.sortSelectedControls();
-          this.requirementFilter = 'all';
+          this.requirementFilter = 'active';
+          this.dueDateSortDirection = 'asc';
           this.refreshVisibleControlViews();
           this.originalControlsSnapshot = this.createControlsSnapshot();
 
