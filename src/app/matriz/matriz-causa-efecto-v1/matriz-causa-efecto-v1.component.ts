@@ -106,6 +106,7 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   nuevaEtapa = '';
   gridService2: any;
   loading = false;
+  private altaPendiente: { firma: string; clave: string } | null = null;
 
   constructor(
     private router: Router,
@@ -386,6 +387,8 @@ export class MatrizCausaEfectoV1Component implements OnInit, OnChanges {
   }
 
 onSubmit() {
+  if (this.loading) return;
+
   const originalItems = this.matrix?.items ?? [];
   if (!this.informe.organizacionId) {
     Swal.fire('Error', 'Debes seleccionar una organización', 'error');
@@ -443,10 +446,15 @@ onSubmit() {
     )
   );
 
+  const firma = JSON.stringify(payload);
+  if (!this.altaPendiente || this.altaPendiente.firma !== firma) {
+    this.altaPendiente = { firma, clave: this.nuevaClaveIdempotencia() };
+  }
+
   // 3) Llamada al servicio
   const req$ = this.editMode
     ? this.matrizService.updateMatriz(payload.id, payload)
-    : this.matrizService.createMatriz(payload);
+    : this.matrizService.createMatriz(payload, this.altaPendiente!.clave);
 
   req$
     .pipe(
@@ -458,6 +466,7 @@ onSubmit() {
     )
     .subscribe({
       next: () => {
+        this.altaPendiente = null;
         // 4) Corto el spinner YA antes de mostrar el Swal
         this.loading = false;
         this.cd.detectChanges();
@@ -485,6 +494,12 @@ onSubmit() {
       }
     });
 }
+
+  private nuevaClaveIdempotencia(): string {
+    const valores = new Uint32Array(4);
+    crypto.getRandomValues(valores);
+    return Array.from(valores, valor => valor.toString(16).padStart(8, '0')).join('-');
+  }
 
   getStageClass(name: string) {
     const l = name.toLowerCase();

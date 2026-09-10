@@ -32,6 +32,7 @@ export class CopiarMatrizComponent implements OnInit {
   organizacionDestinoId: number | null = null;
   fecha = this.fechaLocalActual();
   loading = false;
+  private copiaPendiente: { firma: string; clave: string } | null = null;
 
   constructor(
     private matrizService: MatrizService,
@@ -71,6 +72,8 @@ export class CopiarMatrizComponent implements OnInit {
   }
 
   async confirmarCopia(): Promise<void> {
+    if (this.loading) return;
+
     const matriz = this.matrizSeleccionada;
     const destino = this.destinoSeleccionado;
     if (!matriz || !destino?.id || !this.fecha) {
@@ -130,9 +133,17 @@ export class CopiarMatrizComponent implements OnInit {
   }
 
   private ejecutarCopia(matrizOrigenId: number, organizacionDestinoId: number): void {
+    if (this.loading) return;
+
     this.loading = true;
-    this.matrizService.copiarMatriz(matrizOrigenId, { organizacionDestinoId, fecha: this.fecha }).subscribe({
+    const request = { organizacionDestinoId, fecha: this.fecha };
+    const firma = JSON.stringify({ matrizOrigenId, ...request });
+    if (!this.copiaPendiente || this.copiaPendiente.firma !== firma) {
+      this.copiaPendiente = { firma, clave: this.nuevaClaveIdempotencia() };
+    }
+    this.matrizService.copiarMatriz(matrizOrigenId, request, this.copiaPendiente.clave).subscribe({
       next: resultado => {
+        this.copiaPendiente = null;
         this.loading = false;
         Swal.fire('Matriz copiada', `Se copiaron ${resultado.itemsCopiados} ítems.`, 'success')
           .then(() => this.router.navigate(['/matriz-causa-efecto-visualizacion'], {
@@ -145,6 +156,12 @@ export class CopiarMatrizComponent implements OnInit {
         Swal.fire('Error', mensaje, 'error');
       }
     });
+  }
+
+  private nuevaClaveIdempotencia(): string {
+    const valores = new Uint32Array(4);
+    crypto.getRandomValues(valores);
+    return Array.from(valores, valor => valor.toString(16).padStart(8, '0')).join('-');
   }
 
   private fechaLocalActual(): string {

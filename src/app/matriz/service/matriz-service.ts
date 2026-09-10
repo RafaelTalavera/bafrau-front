@@ -44,10 +44,8 @@ export class MatrizService {
   }
 
   /** Crea una nueva matriz */
-  createMatriz(matriz: Matriz): Observable<Matriz> {
-    const headers = this.getAuthHeaders();
-    console.log('JWT enviado:', headers.get('Authorization'));
-    console.log('Payload createMatriz:', JSON.stringify(matriz, null, 2));
+  createMatriz(matriz: Matriz, idempotencyKey?: string): Observable<Matriz> {
+    const headers = this.withIdempotencyKey(this.getAuthHeaders(), idempotencyKey);
     return this.http
       .post<Matriz>(this.baseUrl, matriz, { headers })
       .pipe(catchError(err => throwError(() => err)));
@@ -92,11 +90,19 @@ export class MatrizService {
       .pipe(catchError(err => throwError(() => err)));
   }
 
-  copiarMatriz(matrizOrigenId: number, request: CopiarMatrizRequest): Observable<CopiaMatrizResultado> {
+  copiarMatriz(
+    matrizOrigenId: number,
+    request: CopiarMatrizRequest,
+    idempotencyKey?: string
+  ): Observable<CopiaMatrizResultado> {
     return this.http
       .post<CopiaMatrizResultado>(`${this.baseUrl}/${matrizOrigenId}/copias`, request, {
-        headers: this.getAuthHeaders()
+        headers: this.withIdempotencyKey(this.getAuthHeaders(), idempotencyKey)
       })
       .pipe(catchError(err => throwError(() => err)));
+  }
+
+  private withIdempotencyKey(headers: HttpHeaders, idempotencyKey?: string): HttpHeaders {
+    return idempotencyKey ? headers.set('Idempotency-Key', idempotencyKey) : headers;
   }
 }

@@ -229,7 +229,7 @@
 
           <!-- Botón Guardar -->
           <div class="input-row" *ngIf="factors.length > 0 && stages.length > 0">
-            <button type="submit" class="btn-secondary small-text btn-spacing">
+            <button type="submit" class="btn-secondary small-text btn-spacing" [disabled]="loading">
               <i class="nav-icon fa-solid fa-floppy-disk"></i> Guardar Matriz
             </button>
 
