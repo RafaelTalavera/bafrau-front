@@ -29,7 +29,10 @@
 
           <!-- Tabla tras cargar -->
           <div *ngIf="!loadingList">
-            <div *ngIf="filteredMatrices.length === 0">
+            <div *ngIf="loadError" class="alert alert-danger small-text" role="alert">
+              {{ loadError }}
+            </div>
+            <div *ngIf="!loadError && filteredMatrices.length === 0">
               <p class="small-text">No hay matrices registradas.</p>
             </div>
             <div *ngIf="filteredMatrices.length > 0" class="table-container">

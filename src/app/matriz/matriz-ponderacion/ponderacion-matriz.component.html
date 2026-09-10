@@ -19,7 +19,10 @@
 
     <!-- Lista de matrices -->
     <div *ngIf="!selectedMatrix">
-      <p *ngIf="!loading && filteredMatrices.length === 0" class="small-text">
+      <div *ngIf="!loading && loadError" class="alert alert-danger small-text" role="alert">
+        {{ loadError }}
+      </div>
+      <p *ngIf="!loading && !loadError && filteredMatrices.length === 0" class="small-text">
         No hay matrices registradas.
       </p>
       <div *ngIf="filteredMatrices.length > 0"

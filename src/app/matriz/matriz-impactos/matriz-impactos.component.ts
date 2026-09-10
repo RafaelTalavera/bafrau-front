@@ -79,6 +79,7 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
   // ← Banderas de carga
   loadingList: boolean = false;
   loadingDetail: boolean = false;
+  loadError: string | null = null;
 
   //bandera spinnig
   //ropiedad para controlar spinners de descarga
@@ -423,6 +424,7 @@ downloadIrtChart(): void {
   private loadByRazonSocial(razon: string): void {
     console.log('▶️ loadByRazonSocial con razonSocial =', razon);
     this.loadingList = true;
+    this.loadError = null;
     this.matrizService.getAllMatrices().subscribe({
       next: data => {
         this.matrices = data
@@ -433,6 +435,8 @@ downloadIrtChart(): void {
       },
       error: err => {
         console.error('❌ Error al cargar por razonSocial:', err);
+        this.matrices = [];
+        this.loadError = this.getLoadErrorMessage(err);
         this.loadingList = false;
       }
     });
@@ -441,6 +445,7 @@ downloadIrtChart(): void {
 
   loadMatrices(): void {
     this.loadingList = true;  // inicia spinner
+    this.loadError = null;
     this.matrizService.getAllMatrices().subscribe(
       data => {
         this.matrices = data;
@@ -448,9 +453,17 @@ downloadIrtChart(): void {
       },
       err => {
         console.error('Error cargar matrices:', err);
+        this.matrices = [];
+        this.loadError = this.getLoadErrorMessage(err);
         this.loadingList = false;  // detiene spinner
       }
     );
+  }
+
+  private getLoadErrorMessage(error: { status?: number }): string {
+    return error?.status === 401 || error?.status === 403
+      ? 'No se pudo validar la sesion. Cierre la sesion e ingrese nuevamente.'
+      : 'No se pudieron cargar las matrices. Intente nuevamente.';
   }
 
   get filteredMatrices(): Matriz[] {

@@ -47,6 +47,7 @@ export class PonderacionMatrizComponent implements OnInit {
 
   @ViewChild('uipTableVisualizacion') uipTableVisualizacion!: ElementRef<HTMLDivElement>;
   loading = false;
+  loadError: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -71,6 +72,7 @@ export class PonderacionMatrizComponent implements OnInit {
   }
 
 loadMatrices(): void {
+  this.loadError = null;
   this.loading = true;                         // ← Activa el spinner
   this.cdr.detectChanges();                    // ← Fuerza detección para que aparezca inmediatamente
   this.matrizService.getAllMatrices().subscribe(
@@ -81,9 +83,12 @@ loadMatrices(): void {
     },
     err => {
       console.error('Error al cargar matrices:', err);
+      this.matrices = [];
+      this.loadError = err?.status === 401 || err?.status === 403
+        ? 'No se pudo validar la sesion. Cierre la sesion e ingrese nuevamente.'
+        : 'No se pudieron cargar las matrices. Intente nuevamente.';
       this.loading = false;                    // ← Desactiva el spinner también en error
       this.cdr.detectChanges();
-      Swal.fire('Error', 'No se pudieron cargar las matrices.', 'error');
     }
   );
 }

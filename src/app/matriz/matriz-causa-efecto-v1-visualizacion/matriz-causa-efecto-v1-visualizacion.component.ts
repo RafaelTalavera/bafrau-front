@@ -57,6 +57,7 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   editMode = false;
   loadingList: boolean = false;
   loadingDetail: boolean = false;
+  loadError: string | null = null;
   razonSocial?: string;
   sectionId?: number;
   loading: boolean = true;
@@ -234,6 +235,8 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   }
 
   private loadByRazonSocial(razon: string): void {
+    this.loadingList = true;
+    this.loadError = null;
     this.matrizService.getAllMatrices().subscribe({
       next: data => {
         this.matrices = data
@@ -244,10 +247,14 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
             ...m,
             razonSocial: m.razonSocial ?? m.organizacionId
           }));
+        this.loadingList = false;
         this.loading = false;
       },
       error: err => {
         console.error(err);
+        this.matrices = [];
+        this.loadError = this.getLoadErrorMessage(err);
+        this.loadingList = false;
         this.loading = false;
       }
     });
@@ -259,16 +266,22 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
 
 
   private loadMatrices(): void {
+    this.loadingList = true;
+    this.loadError = null;
     this.matrizService.getAllMatrices().subscribe({
       next: data => {
         this.matrices = data.map(m => ({
           ...m,
           razonSocial: m.razonSocial ?? m.organizacionId
         }));
+        this.loadingList = false;
         this.loading = false;
       },
       error: err => {
         console.error(err);
+        this.matrices = [];
+        this.loadError = this.getLoadErrorMessage(err);
+        this.loadingList = false;
         this.loading = false;
       }
     });
@@ -333,6 +346,12 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
       },
       error: () => Swal.fire('Error', 'La matriz se guardó, pero no se pudo recargar.', 'error')
     });
+  }
+
+  private getLoadErrorMessage(error: { status?: number }): string {
+    return error?.status === 401 || error?.status === 403
+      ? 'No se pudo validar la sesion. Cierre la sesion e ingrese nuevamente.'
+      : 'No se pudieron cargar las matrices. Intente nuevamente.';
   }
 
 
