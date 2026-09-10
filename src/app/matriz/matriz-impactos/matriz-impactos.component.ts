@@ -49,7 +49,8 @@ export class MatrizImpactosComponent implements OnInit, AfterViewInit {
 
   factors: FactorView[] = [];
   stages: Stage[] = [];
-  valuationsMap: Record<string, Record<string, Record<string, string>>> = {};
+  valuationsMap: Partial<Record<string,
+    Partial<Record<string, Partial<Record<string, string>>>>>> = {};
   additionalMap: Record<string, Record<string, Record<string, AdditionalFields>>> = {};
 
   organizationFilter = '';
@@ -881,7 +882,7 @@ computeSummaryIRTs(): void {
     actions: Object
       .keys(this.valuationsMap[f.id] || {})
       .flatMap(stage =>
-        Object.keys(this.valuationsMap[f.id][stage] || {})
+        Object.keys(this.valuationsMap[f.id]?.[stage] || {})
       )
   }));
 

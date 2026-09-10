@@ -48,6 +48,17 @@
               "src/assets/plugins/bootstrap/js/bootstrap.bundle.min.js",
               "src/assets/plugins/toastr/toastr.min.js",
               "src/assets/dist/js/adminlte.min.js"
+            ],
+            "allowedCommonJsDependencies": [
+              "core-js",
+              "exceljs",
+              "file-saver",
+              "html2canvas",
+              "html2pdf.js",
+              "raf",
+              "rgbcolor",
+              "sweetalert2",
+              "typo-js"
             ]
           },
           "configurations": {
@@ -62,8 +73,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "2.2mb",
+                  "maximumError": "2.5mb"
                 },
                 {
                   "type": "anyComponentStyle",

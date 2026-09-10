@@ -50,7 +50,8 @@ export class MatrizCausaEfectoV1VisualizacionComponent implements OnInit {
   selectedViewMode: 'complete' | 'stages' | 'systems' | 'combined' | null = null;
   factors: FactorView[] = [];
   stages: Stage[] = [];
-  valuationsMap: { [key: string]: { [stage: string]: { [action: string]: string } } } = {};
+  valuationsMap: Partial<Record<string,
+    Partial<Record<string, Partial<Record<string, string>>>>>> = {};
   organizationFilter = '';
   logoBase64 = '';
   editMode = false;
