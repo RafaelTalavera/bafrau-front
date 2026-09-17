@@ -18,8 +18,12 @@ export class DesviosService {
   }
   resumen(): Observable<ResumenDesvios> { return this.http.get<ResumenDesvios>(`${this.apiUrl}/resumen`); }
   obtener(id: number): Observable<DesvioDetalle> { return this.http.get<DesvioDetalle>(`${this.apiUrl}/${id}`); }
+  actualizar(id: number, payload: object): Observable<DesvioDetalle> { return this.http.put<DesvioDetalle>(`${this.apiUrl}/${id}`, payload); }
   crear(payload: object): Observable<DesvioDetalle> { return this.http.post<DesvioDetalle>(this.apiUrl, payload); }
   agregarSeguimiento(id: number, payload: object): Observable<SeguimientoDesvio> { return this.http.post<SeguimientoDesvio>(`${this.apiUrl}/${id}/seguimientos`, payload); }
+  actualizarSeguimiento(id: number, seguimientoId: number, payload: object): Observable<SeguimientoDesvio> {
+    return this.http.put<SeguimientoDesvio>(`${this.apiUrl}/${id}/seguimientos/${seguimientoId}`, payload);
+  }
   subirEvidencia(id: number, file: File, seguimientoId?: number): Observable<EvidenciaDesvio> {
     const data = new FormData(); data.append('file', file); data.append('descripcion', file.name);
     const url = seguimientoId ? `${this.apiUrl}/${id}/seguimientos/${seguimientoId}/evidencias` : `${this.apiUrl}/${id}/evidencias`;

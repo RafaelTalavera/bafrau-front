@@ -5,11 +5,30 @@ import { Router, RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
 import { DesviosService } from '../services/desvios.service';
+import { CondicionOperacionDesvio, IndiceGravedadDesvio, CONDICION_OPERACION_LABEL, INDICE_GRAVEDAD_LABEL } from '../models/desvio.model';
 
 @Component({ selector: 'app-desvio-form', standalone: true, imports: [CommonModule, ReactiveFormsModule, RouterModule], templateUrl: './desvio-form.component.html', styleUrls: ['./desvio-form.component.css'] })
 export class DesvioFormComponent implements OnInit {
   organizaciones: any[] = []; files: File[] = []; previews: string[] = []; saving = false; error = '';
-  form = this.fb.group({ organizacionId: ['', Validators.required], fechaDeteccion: [new Date().toISOString().slice(0,10), Validators.required], sitioEstablecimiento: ['', [Validators.required, Validators.maxLength(500)]], descripcion: ['', Validators.required], accionCorrectivaSugerida: ['', Validators.required], responsablesReferentes: [''] });
+  readonly indicesGravedad: IndiceGravedadDesvio[] = ['MUY_LEVE', 'LEVE', 'MODERADO', 'GRAVE', 'CRITICO'];
+  readonly condicionesOperacion: CondicionOperacionDesvio[] = ['NORMAL', 'ANORMAL', 'EMERGENCIA'];
+  readonly gravedadLabels = INDICE_GRAVEDAD_LABEL;
+  readonly condicionLabels = CONDICION_OPERACION_LABEL;
+  form = this.fb.group({
+    organizacionId: ['', Validators.required],
+    fechaDeteccion: [new Date().toISOString().slice(0,10), Validators.required],
+    indiceGravedad: ['', Validators.required],
+    condicionOperacion: ['', Validators.required],
+    sitioEstablecimiento: ['', [Validators.required, Validators.maxLength(500)]],
+    descripcion: ['', Validators.required],
+    accionInmediata: ['', Validators.required],
+    responsableAccionInmediata: [''],
+    fechaEjecucionAccionInmediata: [''],
+    accionCorrectivaSugerida: ['', Validators.required],
+    responsableAccionCorrectiva: [''],
+    fechaEjecucionAccionCorrectiva: [''],
+    responsablesReferentes: ['']
+  });
   constructor(private fb: FormBuilder, private orgService: OrganizacionService, private service: DesviosService, private router: Router) {}
   ngOnInit(): void {
     this.orgService.getOrganizacionesRepresentacionTecnica().subscribe({
