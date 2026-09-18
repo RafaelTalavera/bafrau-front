@@ -421,6 +421,12 @@ onSubmit() {
           const original = this.editMode
             ? this.matrix.items.find(it => it.id === itemId)
             : undefined;
+          const factorId = this.getFactorId(fi);
+          // Las ponderaciones son por factor, no por etapa/acción. Si esta
+          // combinación es nueva, hereda el UIP ya asignado al factor.
+          const inheritedUip = original?.uip
+            ?? originalItems.find(it => it.factorId === factorId)?.uip
+            ?? 0;
 
           const newItem: ItemMatriz = {
             ...(original ?? {} as ItemMatriz),
@@ -431,7 +437,8 @@ onSubmit() {
             etapa: st.name,
             naturaleza: val,
             accionId: this.getAccionId(a),
-            factorId: this.getFactorId(fi),
+            factorId,
+            uip: inheritedUip,
             matrizId: payload.id,
             factorSistema: fi.sistema,
             factorSubsistema: fi.subsistema,
