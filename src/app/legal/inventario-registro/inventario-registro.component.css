@@ -470,6 +470,103 @@
   margin-bottom: 18px;
 }
 
+.vencimientos-admin {
+  padding: 24px;
+}
+
+.vencimientos-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.admin-section {
+  padding: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-strong);
+}
+
+.admin-section h4 {
+  margin: 0 0 14px;
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.admin-form,
+.admin-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-form label,
+.admin-fields label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.admin-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-form-row .custom-input {
+  min-width: 0;
+}
+
+.admin-form-row .btn-primary {
+  white-space: nowrap;
+}
+
+.admin-empty {
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.config-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.day-off-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-off-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.day-off-list strong {
+  color: var(--text-main);
+}
+
 .btn-primary,
 .btn-secondary,
 .btn-danger,
@@ -576,5 +673,14 @@
   .field-wide,
   .field-full {
     grid-column: 1 / -1;
+  }
+
+  .vencimientos-admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-row,
+  .day-off-list li {
+    flex-direction: column;
   }
 }

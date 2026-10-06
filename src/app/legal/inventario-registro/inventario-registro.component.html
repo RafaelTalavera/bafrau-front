@@ -105,12 +105,77 @@
               <i class="fas me-1" [ngClass]="dueDateSortDirection === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-wide-short'" aria-hidden="true"></i>
               Vencimiento: {{ dueDateSortDirection === 'asc' ? 'próximos primero' : 'más lejanos primero' }}
             </button>
+            <button type="button" class="btn-outline" (click)="toggleVencimientosAdmin()">
+              <i class="fas fa-calendar-days me-1"></i>
+              {{ showVencimientosAdmin ? 'Cerrar configuración' : 'Configurar vencimientos' }}
+            </button>
             <button type="button" class="btn-primary" (click)="addRequirement()">
               <i class="fas fa-plus me-1"></i>
               Agregar requisito
             </button>
           </div>
         </div>
+
+        <section *ngIf="showVencimientosAdmin" class="surface-card vencimientos-admin">
+          <div class="panel-header">
+            <span class="eyebrow">Configuración</span>
+            <h3 class="panel-title">Plazos y días no laborables</h3>
+            <p class="page-description">Los cambios quedan disponibles de inmediato para la previsualización de vencimientos.</p>
+          </div>
+
+          <div class="vencimientos-admin-grid">
+            <section class="admin-section">
+              <h4>Plazos disponibles</h4>
+              <form class="admin-form" (ngSubmit)="createPlazoVencimiento()">
+                <label for="nuevoPlazoDias">Días</label>
+                <div class="admin-form-row">
+                  <input type="number" id="nuevoPlazoDias" name="nuevoPlazoDias" [(ngModel)]="nuevoPlazoDias" min="1" step="1" class="custom-input" required />
+                  <button type="submit" class="btn-primary">Agregar plazo</button>
+                </div>
+              </form>
+              <p *ngIf="plazosVencimiento.length === 0" class="admin-empty">Aún no hay plazos configurados.</p>
+              <div *ngIf="plazosVencimiento.length > 0" class="tag-list">
+                <span *ngFor="let plazo of plazosVencimiento" class="config-tag">{{ plazo.dias }} días</span>
+              </div>
+            </section>
+
+            <section class="admin-section">
+              <h4>Días no laborables</h4>
+              <form class="admin-form" (ngSubmit)="createDiaNoLaborable()">
+                <div class="admin-fields">
+                  <div>
+                    <label for="nuevoDiaFecha">Fecha</label>
+                    <input type="date" id="nuevoDiaFecha" name="nuevoDiaFecha" [(ngModel)]="nuevoDiaNoLaborable.fecha" class="custom-input" required />
+                  </div>
+                  <div>
+                    <label for="nuevoDiaAlcance">Alcance</label>
+                    <select id="nuevoDiaAlcance" name="nuevoDiaAlcance" [(ngModel)]="nuevoDiaNoLaborable.alcance" class="custom-input">
+                      <option value="NACIONAL">Nacional</option>
+                      <option value="PROVINCIAL">Provincial</option>
+                      <option value="MUNICIPAL">Municipal</option>
+                    </select>
+                  </div>
+                  <div *ngIf="nuevoDiaNoLaborable.alcance === 'MUNICIPAL'">
+                    <label for="nuevoDiaMunicipio">Municipio</label>
+                    <input type="text" id="nuevoDiaMunicipio" name="nuevoDiaMunicipio" [(ngModel)]="nuevoDiaNoLaborable.municipio" class="custom-input" required />
+                  </div>
+                  <div>
+                    <label for="nuevoDiaDescripcion">Descripción</label>
+                    <input type="text" id="nuevoDiaDescripcion" name="nuevoDiaDescripcion" [(ngModel)]="nuevoDiaNoLaborable.descripcion" class="custom-input" />
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary">Agregar día no laborable</button>
+              </form>
+              <p *ngIf="diasNoLaborables.length === 0" class="admin-empty">Aún no hay días no laborables cargados.</p>
+              <ul *ngIf="diasNoLaborables.length > 0" class="day-off-list">
+                <li *ngFor="let dia of diasNoLaborables">
+                  <strong>{{ dia.fecha | date:'dd/MM/yyyy' }}</strong>
+                  <span>{{ dia.alcance | lowercase }}{{ dia.municipio ? ' · ' + dia.municipio : '' }}{{ dia.descripcion ? ' · ' + dia.descripcion : '' }}</span>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </section>
 
         <div *ngIf="selectedControls.length === 0" class="surface-card empty-state">
           <h3>Sin requisitos cargados</h3>

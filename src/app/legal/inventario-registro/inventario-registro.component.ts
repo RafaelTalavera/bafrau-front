@@ -66,6 +66,14 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   juridiccionesUnicas: string[] = [];
   plazosVencimiento: PlazoVencimientoDTO[] = [];
   diasNoLaborables: DiaNoLaborableDTO[] = [];
+  showVencimientosAdmin = false;
+  nuevoPlazoDias: number | null = null;
+  nuevoDiaNoLaborable: DiaNoLaborableDTO = {
+    fecha: '',
+    alcance: 'NACIONAL',
+    municipio: '',
+    descripcion: ''
+  };
 
   filterRazon = '';
   selectedOrganizacion: OrganizacionDTO | null = null;
@@ -390,6 +398,68 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     this.updateVencimientoPreview(item);
   }
 
+  toggleVencimientosAdmin(): void {
+    this.showVencimientosAdmin = !this.showVencimientosAdmin;
+  }
+
+  createPlazoVencimiento(): void {
+    const dias = Number(this.nuevoPlazoDias);
+    if (!Number.isInteger(dias) || dias <= 0) {
+      Swal.fire('Error', 'Ingrese una cantidad de días mayor a cero.', 'error');
+      return;
+    }
+
+    this.controlService.createPlazoVencimiento(dias).subscribe({
+      next: plazo => {
+        this.plazosVencimiento = [...this.plazosVencimiento, plazo]
+          .filter((value, index, array) => array.findIndex(item => item.dias === value.dias) === index)
+          .sort((a, b) => a.dias - b.dias);
+        this.nuevoPlazoDias = null;
+        Swal.fire('Guardado', 'El plazo ya está disponible en el selector.', 'success');
+      },
+      error: err => {
+        if (err.status === 409) {
+          Swal.fire('Error', 'El plazo ya existe', 'error');
+          return;
+        }
+        Swal.fire('Error', 'No se pudo guardar el plazo.', 'error');
+      }
+    });
+  }
+
+  createDiaNoLaborable(): void {
+    const fecha = this.normalizeOptionalDate(this.nuevoDiaNoLaborable.fecha);
+    const municipio = this.nuevoDiaNoLaborable.municipio?.trim() ?? '';
+    if (!fecha) {
+      Swal.fire('Error', 'Ingrese la fecha no laborable.', 'error');
+      return;
+    }
+    if (this.nuevoDiaNoLaborable.alcance === 'MUNICIPAL' && !municipio) {
+      Swal.fire('Error', 'El municipio es obligatorio para un feriado municipal.', 'error');
+      return;
+    }
+
+    const payload: DiaNoLaborableDTO = {
+      fecha,
+      alcance: this.nuevoDiaNoLaborable.alcance,
+      municipio: municipio || null,
+      descripcion: this.nuevoDiaNoLaborable.descripcion?.trim() || null
+    };
+
+    this.controlService.createDiaNoLaborable(payload).subscribe({
+      next: diaNoLaborable => {
+        this.diasNoLaborables = [...this.diasNoLaborables, diaNoLaborable]
+          .sort((a, b) => a.fecha.localeCompare(b.fecha));
+        this.nuevoDiaNoLaborable = {
+          fecha: '', alcance: 'NACIONAL', municipio: '', descripcion: ''
+        };
+        this.recalculateAutomaticDueDates();
+        Swal.fire('Guardado', 'El día no laborable fue registrado.', 'success');
+      },
+      error: () => Swal.fire('Error', 'No se pudo guardar el día no laborable.', 'error')
+    });
+  }
+
   updateVencimientoPreview(item: ItemControlDTO): void {
     if (!this.isVencimientoAutomatico(item)) {
       return;
@@ -399,6 +469,12 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       item.presentacion,
       item.plazoVencimientoDias,
       item.modalidadVencimiento
+    );
+  }
+
+  private recalculateAutomaticDueDates(): void {
+    this.selectedControls.forEach(control =>
+      control.items.forEach(item => this.updateVencimientoPreview(item))
     );
   }
 

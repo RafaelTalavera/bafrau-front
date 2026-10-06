@@ -38,3 +38,12 @@ Un día no laborable usa `fecha`, `alcance` (`NACIONAL`, `PROVINCIAL` o
   días de aviso en cero.
 - Los registros anteriores que no contienen los campos nuevos conservan su
   vencimiento editable y no se fuerzan a recalcular.
+
+## Administración desde el registro legal
+
+El botón «Configurar vencimientos» abre la sección de administración del
+registro seleccionado. Desde allí se puede consultar y crear plazos, consultar
+y cargar días no laborables, y registrar su alcance. Los nuevos plazos se
+agregan al selector sin recargar la página; los nuevos días no laborables
+recalculan las previsualizaciones automáticas abiertas. Un `409` al crear un
+plazo se informa como «El plazo ya existe».
