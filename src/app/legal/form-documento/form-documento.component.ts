@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterContentInit, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Documento } from '../models/documento';
+import { PROVINCIAS_ARGENTINAS } from '../models/provincia';
 
 @Component({
   selector: 'app-form-documento',
@@ -12,10 +13,13 @@ import { Documento } from '../models/documento';
 })
 export class FormDocumentoComponent implements AfterContentInit {
 
+  readonly provincias = PROVINCIAS_ARGENTINAS;
+
 @Input() documento: Documento = {
   id: 0, 
   nombre: '', 
   juridiccion: '',
+  provinciaCodigo: null,
   observaciones: ''
 };
 
@@ -36,6 +40,7 @@ export class FormDocumentoComponent implements AfterContentInit {
     id: 0,
     nombre: '',
     juridiccion: '',
+    provinciaCodigo: null,
     observaciones: ''
 
   }

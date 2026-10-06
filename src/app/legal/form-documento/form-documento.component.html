@@ -42,6 +42,25 @@
           </div>
         </div>
 
+        <div class="col-md-6 mb-3">
+          <label for="provinciaCodigo" class="small-text">Provincia:</label>
+          <select
+            id="provinciaCodigo"
+            name="provinciaCodigo"
+            [(ngModel)]="documento.provinciaCodigo"
+            #provinciaCodigo="ngModel"
+            required
+            class="form-control">
+            <option [ngValue]="null" disabled>Seleccione una provincia</option>
+            <option *ngFor="let provincia of provincias" [value]="provincia.codigo">
+              {{ provincia.nombre }}
+            </option>
+          </select>
+          <div *ngIf="provinciaCodigo.invalid && (provinciaCodigo.dirty || provinciaCodigo.touched)" class="text alert-danger">
+            Seleccione la provincia aplicable al documento.
+          </div>
+        </div>
+
         <!-- Observaciones -->
         <div class="col-md-6 mb-3">
           <label for="observaciones" class="small-text">Observaciones:</label>

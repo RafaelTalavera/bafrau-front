@@ -26,6 +26,7 @@
                                             <tr>
                                                 <th class="custom-tr">Nombre</th>
                                                 <th class="custom-tr">Juridicción</th>
+                                                <th class="custom-tr">Provincia</th>
                                                 <th class="custom-tr">Observaciones</th>                                            
                                                 <th class="custom-tr">Acciones</th>
                                             
@@ -35,6 +36,7 @@
                                             <tr *ngFor="let documento of documentosFiltrados; trackBy: trackByFn">
                                                 <td class="custom-td">{{documento.nombre}}</td>
                                                 <td class="custom-td">{{documento.juridiccion}}</td>                                    
+                                                <td class="custom-td">{{documento.provinciaCodigo || '-'}}</td>
                                                 <td class="custom-td">{{documento.observaciones}}</td>
 
                                                 <td class="custom-td">
