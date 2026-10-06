@@ -4,7 +4,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { ControlDTO, ControlPayload, ItemControlDTO, OrganizacionDTO } from '../models/control.model';
+import {
+  ControlDTO,
+  ControlPayload,
+  DiaNoLaborableDTO,
+  ItemControlDTO,
+  OrganizacionDTO,
+  PlazoVencimientoDTO
+} from '../models/control.model';
 
 @Injectable({
   providedIn: 'root'
@@ -116,6 +123,34 @@ export class ControlService {
     const url = `${this.baseUrl}/items/${itemId}/restaurar`;
     return this.http
       .patch<ItemControlDTO>(url, null, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  getPlazosVencimiento(): Observable<PlazoVencimientoDTO[]> {
+    const url = `${this.baseUrl}/vencimientos/plazos`;
+    return this.http
+      .get<PlazoVencimientoDTO[]>(url, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  createPlazoVencimiento(dias: number): Observable<PlazoVencimientoDTO> {
+    const url = `${this.baseUrl}/vencimientos/plazos`;
+    return this.http
+      .post<PlazoVencimientoDTO>(url, { dias }, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  getDiasNoLaborables(): Observable<DiaNoLaborableDTO[]> {
+    const url = `${this.baseUrl}/vencimientos/dias-no-laborables`;
+    return this.http
+      .get<DiaNoLaborableDTO[]>(url, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  createDiaNoLaborable(payload: DiaNoLaborableDTO): Observable<DiaNoLaborableDTO> {
+    const url = `${this.baseUrl}/vencimientos/dias-no-laborables`;
+    return this.http
+      .post<DiaNoLaborableDTO>(url, payload, { headers: this.getAuthHeaders() })
       .pipe(catchError(err => throwError(() => err)));
   }
 }

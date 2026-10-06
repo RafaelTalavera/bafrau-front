@@ -6,6 +6,22 @@ export interface OrganizacionDTO {
   descripcion?: string | null;
 }
 
+export type ModalidadVencimiento = 'CORRIDOS' | 'HABILES';
+export type AlcanceDiaNoLaborable = 'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL';
+
+export interface PlazoVencimientoDTO {
+  id?: number;
+  dias: number;
+}
+
+export interface DiaNoLaborableDTO {
+  id?: number;
+  fecha: string;
+  alcance: AlcanceDiaNoLaborable;
+  municipio?: string | null;
+  descripcion?: string | null;
+}
+
 export interface ItemControlDTO {
   id: number | null;
   documentoId: number;
@@ -14,6 +30,10 @@ export interface ItemControlDTO {
   vencimiento: string | null;
   presentacion: string | null;
   diasNotificacion: number;
+  plazoVencimientoDias?: number | null;
+  modalidadVencimiento?: ModalidadVencimiento | null;
+  sinPlazo?: boolean | null;
+  vencimientoManual?: boolean | null;
   listMail: string[];
   observaciones: string | null;
   estado: boolean;
@@ -39,9 +59,13 @@ export interface ControlPayload {
   items: {
     id: number | null;
     documentoId: number;
-    vencimiento: string;
+    vencimiento: string | null;
     presentacion: string | null;
     diasNotificacion: number;
+    plazoVencimientoDias?: number | null;
+    modalidadVencimiento?: ModalidadVencimiento | null;
+    sinPlazo?: boolean | null;
+    vencimientoManual?: boolean | null;
     listMail: string[];
     observaciones?: string;
     nombre: string;
