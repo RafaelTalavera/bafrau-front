@@ -10,7 +10,8 @@ import {
   DiaNoLaborableDTO,
   ItemControlDTO,
   OrganizacionDTO,
-  PlazoVencimientoDTO
+  PlazoVencimientoDTO,
+  ResultadoSincronizacionCalendarioDTO
 } from '../models/control.model';
 
 @Injectable({
@@ -151,6 +152,16 @@ export class ControlService {
     const url = `${this.baseUrl}/vencimientos/dias-no-laborables`;
     return this.http
       .post<DiaNoLaborableDTO>(url, payload, { headers: this.getAuthHeaders() })
+      .pipe(catchError(err => throwError(() => err)));
+  }
+
+  sincronizarCalendario(desde: number, hasta: number): Observable<ResultadoSincronizacionCalendarioDTO> {
+    const url = `${this.baseUrl}/vencimientos/calendario/sincronizar`;
+    return this.http
+      .post<ResultadoSincronizacionCalendarioDTO>(url, null, {
+        headers: this.getAuthHeaders(),
+        params: { desde: String(desde), hasta: String(hasta) }
+      })
       .pipe(catchError(err => throwError(() => err)));
   }
 }

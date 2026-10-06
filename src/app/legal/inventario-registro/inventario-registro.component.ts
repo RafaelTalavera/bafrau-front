@@ -13,12 +13,14 @@ import {
   ItemControlDTO,
   ModalidadVencimiento,
   OrganizacionDTO,
-  PlazoVencimientoDTO
+  PlazoVencimientoDTO,
+  ResultadoSincronizacionCalendarioDTO
 } from '../models/control.model';
 import { ControlService } from '../service/control.service';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
 import { DocumentoService } from '../service/documento.service';
 import { Documento } from '../models/documento';
+import { PROVINCIAS_ARGENTINAS } from '../models/provincia';
 
 import { FooterComponent } from '../../gobal/footer/footer.component';
 import { NavComponent } from '../../gobal/nav/nav.component';
@@ -66,14 +68,18 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   juridiccionesUnicas: string[] = [];
   plazosVencimiento: PlazoVencimientoDTO[] = [];
   diasNoLaborables: DiaNoLaborableDTO[] = [];
+  readonly provincias = PROVINCIAS_ARGENTINAS;
   showVencimientosAdmin = false;
   nuevoPlazoDias: number | null = null;
   nuevoDiaNoLaborable: DiaNoLaborableDTO = {
     fecha: '',
     alcance: 'NACIONAL',
-    municipio: '',
+    provinciaCodigo: null,
     descripcion: ''
   };
+  anioCalendarioDesde = new Date().getFullYear();
+  anioCalendarioHasta = new Date().getFullYear() + 1;
+  resultadoSincronizacion: ResultadoSincronizacionCalendarioDTO | null = null;
 
   filterRazon = '';
   selectedOrganizacion: OrganizacionDTO | null = null;
@@ -335,6 +341,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     const item = this.selectedControls[controlIndex].items[itemIndex];
     item.documentoId = 0;
     item.nombre = '';
+    item.provinciaCodigo = null;
     item.observacionesDocumento = '';
   }
 
@@ -343,12 +350,14 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     const documento = this.documentos.find(doc => doc.id === item.documentoId);
     if (!documento) {
       item.nombre = '';
+      item.provinciaCodigo = null;
       item.observacionesDocumento = '';
       return;
     }
 
     item.nombre = documento.nombre;
     item.juridiccion = documento.juridiccion;
+    item.provinciaCodigo = documento.provinciaCodigo ?? null;
     item.observacionesDocumento = documento.observaciones ?? '';
   }
 
@@ -431,20 +440,20 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
   createDiaNoLaborable(): void {
     const fecha = this.normalizeOptionalDate(this.nuevoDiaNoLaborable.fecha);
-    const municipio = this.nuevoDiaNoLaborable.municipio?.trim() ?? '';
+    const provinciaCodigo = this.nuevoDiaNoLaborable.provinciaCodigo?.trim() ?? '';
     if (!fecha) {
       Swal.fire('Error', 'Ingrese la fecha no laborable.', 'error');
       return;
     }
-    if (this.nuevoDiaNoLaborable.alcance === 'MUNICIPAL' && !municipio) {
-      Swal.fire('Error', 'El municipio es obligatorio para un feriado municipal.', 'error');
+    if (this.nuevoDiaNoLaborable.alcance === 'PROVINCIAL' && !provinciaCodigo) {
+      Swal.fire('Error', 'Seleccione la provincia para el feriado provincial.', 'error');
       return;
     }
 
     const payload: DiaNoLaborableDTO = {
       fecha,
       alcance: this.nuevoDiaNoLaborable.alcance,
-      municipio: municipio || null,
+      provinciaCodigo: provinciaCodigo || null,
       descripcion: this.nuevoDiaNoLaborable.descripcion?.trim() || null
     };
 
@@ -453,12 +462,39 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         this.diasNoLaborables = [...this.diasNoLaborables, diaNoLaborable]
           .sort((a, b) => a.fecha.localeCompare(b.fecha));
         this.nuevoDiaNoLaborable = {
-          fecha: '', alcance: 'NACIONAL', municipio: '', descripcion: ''
+          fecha: '', alcance: 'NACIONAL', provinciaCodigo: null, descripcion: ''
         };
         this.recalculateAutomaticDueDates();
         Swal.fire('Guardado', 'El día no laborable fue registrado.', 'success');
       },
       error: () => Swal.fire('Error', 'No se pudo guardar el día no laborable.', 'error')
+    });
+  }
+
+  sincronizarCalendario(): void {
+    const desde = Number(this.anioCalendarioDesde);
+    const hasta = Number(this.anioCalendarioHasta);
+    if (!Number.isInteger(desde) || !Number.isInteger(hasta) || desde < 2000 || hasta < desde || hasta - desde > 10) {
+      Swal.fire('Error', 'Indique un rango de años válido de hasta 10 años.', 'error');
+      return;
+    }
+
+    this.controlService.sincronizarCalendario(desde, hasta).subscribe({
+      next: resultado => {
+        this.resultadoSincronizacion = resultado;
+        if (!resultado.exitosa) {
+          Swal.fire('Sincronización incompleta', resultado.resultado, 'warning');
+          return;
+        }
+        this.controlService.getDiasNoLaborables().subscribe({
+          next: dias => {
+            this.diasNoLaborables = dias;
+            this.recalculateAutomaticDueDates();
+          }
+        });
+        Swal.fire('Calendario sincronizado', resultado.resultado, 'success');
+      },
+      error: () => Swal.fire('Error', 'No se pudo sincronizar el calendario central.', 'error')
     });
   }
 
@@ -470,7 +506,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     item.vencimiento = this.calculateVencimiento(
       item.presentacion,
       item.plazoVencimientoDias,
-      item.modalidadVencimiento
+      item.modalidadVencimiento,
+      item.provinciaCodigo
     );
   }
 
@@ -612,6 +649,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       observaciones: '',
       nombre: '',
       juridiccion: '',
+      provinciaCodigo: null,
       observacionesDocumento: '',
       estado: false
     });
@@ -711,6 +749,11 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         return false;
       }
 
+      if (item.modalidadVencimiento === 'HABILES' && !item.provinciaCodigo) {
+        Swal.fire('Error', 'El documento debe tener una provincia para calcular días hábiles.', 'error');
+        return false;
+      }
+
       this.updateVencimientoPreview(item);
     }
 
@@ -729,7 +772,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   private calculateVencimiento(
     presentacion: string | null,
     plazo: number | null | undefined,
-    modalidad: ModalidadVencimiento | null | undefined
+    modalidad: ModalidadVencimiento | null | undefined,
+    provinciaCodigo: string | null | undefined
   ): string | null {
     const base = this.normalizeOptionalDate(presentacion);
     if (!base || plazo == null || plazo < 0 || !modalidad) {
@@ -745,16 +789,19 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     let countedDays = 0;
     while (countedDays < plazo) {
       date.setDate(date.getDate() + 1);
-      if (this.isDiaHabil(date)) {
+      if (this.isDiaHabil(date, provinciaCodigo)) {
         countedDays++;
       }
     }
     return this.toIsoDate(date);
   }
 
-  private isDiaHabil(date: Date): boolean {
+  private isDiaHabil(date: Date, provinciaCodigo: string | null | undefined): boolean {
     const day = date.getDay();
-    return day !== 0 && day !== 6 && !this.diasNoLaborables.some(dayOff => dayOff.fecha === this.toIsoDate(date));
+    return day !== 0 && day !== 6 && !this.diasNoLaborables.some(dayOff =>
+      dayOff.fecha === this.toIsoDate(date) &&
+      (dayOff.alcance === 'NACIONAL' || dayOff.provinciaCodigo === provinciaCodigo)
+    );
   }
 
   private toIsoDate(date: Date): string {
@@ -772,6 +819,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
     item.nombre = documento.nombre;
     item.juridiccion = documento.juridiccion;
+    item.provinciaCodigo = documento.provinciaCodigo ?? null;
     item.observacionesDocumento = documento.observaciones ?? '';
   }
 
@@ -958,6 +1006,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
           observaciones: item.observaciones ?? '',
           nombre: item.nombre ?? '',
           juridiccion: item.juridiccion ?? '',
+          provinciaCodigo: item.provinciaCodigo ?? null,
           observacionesDocumento: item.observacionesDocumento ?? '',
           estado: item.estado,
           deleted: item.deleted ?? false

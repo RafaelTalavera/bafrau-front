@@ -7,7 +7,7 @@ export interface OrganizacionDTO {
 }
 
 export type ModalidadVencimiento = 'CORRIDOS' | 'HABILES';
-export type AlcanceDiaNoLaborable = 'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL';
+export type AlcanceDiaNoLaborable = 'NACIONAL' | 'PROVINCIAL';
 
 export interface PlazoVencimientoDTO {
   id?: number;
@@ -18,8 +18,21 @@ export interface DiaNoLaborableDTO {
   id?: number;
   fecha: string;
   alcance: AlcanceDiaNoLaborable;
-  municipio?: string | null;
+  provinciaCodigo?: string | null;
   descripcion?: string | null;
+  activo?: boolean | null;
+}
+
+export interface ResultadoSincronizacionCalendarioDTO {
+  fuente: string;
+  fechaSincronizacion: string;
+  nacionales: number;
+  provinciales: number;
+  creados: number;
+  actualizados: number;
+  omitidos: number;
+  exitosa: boolean;
+  resultado: string;
 }
 
 export interface ItemControlDTO {
@@ -42,6 +55,7 @@ export interface ItemControlDTO {
   lastModifiedDate?: string | null;
   nombre: string;
   juridiccion: string;
+  provinciaCodigo?: string | null;
   observacionesDocumento?: string | null;
   razonSocial?: string | null;
 }

@@ -22,16 +22,28 @@ control. El frontend sólo calcula una previsualización.
 | Plazos | `GET /controles/vencimientos/plazos` | `POST /controles/vencimientos/plazos` con `{ "dias": number }` |
 | Días no laborables | `GET /controles/vencimientos/dias-no-laborables` | `POST /controles/vencimientos/dias-no-laborables` |
 
-Un día no laborable usa `fecha`, `alcance` (`NACIONAL`, `PROVINCIAL` o
-`MUNICIPAL`), `municipio` opcional y `descripcion` opcional. Para alcance
-`MUNICIPAL`, `municipio` es obligatorio.
+Un día no laborable usa `fecha`, `alcance` (`NACIONAL` o `PROVINCIAL`),
+`provinciaCodigo` y `descripcion`. Para alcance `PROVINCIAL`,
+`provinciaCodigo` es obligatorio y debe usar ISO 3166-2:AR, por ejemplo
+`AR-Q` para Neuquén. Los feriados municipales no forman parte del cálculo.
+
+El documento legal expone `provinciaCodigo`. Es la provincia que determina qué
+feriados provinciales se consideran en los vencimientos hábiles del requisito.
+
+### Sincronización central
+
+`POST /controles/vencimientos/calendario/sincronizar?desde=2026&hasta=2027`
+sincroniza el calendario nacional y provincial en el backend. Devuelve la
+fuente, fecha de sincronización, cantidades nacionales/provinciales y totales
+creados, actualizados y omitidos. Los vencimientos usan siempre la copia local
+persistida; el frontend no consulta proveedores externos.
 
 ## Reglas aplicadas en el registro
 
 - El día de presentación no integra el plazo: `2026-10-01 + 5` corridos se
   previsualiza como `2026-10-06`.
-- Para días hábiles se omiten sábados, domingos y las fechas recibidas en días
-  no laborables.
+- Para días hábiles se omiten sábados, domingos, los feriados nacionales y los
+  provinciales que coinciden con `provinciaCodigo` del documento.
 - Cambiar presentación, plazo o modalidad actualiza la previsualización, sin
   modificar los días de aviso.
 - Elegir «Sin plazo» deshabilita el cálculo, vacía el vencimiento y deja los
@@ -44,8 +56,8 @@ Un día no laborable usa `fecha`, `alcance` (`NACIONAL`, `PROVINCIAL` o
 ## Administración desde el registro legal
 
 El botón «Configurar vencimientos» abre la sección de administración del
-registro seleccionado. Desde allí se puede consultar y crear plazos, consultar
-y cargar días no laborables, y registrar su alcance. Los nuevos plazos se
-agregan al selector sin recargar la página; los nuevos días no laborables
-recalculan las previsualizaciones automáticas abiertas. Un `409` al crear un
-plazo se informa como «El plazo ya existe».
+registro seleccionado. Desde allí se sincroniza el calendario central, se
+pueden consultar feriados y registrar ajustes excepcionales nacionales o
+provinciales. Los nuevos plazos se agregan al selector sin recargar la página;
+los días no laborables recalculan las previsualizaciones automáticas abiertas.
+Un `409` al crear un plazo se informa como «El plazo ya existe».

@@ -123,6 +123,23 @@
             <p class="page-description">Los cambios quedan disponibles de inmediato para la previsualización de vencimientos.</p>
           </div>
 
+          <section class="calendar-sync-panel">
+            <div>
+              <h4>Sincronizar calendario argentino</h4>
+              <p>Importa feriados nacionales y provinciales para el rango indicado. El cálculo siempre usa el calendario guardado por el backend.</p>
+            </div>
+            <form class="calendar-sync-form" (ngSubmit)="sincronizarCalendario()">
+              <label for="anioCalendarioDesde">Desde</label>
+              <input type="number" id="anioCalendarioDesde" name="anioCalendarioDesde" [(ngModel)]="anioCalendarioDesde" min="2000" class="custom-input" required />
+              <label for="anioCalendarioHasta">Hasta</label>
+              <input type="number" id="anioCalendarioHasta" name="anioCalendarioHasta" [(ngModel)]="anioCalendarioHasta" min="2000" class="custom-input" required />
+              <button type="submit" class="btn-primary">Sincronizar</button>
+            </form>
+            <p *ngIf="resultadoSincronizacion" class="sync-result" [class.sync-result-error]="!resultadoSincronizacion.exitosa">
+              {{ resultadoSincronizacion.resultado }} — {{ resultadoSincronizacion.nacionales }} nacionales, {{ resultadoSincronizacion.provinciales }} provinciales, {{ resultadoSincronizacion.creados }} creados y {{ resultadoSincronizacion.actualizados }} actualizados.
+            </p>
+          </section>
+
           <div class="vencimientos-admin-grid">
             <section class="admin-section">
               <h4>Plazos disponibles</h4>
@@ -152,12 +169,16 @@
                     <select id="nuevoDiaAlcance" name="nuevoDiaAlcance" [(ngModel)]="nuevoDiaNoLaborable.alcance" class="custom-input">
                       <option value="NACIONAL">Nacional</option>
                       <option value="PROVINCIAL">Provincial</option>
-                      <option value="MUNICIPAL">Municipal</option>
                     </select>
                   </div>
-                  <div *ngIf="nuevoDiaNoLaborable.alcance === 'MUNICIPAL'">
-                    <label for="nuevoDiaMunicipio">Municipio</label>
-                    <input type="text" id="nuevoDiaMunicipio" name="nuevoDiaMunicipio" [(ngModel)]="nuevoDiaNoLaborable.municipio" class="custom-input" required />
+                  <div *ngIf="nuevoDiaNoLaborable.alcance === 'PROVINCIAL'">
+                    <label for="nuevoDiaProvincia">Provincia</label>
+                    <select id="nuevoDiaProvincia" name="nuevoDiaProvincia" [(ngModel)]="nuevoDiaNoLaborable.provinciaCodigo" class="custom-input" required>
+                      <option [ngValue]="null" disabled>Seleccione</option>
+                      <option *ngFor="let provincia of provincias" [value]="provincia.codigo">
+                        {{ provincia.nombre }}
+                      </option>
+                    </select>
                   </div>
                   <div>
                     <label for="nuevoDiaDescripcion">Descripción</label>
@@ -170,7 +191,7 @@
               <ul *ngIf="diasNoLaborables.length > 0" class="day-off-list">
                 <li *ngFor="let dia of diasNoLaborables">
                   <strong>{{ dia.fecha | date:'dd/MM/yyyy' }}</strong>
-                  <span>{{ dia.alcance | lowercase }}{{ dia.municipio ? ' · ' + dia.municipio : '' }}{{ dia.descripcion ? ' · ' + dia.descripcion : '' }}</span>
+                  <span>{{ dia.alcance | lowercase }}{{ dia.provinciaCodigo ? ' / ' + dia.provinciaCodigo : '' }}{{ dia.descripcion ? ' / ' + dia.descripcion : '' }}</span>
                 </li>
               </ul>
             </section>
@@ -267,6 +288,11 @@
                           {{ doc.nombre }}
                         </option>
                       </select>
+                    </div>
+
+                    <div class="field-group">
+                      <span class="field-label">Provincia del documento</span>
+                      <span class="custom-input readonly-value">{{ itemView.item.provinciaCodigo || 'Pendiente de seleccionar documento' }}</span>
                     </div>
 
                     <div class="field-group">
