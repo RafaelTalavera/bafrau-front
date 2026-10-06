@@ -205,24 +205,87 @@
                     </div>
 
                     <div class="field-group">
-                      <label for="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}">Vencimiento</label>
-                      <input
-                        type="date"
-                        id="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
-                        [(ngModel)]="itemView.item.vencimiento"
-                        name="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
-                        class="custom-input"
-                        required />
-                    </div>
-
-                    <div class="field-group">
                       <label for="detPresentacion{{ controlView.control.id }}_{{ itemView.itemIndex }}">Presentacion</label>
                       <input
                         type="date"
                         id="detPresentacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         [(ngModel)]="itemView.item.presentacion"
                         name="detPresentacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
-                        class="custom-input" />
+                        class="custom-input"
+                        [disabled]="isSinPlazo(itemView.item)"
+                        (ngModelChange)="onVencimientoConfigChange(itemView.item)" />
+                    </div>
+
+                    <div class="field-group vencimiento-toggle">
+                      <span class="field-label">Plazo</span>
+                      <label class="check-label" for="detSinPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}">
+                        <input
+                          type="checkbox"
+                          id="detSinPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                          [(ngModel)]="itemView.item.sinPlazo"
+                          name="detSinPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                          (ngModelChange)="onSinPlazoChange(itemView.item)" />
+                        Sin plazo
+                      </label>
+                    </div>
+
+                    <div class="field-group">
+                      <label for="detPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}">Días de plazo</label>
+                      <select
+                        id="detPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.plazoVencimientoDias"
+                        name="detPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        class="custom-input"
+                        [disabled]="isSinPlazo(itemView.item)"
+                        (ngModelChange)="onVencimientoConfigChange(itemView.item)">
+                        <option [ngValue]="null">Seleccione</option>
+                        <option *ngFor="let plazo of plazosVencimiento" [ngValue]="plazo.dias">
+                          {{ plazo.dias }} días
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="field-group">
+                      <label for="detModalidad{{ controlView.control.id }}_{{ itemView.itemIndex }}">Modalidad</label>
+                      <select
+                        id="detModalidad{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.modalidadVencimiento"
+                        name="detModalidad{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        class="custom-input"
+                        [disabled]="isSinPlazo(itemView.item)"
+                        (ngModelChange)="onVencimientoConfigChange(itemView.item)">
+                        <option [ngValue]="null">Seleccione</option>
+                        <option value="CORRIDOS">Días corridos</option>
+                        <option value="HABILES">Días hábiles</option>
+                      </select>
+                    </div>
+
+                    <div class="field-group vencimiento-toggle">
+                      <span class="field-label">Excepción</span>
+                      <label class="check-label" for="detVencimientoManual{{ controlView.control.id }}_{{ itemView.itemIndex }}">
+                        <input
+                          type="checkbox"
+                          id="detVencimientoManual{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                          [(ngModel)]="itemView.item.vencimientoManual"
+                          name="detVencimientoManual{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                          [disabled]="isSinPlazo(itemView.item)"
+                          (ngModelChange)="onVencimientoManualChange(itemView.item)" />
+                        Editar vencimiento manualmente
+                      </label>
+                    </div>
+
+                    <div class="field-group">
+                      <label for="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}">
+                        {{ isVencimientoAutomatico(itemView.item) ? 'Vencimiento calculado' : 'Vencimiento' }}
+                      </label>
+                      <input
+                        type="date"
+                        id="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        [(ngModel)]="itemView.item.vencimiento"
+                        name="detVencimiento{{ controlView.control.id }}_{{ itemView.itemIndex }}"
+                        class="custom-input"
+                        [readonly]="isVencimientoAutomatico(itemView.item)"
+                        [disabled]="isSinPlazo(itemView.item)" />
                     </div>
 
                     <div class="field-group">
@@ -233,6 +296,7 @@
                         [(ngModel)]="itemView.item.diasNotificacion"
                         name="detDiasNotificacion{{ controlView.control.id }}_{{ itemView.itemIndex }}"
                         class="custom-input"
+                        [disabled]="isSinPlazo(itemView.item)"
                         required />
                     </div>
 

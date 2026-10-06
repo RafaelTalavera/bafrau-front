@@ -25,3 +25,16 @@ control. El frontend sólo calcula una previsualización.
 Un día no laborable usa `fecha`, `alcance` (`NACIONAL`, `PROVINCIAL` o
 `MUNICIPAL`), `municipio` opcional y `descripcion` opcional. Para alcance
 `MUNICIPAL`, `municipio` es obligatorio.
+
+## Reglas aplicadas en el registro
+
+- El día de presentación no integra el plazo: `2026-10-01 + 5` corridos se
+  previsualiza como `2026-10-06`.
+- Para días hábiles se omiten sábados, domingos y las fechas recibidas en días
+  no laborables.
+- Cambiar presentación, plazo o modalidad actualiza la previsualización, sin
+  modificar los días de aviso.
+- Elegir «Sin plazo» deshabilita el cálculo, vacía el vencimiento y deja los
+  días de aviso en cero.
+- Los registros anteriores que no contienen los campos nuevos conservan su
+  vencimiento editable y no se fuerzan a recalcular.

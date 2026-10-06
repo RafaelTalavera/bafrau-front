@@ -9,8 +9,11 @@ import Swal from 'sweetalert2';
 import {
   ControlDTO,
   ControlPayload,
+  DiaNoLaborableDTO,
   ItemControlDTO,
-  OrganizacionDTO
+  ModalidadVencimiento,
+  OrganizacionDTO,
+  PlazoVencimientoDTO
 } from '../models/control.model';
 import { ControlService } from '../service/control.service';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
@@ -61,6 +64,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   organizaciones: OrganizacionDTO[] = [];
   documentos: Documento[] = [];
   juridiccionesUnicas: string[] = [];
+  plazosVencimiento: PlazoVencimientoDTO[] = [];
+  diasNoLaborables: DiaNoLaborableDTO[] = [];
 
   filterRazon = '';
   selectedOrganizacion: OrganizacionDTO | null = null;
@@ -114,12 +119,18 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
           Swal.fire('Error', 'No se pudieron cargar documentos.', 'error');
           return of([]);
         })
+      ),
+      plazosVencimiento: this.controlService.getPlazosVencimiento().pipe(
+        catchError(() => of([]))
+      ),
+      diasNoLaborables: this.controlService.getDiasNoLaborables().pipe(
+        catchError(() => of([]))
       )
     })
       .pipe(finalize(() => {
         this.loading = false;
       }))
-      .subscribe(({ organizaciones, documentos }) => {
+      .subscribe(({ organizaciones, documentos, plazosVencimiento, diasNoLaborables }) => {
         this.organizaciones = organizaciones
           .filter(o => o.id != null && o.vigente !== false)
           .map(o => ({
@@ -130,6 +141,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
         this.documentos = documentos;
         this.juridiccionesUnicas = Array.from(new Set(documentos.map(d => d.juridiccion)));
+        this.plazosVencimiento = [...plazosVencimiento].sort((a, b) => a.dias - b.dias);
+        this.diasNoLaborables = diasNoLaborables;
         this.tryOpenTargetFromRoute();
       });
   }
@@ -336,6 +349,59 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     this.refreshVisibleControlViews();
   }
 
+  hasVencimientoConfig(item: ItemControlDTO): boolean {
+    return item.plazoVencimientoDias != null || item.modalidadVencimiento != null ||
+      item.sinPlazo != null || item.vencimientoManual != null;
+  }
+
+  isSinPlazo(item: ItemControlDTO): boolean {
+    return item.sinPlazo === true;
+  }
+
+  isVencimientoManual(item: ItemControlDTO): boolean {
+    return !this.isSinPlazo(item) && item.vencimientoManual === true;
+  }
+
+  isVencimientoAutomatico(item: ItemControlDTO): boolean {
+    return this.hasVencimientoConfig(item) && !this.isSinPlazo(item) && !this.isVencimientoManual(item);
+  }
+
+  onSinPlazoChange(item: ItemControlDTO): void {
+    item.sinPlazo = item.sinPlazo === true;
+    if (item.sinPlazo) {
+      item.vencimiento = null;
+      item.diasNotificacion = 0;
+      return;
+    }
+
+    item.vencimientoManual = false;
+    this.updateVencimientoPreview(item);
+  }
+
+  onVencimientoManualChange(item: ItemControlDTO): void {
+    item.sinPlazo = false;
+    item.vencimientoManual = item.vencimientoManual === true;
+    this.updateVencimientoPreview(item);
+  }
+
+  onVencimientoConfigChange(item: ItemControlDTO): void {
+    item.sinPlazo = false;
+    item.vencimientoManual = false;
+    this.updateVencimientoPreview(item);
+  }
+
+  updateVencimientoPreview(item: ItemControlDTO): void {
+    if (!this.isVencimientoAutomatico(item)) {
+      return;
+    }
+
+    item.vencimiento = this.calculateVencimiento(
+      item.presentacion,
+      item.plazoVencimientoDias,
+      item.modalidadVencimiento
+    );
+  }
+
   saveDetalleItem(controlIndex: number, itemIndex: number): void {
     if (!this.selectedOrganizacion) {
       return;
@@ -348,16 +414,9 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return;
     }
 
-    this.hydrateItemFromSelectedDocument(item);
-
-    const normalizedVencimiento = this.normalizeRequiredDate(item.vencimiento);
-    if (!item.documentoId || !normalizedVencimiento) {
-      Swal.fire('Error', 'Complete los datos obligatorios del requisito antes de guardar.', 'error');
+    if (!this.prepareItemForSave(item)) {
       return;
     }
-
-    item.vencimiento = normalizedVencimiento;
-    item.presentacion = this.normalizeOptionalDate(item.presentacion);
 
     if (!this.isPersistedControl(control)) {
       Swal.fire('Pendiente', 'Primero cree el registro y luego podrá guardar cada requisito por separado.', 'info');
@@ -399,16 +458,9 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     }
 
     for (const item of control.items) {
-      this.hydrateItemFromSelectedDocument(item);
-
-      const normalizedVencimiento = this.normalizeRequiredDate(item.vencimiento);
-      if (!item.documentoId || !normalizedVencimiento) {
-        Swal.fire('Error', 'Complete los datos obligatorios del requisito antes de guardar.', 'error');
+      if (!this.prepareItemForSave(item)) {
         return;
       }
-
-      item.vencimiento = normalizedVencimiento;
-      item.presentacion = this.normalizeOptionalDate(item.presentacion);
     }
 
     const payload: ControlPayload = {
@@ -474,6 +526,10 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       vencimiento: '',
       presentacion: null,
       diasNotificacion: 60,
+      plazoVencimientoDias: null,
+      modalidadVencimiento: null,
+      sinPlazo: false,
+      vencimientoManual: false,
       listMail: [],
       observaciones: '',
       nombre: '',
@@ -521,16 +577,23 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       ...control,
       items: (control.items ?? []).map(item => ({
         ...item,
-        listMail: item.listMail ?? []
+        listMail: item.listMail ?? [],
+        plazoVencimientoDias: item.plazoVencimientoDias ?? null,
+        modalidadVencimiento: item.modalidadVencimiento ?? null,
+        sinPlazo: item.sinPlazo ?? null,
+        vencimientoManual: item.vencimientoManual ?? null
       }))
     };
   }
 
   private toPayloadItem(item: ItemControlDTO): ControlPayload['items'][number] {
+    const hasConfig = this.hasVencimientoConfig(item);
+    const sinPlazo = this.isSinPlazo(item);
+
     return {
       id: item.id,
       documentoId: item.documentoId,
-      vencimiento: this.normalizeRequiredDate(item.vencimiento) ?? '',
+      vencimiento: sinPlazo ? null : this.normalizeOptionalDate(item.vencimiento),
       presentacion: this.normalizeOptionalDate(item.presentacion),
       diasNotificacion: item.diasNotificacion,
       listMail: [...item.listMail],
@@ -539,8 +602,88 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       juridiccion: item.juridiccion,
       observacionesDocumento: item.observacionesDocumento ?? '',
       estado: item.estado,
-      deleted: item.deleted ?? false
+      deleted: item.deleted ?? false,
+      ...(hasConfig ? {
+        plazoVencimientoDias: item.plazoVencimientoDias ?? null,
+        modalidadVencimiento: item.modalidadVencimiento ?? null,
+        sinPlazo,
+        vencimientoManual: this.isVencimientoManual(item)
+      } : {})
     };
+  }
+
+  private prepareItemForSave(item: ItemControlDTO): boolean {
+    this.hydrateItemFromSelectedDocument(item);
+    item.presentacion = this.normalizeOptionalDate(item.presentacion);
+
+    if (!item.documentoId) {
+      Swal.fire('Error', 'Seleccione el documento del requisito antes de guardar.', 'error');
+      return false;
+    }
+
+    if (this.isSinPlazo(item)) {
+      item.vencimiento = null;
+      item.diasNotificacion = 0;
+      return true;
+    }
+
+    if (this.isVencimientoAutomatico(item)) {
+      if (!item.presentacion || item.plazoVencimientoDias == null || !item.modalidadVencimiento) {
+        Swal.fire('Error', 'Para el vencimiento automático complete presentación, plazo y modalidad.', 'error');
+        return false;
+      }
+
+      this.updateVencimientoPreview(item);
+    }
+
+    const vencimiento = this.normalizeRequiredDate(item.vencimiento);
+    if (!vencimiento) {
+      Swal.fire('Error', this.isVencimientoManual(item)
+        ? 'Ingrese una fecha de vencimiento manual.'
+        : 'Complete la fecha de vencimiento antes de guardar.', 'error');
+      return false;
+    }
+
+    item.vencimiento = vencimiento;
+    return true;
+  }
+
+  private calculateVencimiento(
+    presentacion: string | null,
+    plazo: number | null | undefined,
+    modalidad: ModalidadVencimiento | null | undefined
+  ): string | null {
+    const base = this.normalizeOptionalDate(presentacion);
+    if (!base || plazo == null || plazo < 0 || !modalidad) {
+      return null;
+    }
+
+    const date = new Date(`${base}T00:00:00`);
+    if (modalidad === 'CORRIDOS') {
+      date.setDate(date.getDate() + plazo);
+      return this.toIsoDate(date);
+    }
+
+    let countedDays = 0;
+    while (countedDays < plazo) {
+      date.setDate(date.getDate() + 1);
+      if (this.isDiaHabil(date)) {
+        countedDays++;
+      }
+    }
+    return this.toIsoDate(date);
+  }
+
+  private isDiaHabil(date: Date): boolean {
+    const day = date.getDay();
+    return day !== 0 && day !== 6 && !this.diasNoLaborables.some(dayOff => dayOff.fecha === this.toIsoDate(date));
+  }
+
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private hydrateItemFromSelectedDocument(item: ItemControlDTO): void {
@@ -729,6 +872,10 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
           vencimiento: item.vencimiento ?? null,
           presentacion: item.presentacion ?? null,
           diasNotificacion: item.diasNotificacion,
+          plazoVencimientoDias: item.plazoVencimientoDias ?? null,
+          modalidadVencimiento: item.modalidadVencimiento ?? null,
+          sinPlazo: item.sinPlazo ?? null,
+          vencimientoManual: item.vencimientoManual ?? null,
           listMail: [...(item.listMail ?? [])],
           observaciones: item.observaciones ?? '',
           nombre: item.nombre ?? '',
