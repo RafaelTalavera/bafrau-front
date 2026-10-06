@@ -36,6 +36,8 @@ Un día no laborable usa `fecha`, `alcance` (`NACIONAL`, `PROVINCIAL` o
   modificar los días de aviso.
 - Elegir «Sin plazo» deshabilita el cálculo, vacía el vencimiento y deja los
   días de aviso en cero.
+- Una excepción manual mantiene la fecha elegida, aunque después se ajusten la
+  presentación, el plazo o la modalidad.
 - Los registros anteriores que no contienen los campos nuevos conservan su
   vencimiento editable y no se fuerzan a recalcular.
 

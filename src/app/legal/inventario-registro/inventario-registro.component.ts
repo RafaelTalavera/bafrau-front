@@ -394,7 +394,9 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
   onVencimientoConfigChange(item: ItemControlDTO): void {
     item.sinPlazo = false;
-    item.vencimientoManual = false;
+    if (this.isVencimientoManual(item)) {
+      return;
+    }
     this.updateVencimientoPreview(item);
   }
 
