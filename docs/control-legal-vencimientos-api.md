@@ -55,8 +55,9 @@ persistida; el frontend no consulta proveedores externos.
 
 ## Administración desde el registro legal
 
-El botón «Configurar vencimientos» abre la sección de administración del
-registro seleccionado. Desde allí se sincroniza el calendario central, se
+La sección «Configurar vencimientos» aparece antes de elegir una organización y
+permanece contraída para no interferir con el listado principal. Desde allí se
+sincroniza el calendario central, se
 pueden consultar feriados y registrar ajustes excepcionales nacionales o
 provinciales. Los nuevos plazos se agregan al selector sin recargar la página;
 los días no laborables recalculan las previsualizaciones automáticas abiertas.

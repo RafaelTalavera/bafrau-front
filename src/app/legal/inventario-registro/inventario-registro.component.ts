@@ -69,7 +69,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
   plazosVencimiento: PlazoVencimientoDTO[] = [];
   diasNoLaborables: DiaNoLaborableDTO[] = [];
   readonly provincias = PROVINCIAS_ARGENTINAS;
-  showVencimientosAdmin = false;
+  showConfiguracionGlobal = false;
   nuevoPlazoDias: number | null = null;
   nuevoDiaNoLaborable: DiaNoLaborableDTO = {
     fecha: '',
@@ -295,6 +295,10 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     return this.requirementFilter === filter;
   }
 
+  toggleConfiguracionGlobal(): void {
+    this.showConfiguracionGlobal = !this.showConfiguracionGlobal;
+  }
+
   removeDetalleItem(controlIndex: number, itemIndex: number): void {
     const control = this.selectedControls[controlIndex];
     const item = control.items[itemIndex];
@@ -407,10 +411,6 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return;
     }
     this.updateVencimientoPreview(item);
-  }
-
-  toggleVencimientosAdmin(): void {
-    this.showVencimientosAdmin = !this.showVencimientosAdmin;
   }
 
   createPlazoVencimiento(): void {

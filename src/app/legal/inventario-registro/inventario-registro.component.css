@@ -481,6 +481,16 @@
   padding: 24px;
 }
 
+.global-settings-toggle {
+  margin-top: 14px;
+}
+
+.global-settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .calendar-sync-panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
