@@ -30,14 +30,6 @@ Un día no laborable usa `fecha`, `alcance` (`NACIONAL` o `PROVINCIAL`),
 El documento legal expone `provinciaCodigo`. Es la provincia que determina qué
 feriados provinciales se consideran en los vencimientos hábiles del requisito.
 
-### Sincronización central
-
-`POST /controles/vencimientos/calendario/sincronizar?desde=2026&hasta=2027`
-sincroniza el calendario nacional y provincial en el backend. Devuelve la
-fuente, fecha de sincronización, cantidades nacionales/provinciales y totales
-creados, actualizados y omitidos. Los vencimientos usan siempre la copia local
-persistida; el frontend no consulta proveedores externos.
-
 ## Reglas aplicadas en el registro
 
 - El día de presentación no integra el plazo: `2026-10-01 + 5` corridos se
@@ -57,8 +49,7 @@ persistida; el frontend no consulta proveedores externos.
 
 La sección «Configurar vencimientos» aparece antes de elegir una organización y
 permanece contraída para no interferir con el listado principal. Desde allí se
-sincroniza el calendario central, se
-pueden consultar feriados y registrar ajustes excepcionales nacionales o
-provinciales. Los nuevos plazos se agregan al selector sin recargar la página;
-los días no laborables recalculan las previsualizaciones automáticas abiertas.
+consultan y cargan manualmente feriados nacionales o provinciales. Los nuevos
+plazos se agregan al selector sin recargar la página; los días no laborables
+recalculan las previsualizaciones automáticas abiertas.
 Un `409` al crear un plazo se informa como «El plazo ya existe».

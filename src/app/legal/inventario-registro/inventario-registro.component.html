@@ -129,23 +129,6 @@
           </div>
 
           <div *ngIf="showConfiguracionGlobal" class="global-settings-body">
-          <section class="calendar-sync-panel">
-            <div>
-              <h4>Sincronizar calendario argentino</h4>
-              <p>Importa feriados nacionales y provinciales para el rango indicado. El cálculo siempre usa el calendario guardado por el backend.</p>
-            </div>
-            <form class="calendar-sync-form" (ngSubmit)="sincronizarCalendario()">
-              <label for="anioCalendarioDesde">Desde</label>
-              <input type="number" id="anioCalendarioDesde" name="anioCalendarioDesde" [(ngModel)]="anioCalendarioDesde" min="2000" class="custom-input" required />
-              <label for="anioCalendarioHasta">Hasta</label>
-              <input type="number" id="anioCalendarioHasta" name="anioCalendarioHasta" [(ngModel)]="anioCalendarioHasta" min="2000" class="custom-input" required />
-              <button type="submit" class="btn-primary">Sincronizar</button>
-            </form>
-            <p *ngIf="resultadoSincronizacion" class="sync-result" [class.sync-result-error]="!resultadoSincronizacion.exitosa">
-              {{ resultadoSincronizacion.resultado }} — {{ resultadoSincronizacion.nacionales }} nacionales, {{ resultadoSincronizacion.provinciales }} provinciales, {{ resultadoSincronizacion.creados }} creados y {{ resultadoSincronizacion.actualizados }} actualizados.
-            </p>
-          </section>
-
           <div class="vencimientos-admin-grid">
             <section class="admin-section">
               <h4>Plazos disponibles</h4>

@@ -10,8 +10,7 @@ import {
   DiaNoLaborableDTO,
   ItemControlDTO,
   OrganizacionDTO,
-  PlazoVencimientoDTO,
-  ResultadoSincronizacionCalendarioDTO
+  PlazoVencimientoDTO
 } from '../models/control.model';
 
 @Injectable({
@@ -155,13 +154,4 @@ export class ControlService {
       .pipe(catchError(err => throwError(() => err)));
   }
 
-  sincronizarCalendario(desde: number, hasta: number): Observable<ResultadoSincronizacionCalendarioDTO> {
-    const url = `${this.baseUrl}/vencimientos/calendario/sincronizar`;
-    return this.http
-      .post<ResultadoSincronizacionCalendarioDTO>(url, null, {
-        headers: this.getAuthHeaders(),
-        params: { desde: String(desde), hasta: String(hasta) }
-      })
-      .pipe(catchError(err => throwError(() => err)));
-  }
 }

@@ -491,58 +491,6 @@
   gap: 20px;
 }
 
-.calendar-sync-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
-  align-items: end;
-  margin-bottom: 20px;
-  padding: 18px;
-  border: 1px solid rgba(31, 111, 235, 0.2);
-  border-radius: var(--radius-md);
-  background: var(--accent-soft);
-}
-
-.calendar-sync-panel h4,
-.calendar-sync-panel p {
-  margin: 0;
-}
-
-.calendar-sync-panel h4 {
-  color: var(--text-main);
-  font-size: 1rem;
-}
-
-.calendar-sync-panel p {
-  margin-top: 6px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.calendar-sync-form {
-  display: grid;
-  grid-template-columns: auto 100px auto 100px auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.calendar-sync-form label {
-  color: var(--text-main);
-  font-size: 0.84rem;
-  font-weight: 600;
-}
-
-.sync-result {
-  grid-column: 1 / -1;
-  margin-top: -8px !important;
-  color: var(--success-text) !important;
-}
-
-.sync-result-error {
-  color: var(--danger-text) !important;
-}
-
 .vencimientos-admin-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -745,11 +693,6 @@
   }
 
   .vencimientos-admin-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .calendar-sync-panel,
-  .calendar-sync-form {
     grid-template-columns: 1fr;
   }
 

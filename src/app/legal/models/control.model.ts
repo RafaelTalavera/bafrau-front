@@ -23,18 +23,6 @@ export interface DiaNoLaborableDTO {
   activo?: boolean | null;
 }
 
-export interface ResultadoSincronizacionCalendarioDTO {
-  fuente: string;
-  fechaSincronizacion: string;
-  nacionales: number;
-  provinciales: number;
-  creados: number;
-  actualizados: number;
-  omitidos: number;
-  exitosa: boolean;
-  resultado: string;
-}
-
 export interface ItemControlDTO {
   id: number | null;
   documentoId: number;

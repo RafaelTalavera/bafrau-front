@@ -13,8 +13,7 @@ import {
   ItemControlDTO,
   ModalidadVencimiento,
   OrganizacionDTO,
-  PlazoVencimientoDTO,
-  ResultadoSincronizacionCalendarioDTO
+  PlazoVencimientoDTO
 } from '../models/control.model';
 import { ControlService } from '../service/control.service';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
@@ -77,9 +76,6 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
     provinciaCodigo: null,
     descripcion: ''
   };
-  anioCalendarioDesde = new Date().getFullYear();
-  anioCalendarioHasta = new Date().getFullYear() + 1;
-  resultadoSincronizacion: ResultadoSincronizacionCalendarioDTO | null = null;
 
   filterRazon = '';
   selectedOrganizacion: OrganizacionDTO | null = null;
@@ -468,33 +464,6 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         Swal.fire('Guardado', 'El día no laborable fue registrado.', 'success');
       },
       error: () => Swal.fire('Error', 'No se pudo guardar el día no laborable.', 'error')
-    });
-  }
-
-  sincronizarCalendario(): void {
-    const desde = Number(this.anioCalendarioDesde);
-    const hasta = Number(this.anioCalendarioHasta);
-    if (!Number.isInteger(desde) || !Number.isInteger(hasta) || desde < 2000 || hasta < desde || hasta - desde > 10) {
-      Swal.fire('Error', 'Indique un rango de años válido de hasta 10 años.', 'error');
-      return;
-    }
-
-    this.controlService.sincronizarCalendario(desde, hasta).subscribe({
-      next: resultado => {
-        this.resultadoSincronizacion = resultado;
-        if (!resultado.exitosa) {
-          Swal.fire('Sincronización incompleta', resultado.resultado, 'warning');
-          return;
-        }
-        this.controlService.getDiasNoLaborables().subscribe({
-          next: dias => {
-            this.diasNoLaborables = dias;
-            this.recalculateAutomaticDueDates();
-          }
-        });
-        Swal.fire('Calendario sincronizado', resultado.resultado, 'success');
-      },
-      error: () => Swal.fire('Error', 'No se pudo sincronizar el calendario central.', 'error')
     });
   }
 
