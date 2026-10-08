@@ -2,14 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
 import { DesviosService } from '../services/desvios.service';
 import { CondicionOperacionDesvio, IndiceGravedadDesvio, CONDICION_OPERACION_LABEL, INDICE_GRAVEDAD_LABEL } from '../models/desvio.model';
+import { validateEvidenceFile } from '../utils/evidencia-file';
 
-@Component({ selector: 'app-desvio-form', standalone: true, imports: [CommonModule, ReactiveFormsModule, RouterModule], templateUrl: './desvio-form.component.html', styleUrls: ['./desvio-form.component.css'] })
+@Component({ selector: 'app-desvio-form', standalone: true, imports: [CommonModule, ReactiveFormsModule, RouterModule], templateUrl: './desvio-form.component.html', styleUrls: ['./desvio-form.component.css', './evidencias.component.css'] })
 export class DesvioFormComponent implements OnInit {
-  organizaciones: any[] = []; files: File[] = []; previews: string[] = []; saving = false; error = '';
+  organizaciones: any[] = []; files: File[] = []; saving = false; error = '';
   readonly indicesGravedad: IndiceGravedadDesvio[] = ['MUY_LEVE', 'LEVE', 'MODERADO', 'GRAVE', 'CRITICO'];
   readonly condicionesOperacion: CondicionOperacionDesvio[] = ['NORMAL', 'ANORMAL', 'EMERGENCIA'];
   readonly gravedadLabels = INDICE_GRAVEDAD_LABEL;
@@ -43,10 +44,25 @@ export class DesvioFormComponent implements OnInit {
     });
   }
   onOrganizacion(): void { const o = this.organizaciones.find(x => x.id === Number(this.form.value.organizacionId)); if (o && !this.form.value.sitioEstablecimiento) this.form.patchValue({ sitioEstablecimiento: o.domicilioRealProyecto || '' }); }
-  onFiles(event: Event): void { const input = event.target as HTMLInputElement; const selected = Array.from(input.files || []); this.files.push(...selected); selected.forEach(f => { const r = new FileReader(); r.onload = () => this.previews.push(String(r.result)); r.readAsDataURL(f); }); input.value = ''; }
-  quitar(i: number): void { this.files.splice(i,1); this.previews.splice(i,1); }
+  onFiles(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const rejected: string[] = [];
+    const accepted = Array.from(input.files || []).filter(file => {
+      const error = validateEvidenceFile(file);
+      if (error) rejected.push(`${file.name}: ${error}`);
+      return !error;
+    });
+    this.error = rejected.join(' ');
+    this.files.push(...accepted);
+    input.value = '';
+  }
+  quitar(i: number): void { this.files.splice(i, 1); }
   guardar(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error = 'Completá todos los campos obligatorios, incluidas las descripciones de las acciones inmediata y correctiva.';
+      return;
+    }
     this.saving = true; this.error = ''; const raw = this.form.getRawValue(); const payload = { ...raw, organizacionId: Number(raw.organizacionId) };
     this.service.crear(payload).subscribe({
       next: desvio => {
@@ -54,8 +70,16 @@ export class DesvioFormComponent implements OnInit {
           this.router.navigate(['/desvios', desvio.id]);
           return;
         }
-        forkJoin(this.files.map(file => this.service.subirEvidencia(desvio.id, file))).subscribe({
-          next: () => this.router.navigate(['/desvios', desvio.id]),
+        forkJoin(this.files.map(file => this.service.subirEvidencia(desvio.id, file).pipe(
+          map(() => null),
+          catchError(err => of(`${file.name}: ${err?.error?.message || 'no se pudo guardar.'}`))
+        ))).subscribe({
+          next: results => {
+            const errors = results.filter((result): result is string => result !== null);
+            this.router.navigate(['/desvios', desvio.id], errors.length ? {
+              queryParams: { evidenciaError: `El desvío fue creado. No se guardaron estas evidencias: ${errors.join(' ')}` }
+            } : undefined);
+          },
           error: err => this.router.navigate(['/desvios', desvio.id], {
             queryParams: {
               evidenciaError: err?.error?.message || 'El desvío fue creado, pero no se pudo guardar una evidencia.'

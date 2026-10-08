@@ -5,8 +5,9 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { CONDICION_OPERACION_LABEL, DesvioDetalle, EstadoDesvio, ESTADO_LABEL, INDICE_GRAVEDAD_LABEL, porcentajeParaEstado, SeguimientoDesvio } from '../models/desvio.model';
 import { DesviosService } from '../services/desvios.service';
+import { fileSize, isImageEvidence, validateEvidenceFile } from '../utils/evidencia-file';
 
-@Component({ selector: 'app-desvio-detail', standalone: true, imports: [CommonModule, ReactiveFormsModule, RouterModule], templateUrl: './desvio-detail.component.html', styleUrls: ['./desvio-detail.component.css'] })
+@Component({ selector: 'app-desvio-detail', standalone: true, imports: [CommonModule, ReactiveFormsModule, RouterModule], templateUrl: './desvio-detail.component.html', styleUrls: ['./desvio-detail.component.css', './evidencias.component.css'] })
 export class DesvioDetailComponent implements OnInit {
   id!: number; desvio?: DesvioDetalle; files: File[] = []; saving = false; editSaving = false; detailSaving = false; error = ''; evidenciaError = ''; editing?: SeguimientoDesvio; editingDetail = false; readonly labels = ESTADO_LABEL;
   readonly gravedadLabels = INDICE_GRAVEDAD_LABEL; readonly condicionLabels = CONDICION_OPERACION_LABEL;
@@ -29,7 +30,21 @@ export class DesvioDetailComponent implements OnInit {
     this.cargar();
   }
   cargar(): void { this.service.obtener(this.id).subscribe({ next: d => { this.desvio = d; this.form.patchValue({ estado: d.estado, porcentaje: porcentajeParaEstado(d.estado) }); }, error: () => this.error = 'No se pudo cargar el desvío.' }); }
-  onFiles(e: Event): void { this.files = Array.from((e.target as HTMLInputElement).files || []); }
+  onFiles(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    const rejected: string[] = [];
+    const accepted = Array.from(input.files || []).filter(file => {
+      const message = validateEvidenceFile(file);
+      if (message) rejected.push(`${file.name}: ${message}`);
+      return !message;
+    });
+    this.files.push(...accepted);
+    this.error = rejected.join(' ');
+    input.value = '';
+  }
+  quitarArchivo(indice: number): void { this.files.splice(indice, 1); }
+  esImagen(tipoMime: string): boolean { return isImageEvidence(tipoMime); }
+  tamanoArchivo(bytes: number): string { return fileSize(bytes); }
   guardar(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; } this.saving = true; this.error = '';
     const values = this.form.getRawValue();

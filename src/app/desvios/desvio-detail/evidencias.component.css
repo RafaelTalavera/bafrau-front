@@ -1,0 +1,12 @@
+.evidence-list{display:grid;gap:.65rem;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+.evidence-list--followup{margin-top:.85rem}
+.evidence-item{align-items:center;border:1px solid #dce3ee;border-radius:.5rem;color:#344256;display:grid;gap:.2rem;grid-template-columns:2rem 1fr;padding:.5rem;text-decoration:none}
+.evidence-item:hover{border-color:#2563eb;color:#1d4ed8}
+.evidence-item img{border-radius:.3rem;grid-row:span 2;height:2rem;object-fit:cover;width:2rem}
+.evidence-item>i{color:#2563eb;font-size:1.35rem;grid-row:span 2;text-align:center}
+.evidence-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evidence-item small{color:#7a8799}
+.pending-files{list-style:none;margin:.75rem 0 0;padding:0}
+.pending-files li{align-items:center;border-top:1px solid #e4eaf2;color:#475569;display:flex;font-size:.88rem;gap:.55rem;padding:.55rem 0}
+.pending-files i{color:#2563eb}.pending-files span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pending-files button{background:transparent;border:0;color:#dc3545;font-size:1.15rem;margin-left:auto}
