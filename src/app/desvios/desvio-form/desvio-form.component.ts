@@ -29,7 +29,9 @@ export class DesvioFormComponent implements OnInit {
   private crearAccion() { return this.fb.group({ descripcion: ['', Validators.required], responsable: [''], fechaEjecucion: [''] }); }
   get accionesInmediatas(): FormArray { return this.form.controls.accionesInmediatas; }
   get accionesCorrectivas(): FormArray { return this.form.controls.accionesCorrectivasSugeridas; }
-  agregarAccion(tipo: 'inmediata' | 'correctiva'): void { (tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas).push(this.crearAccion()); }
+  agregarAccion(tipo: 'inmediata' | 'correctiva'): void {
+    (tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas).insert(0, this.crearAccion());
+  }
   quitarAccion(tipo: 'inmediata' | 'correctiva', indice: number): void {
     const acciones = tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas;
     if (acciones.length > 1) acciones.removeAt(indice);

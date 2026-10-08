@@ -14,7 +14,11 @@ responsable opcional y fecha de ejecución opcional.
 - `accionesCorrectivasSugeridas`
 
 Cada arreglo inicia con una acción y no permite eliminar su última fila. Los
-botones **Agregar** y **Quitar** permiten mantener el orden de carga.
+botones **Agregar** y **Quitar** permiten mantener el orden de carga. Cada
+acción nueva se inserta al inicio de su lista, por lo que la fila vacía recién
+agregada queda siempre arriba. La numeración se muestra en orden descendente:
+si ya existe la acción 1, al agregar otra se verá la acción 2 arriba y la
+acción 1 debajo.
 
 El detalle renderiza las acciones de cada tipo, con su responsable y fecha cuando
 están informados. El contrato TypeScript se actualizó para consumir las listas
