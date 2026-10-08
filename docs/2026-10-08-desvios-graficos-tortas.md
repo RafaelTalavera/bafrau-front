@@ -4,7 +4,8 @@
 
 El listado de desvíos (`/desvios`) muestra dos gráficos de torta —resumen de
 la información devuelta por la GET— entre la selección del cliente y la tabla.
-Al presionar una feta, la tabla muestra únicamente los desvíos de esa feta.
+Al presionar una feta o la referencia de color de la leyenda, la tabla muestra
+únicamente los desvíos de esa selección.
 
 ## Implementación
 
@@ -36,8 +37,10 @@ página) se calculan sobre ese conjunto.
 - `filtroGraficoGravedad` y `filtroGraficoEstado` filtran el getter `items`
   (y `actualizarPaginacion()` recalcula las páginas con la misma lógica,
   centralizada en `filtrarPorGraficos()`).
-- Clic en una feta: alterna la selección, resalta la feta (`offset` de 10px)
-  y la tabla muestra solo ese segmento; se puede combinar con el otro gráfico.
+- Clic en una feta **o en la referencia de color de la leyenda**: alterna la
+  selección, resalta la feta (`offset` de 10px) y la tabla muestra solo ese
+  segmento. El `onClick` de la leyenda reemplaza al comportamiento por defecto
+  de Chart.js, que solo ocultaba el segmento sin filtrar nada.
 - Clic en la misma feta la deselecciona.
 - Aparece el cartel "La tabla muestra el segmento seleccionado" con botón
   **Quitar selección**.

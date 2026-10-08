@@ -165,7 +165,20 @@ export class DesviosListComponent implements OnInit, AfterViewInit, OnDestroy {
       type: 'doughnut', data: { labels, datasets: [{ data: valores, backgroundColor: colores, borderColor: '#fff', borderWidth: 2, offset: valores.map((_, i) => i === seleccionado ? 10 : 0) }] },
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '62%',
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 } } }, tooltip: { callbacks: { label: contexto => `${contexto.label}: ${contexto.raw} desvío${contexto.raw === 1 ? '' : 's'}` } } },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 10, padding: 10, font: { size: 11 } },
+            // El clic en la referencia de color filtra la tabla como si fuera
+            // la feta correspondiente; reemplaza al comportamiento por defecto
+            // de Chart.js, que únicamente oculta el segmento del gráfico.
+            onClick: (_evento, elemento) => {
+              const indice = elemento.index;
+              if (indice !== undefined) setTimeout(() => alSeleccionar(indice));
+            }
+          },
+          tooltip: { callbacks: { label: contexto => `${contexto.label}: ${contexto.raw} desvío${contexto.raw === 1 ? '' : 's'}` } }
+        },
         onClick: (evento, elementos, grafico) => {
           const elemento = elementos[0] ?? grafico.getElementsAtEventForMode(evento as unknown as Event, 'nearest', { intersect: true }, true)[0];
           // Se difiere la reconstrucción para no destruir el gráfico durante su
