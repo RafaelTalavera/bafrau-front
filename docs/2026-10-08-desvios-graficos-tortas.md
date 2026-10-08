@@ -41,9 +41,12 @@ página) se calculan sobre ese conjunto.
   selección, resalta la feta (`offset` de 10px) y la tabla muestra solo ese
   segmento. El `onClick` de la leyenda reemplaza al comportamiento por defecto
   de Chart.js, que solo ocultaba el segmento sin filtrar nada.
-- Clic en la misma feta la deselecciona.
-- Aparece el cartel "La tabla muestra el segmento seleccionado" con botón
-  **Quitar selección**.
+- Los dos gráficos son **excluyentes**: elegir una referencia en un gráfico
+  reinicia la selección del otro (antes ambos filtros se combinaban con Y y la
+  tabla quedaba en la intersección, lo que parecía un filtro guardado). Solo
+  puede haber un filtro de gráfico activo a la vez.
+- Aparece el cartel "La tabla muestra: …" indicando el filtro activo, con
+  botón **Quitar selección**.
 - Se limpian los filtros al cambiar de cliente, al limpiar filtros y al quitar
   el cliente (los gráficos también se destruyen).
 

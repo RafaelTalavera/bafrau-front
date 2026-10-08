@@ -53,6 +53,13 @@ export class DesviosListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get hayFiltroGrafico(): boolean { return !!this.filtroGraficoGravedad || !!this.filtroGraficoEstado; }
 
+  /** Describe el único filtro activo de gráfico (son excluyentes entre sí). */
+  get filtroGraficoDescripcion(): string {
+    if (this.filtroGraficoGravedad) return this.filtroGraficoGravedad === 'SIN_CLASIFICAR' ? 'Índice de gravedad: sin clasificar' : `Índice de gravedad: ${this.gravedadLabels[this.filtroGraficoGravedad]}`;
+    if (this.filtroGraficoEstado) return `Avance: ${this.labels[this.filtroGraficoEstado]} (${this.porcentaje(this.filtroGraficoEstado)}%)`;
+    return '';
+  }
+
   buscarClientes(): void {
     const termino = this.busquedaCliente.trim().toLocaleLowerCase();
     this.clientesVisibles = termino ? this.clientes.filter(c => c.razonSocial.toLocaleLowerCase().includes(termino)).slice(0, 12) : [];
@@ -108,11 +115,15 @@ export class DesviosListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   seleccionarGravedad(indice: IndiceGravedadDesvio | 'SIN_CLASIFICAR'): void {
     this.filtroGraficoGravedad = this.filtroGraficoGravedad === indice ? undefined : indice;
+    // Los gráficos son independientes: elegir en uno reinicia la selección del otro.
+    this.filtroGraficoEstado = undefined;
     this.page = 0; this.actualizarPaginacion(); this.renderizarGraficos();
   }
 
   seleccionarEstado(estado: EstadoDesvio): void {
     this.filtroGraficoEstado = this.filtroGraficoEstado === estado ? undefined : estado;
+    // Los gráficos son independientes: elegir en uno reinicia la selección del otro.
+    this.filtroGraficoGravedad = undefined;
     this.page = 0; this.actualizarPaginacion(); this.renderizarGraficos();
   }
 
