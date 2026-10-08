@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { CONDICION_OPERACION_LABEL, DesvioDetalle, EstadoDesvio, ESTADO_LABEL, INDICE_GRAVEDAD_LABEL, porcentajeParaEstado, SeguimientoDesvio } from '../models/desvio.model';
@@ -13,8 +13,13 @@ export class DesvioDetailComponent implements OnInit {
   readonly estados: EstadoDesvio[] = ['PERMANECE', 'EN_PROCESO', 'PRIMERA_OBSERVACION', 'FINALIZADO'];
   form = this.fb.group({ fecha: [new Date().toISOString().slice(0,10), Validators.required], comentario: ['', Validators.required], estado: ['EN_PROCESO' as EstadoDesvio, Validators.required], porcentaje: [50, [Validators.required, Validators.min(0), Validators.max(100)]] });
   editForm = this.fb.group({ fecha: ['', Validators.required], comentario: ['', Validators.required], estado: ['EN_PROCESO' as EstadoDesvio, Validators.required], porcentaje: [0, [Validators.required, Validators.min(0), Validators.max(100)]] });
-  detailForm = this.fb.group({ fechaDeteccion: ['', Validators.required], indiceGravedad: ['', Validators.required], condicionOperacion: ['', Validators.required], sitioEstablecimiento: ['', [Validators.required, Validators.maxLength(500)]], descripcion: ['', Validators.required], accionCorrectivaSugerida: ['', Validators.required], responsablesReferentes: [''] });
+  detailForm = this.fb.group({ fechaDeteccion: ['', Validators.required], indiceGravedad: ['', Validators.required], condicionOperacion: ['', Validators.required], sitioEstablecimiento: ['', [Validators.required, Validators.maxLength(500)]], descripcion: ['', Validators.required], accionesInmediatas: this.fb.array([]), accionesCorrectivasSugeridas: this.fb.array([]), responsablesReferentes: [''] });
   constructor(private route: ActivatedRoute, private fb: FormBuilder, private service: DesviosService) {}
+  private crearAccion(accion?: { descripcion: string; responsable?: string; fechaEjecucion?: string }) { return this.fb.group({ descripcion: [accion?.descripcion || '', Validators.required], responsable: [accion?.responsable || ''], fechaEjecucion: [accion?.fechaEjecucion || ''] }); }
+  get accionesInmediatas(): FormArray { return this.detailForm.controls.accionesInmediatas; }
+  get accionesCorrectivas(): FormArray { return this.detailForm.controls.accionesCorrectivasSugeridas; }
+  agregarAccionDetalle(tipo: 'inmediata' | 'correctiva'): void { (tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas).push(this.crearAccion()); }
+  quitarAccionDetalle(tipo: 'inmediata' | 'correctiva', indice: number): void { const acciones = tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas; if (acciones.length > 1) acciones.removeAt(indice); }
   ngOnInit(): void {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
     this.evidenciaError = this.route.snapshot.queryParamMap.get('evidenciaError') || '';
@@ -49,7 +54,12 @@ export class DesvioDetailComponent implements OnInit {
   iniciarEdicionDetalle(): void {
     const d = this.desvio; if (!d) return;
     this.error = ''; this.editingDetail = true;
-    this.detailForm.setValue({ fechaDeteccion: d.fechaDeteccion, indiceGravedad: d.indiceGravedad || '', condicionOperacion: d.condicionOperacion || '', sitioEstablecimiento: d.sitioEstablecimiento, descripcion: d.descripcion, accionCorrectivaSugerida: d.accionCorrectivaSugerida, responsablesReferentes: d.responsablesReferentes || '' });
+    this.accionesInmediatas.clear(); this.accionesCorrectivas.clear();
+    d.accionesInmediatas.forEach(a => this.accionesInmediatas.push(this.crearAccion(a)));
+    d.accionesCorrectivasSugeridas.forEach(a => this.accionesCorrectivas.push(this.crearAccion(a)));
+    if (!this.accionesInmediatas.length) this.accionesInmediatas.push(this.crearAccion());
+    if (!this.accionesCorrectivas.length) this.accionesCorrectivas.push(this.crearAccion());
+    this.detailForm.patchValue({ fechaDeteccion: d.fechaDeteccion, indiceGravedad: d.indiceGravedad || '', condicionOperacion: d.condicionOperacion || '', sitioEstablecimiento: d.sitioEstablecimiento, descripcion: d.descripcion, responsablesReferentes: d.responsablesReferentes || '' });
   }
   cancelarEdicionDetalle(): void { this.editingDetail = false; this.detailForm.reset(); }
   guardarEdicionDetalle(): void {

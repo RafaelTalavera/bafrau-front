@@ -27,15 +27,15 @@ export interface DesvioListItem {
 }
 export interface DesvioDetalle extends DesvioListItem {
   descripcion: string;
-  accionInmediata?: string;
-  responsableAccionInmediata?: string;
-  fechaEjecucionAccionInmediata?: string;
-  accionCorrectivaSugerida: string;
-  responsableAccionCorrectiva?: string;
-  fechaEjecucionAccionCorrectiva?: string;
+  accionesInmediatas: AccionDesvio[];
+  accionesCorrectivasSugeridas: AccionDesvio[];
   responsablesReferentes?: string;
   activo: boolean; fechaCreacion: string; fechaModificacion: string;
   evidencias: EvidenciaDesvio[]; seguimientos: SeguimientoDesvio[];
+}
+export interface AccionDesvio {
+  id?: number; tipo: 'INMEDIATA' | 'CORRECTIVA_SUGERIDA'; descripcion: string;
+  responsable?: string; fechaEjecucion?: string; orden: number;
 }
 export interface PageResponse<T> {
   content: T[]; totalElements: number; totalPages: number; number: number; size: number;

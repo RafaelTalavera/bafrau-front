@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { OrganizacionService } from '../../organizacion/service/organizacion-service';
@@ -21,15 +21,19 @@ export class DesvioFormComponent implements OnInit {
     condicionOperacion: ['', Validators.required],
     sitioEstablecimiento: ['', [Validators.required, Validators.maxLength(500)]],
     descripcion: ['', Validators.required],
-    accionInmediata: ['', Validators.required],
-    responsableAccionInmediata: [''],
-    fechaEjecucionAccionInmediata: [''],
-    accionCorrectivaSugerida: ['', Validators.required],
-    responsableAccionCorrectiva: [''],
-    fechaEjecucionAccionCorrectiva: [''],
+    accionesInmediatas: this.fb.array([this.crearAccion()]),
+    accionesCorrectivasSugeridas: this.fb.array([this.crearAccion()]),
     responsablesReferentes: ['']
   });
   constructor(private fb: FormBuilder, private orgService: OrganizacionService, private service: DesviosService, private router: Router) {}
+  private crearAccion() { return this.fb.group({ descripcion: ['', Validators.required], responsable: [''], fechaEjecucion: [''] }); }
+  get accionesInmediatas(): FormArray { return this.form.controls.accionesInmediatas; }
+  get accionesCorrectivas(): FormArray { return this.form.controls.accionesCorrectivasSugeridas; }
+  agregarAccion(tipo: 'inmediata' | 'correctiva'): void { (tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas).push(this.crearAccion()); }
+  quitarAccion(tipo: 'inmediata' | 'correctiva', indice: number): void {
+    const acciones = tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas;
+    if (acciones.length > 1) acciones.removeAt(indice);
+  }
   ngOnInit(): void {
     this.orgService.getOrganizacionesRepresentacionTecnica().subscribe({
       next: organizaciones => this.organizaciones = organizaciones.filter(x => x.vigente !== false),
