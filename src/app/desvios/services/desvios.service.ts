@@ -10,7 +10,7 @@ export class DesviosService {
   constructor(private http: HttpClient) {}
 
   listar(filtros: { texto?: string; organizacionId?: number; estado?: EstadoDesvio; desde?: string; hasta?: string; page?: number; size?: number }): Observable<PageResponse<DesvioListItem>> {
-    let params = new HttpParams().set('page', filtros.page ?? 0).set('size', filtros.size ?? 20).set('sort', 'fechaDeteccion,desc');
+    let params = new HttpParams().set('page', filtros.page ?? 0).set('size', filtros.size ?? 20).set('sort', 'id,desc');
     Object.entries(filtros).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '' && key !== 'page' && key !== 'size') params = params.set(key, String(value));
     });

@@ -10,6 +10,10 @@ export const routes: Routes = [
     path: '',
     component: ShellLayoutComponent,
     children: [
+      // Entrada de la aplicación: evita renderizar el shell sin contenido al
+      // abrir /app-bafrau/ o /app-bafrau/index.html.
+      { path: '', pathMatch: 'full', redirectTo: 'menu' },
+
       // Matriz Leopold
       { path: 'matriz-ponderacion', loadComponent: () => import('./matriz/matriz-ponderacion/ponderacion-matriz.component').then(m => m.PonderacionMatrizComponent), canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
       { path: 'matriz-impacto', loadComponent: () => import('./matriz/matriz-impactos/matriz-impactos.component').then(m => m.MatrizImpactosComponent), canActivate: [roleGuard], data: { roles: ['ADMINISTRATOR', 'USER'] } },
