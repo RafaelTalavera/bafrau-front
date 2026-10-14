@@ -46,7 +46,14 @@ export class DesvioDetailComponent implements OnInit {
   esImagen(tipoMime: string): boolean { return isImageEvidence(tipoMime); }
   tamanoArchivo(bytes: number): string { return fileSize(bytes); }
   guardar(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; } this.saving = true; this.error = '';
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error = this.form.controls.comentario.invalid
+        ? 'Ingresá un comentario para guardar el seguimiento.'
+        : 'Completá los campos obligatorios para guardar el seguimiento.';
+      return;
+    }
+    this.saving = true; this.error = '';
     const values = this.form.getRawValue();
     const payload = { ...values, porcentaje: porcentajeParaEstado(values.estado as EstadoDesvio) };
     this.service.agregarSeguimiento(this.id, payload).pipe(switchMap(s => this.files.length ? forkJoin(this.files.map(f => this.service.subirEvidencia(this.id, f, s.id))) : of([]))).subscribe({ next: () => { this.files=[]; this.form.patchValue({ comentario: '' }); this.saving=false; this.cargar(); }, error: err => { this.error = err?.error?.message || 'No se pudo guardar el seguimiento.'; this.saving=false; } });
