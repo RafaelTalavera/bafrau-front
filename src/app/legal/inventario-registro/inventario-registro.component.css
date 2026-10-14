@@ -177,6 +177,10 @@
   justify-content: flex-end;
 }
 
+.plazo-toggle {
+  justify-content: flex-start;
+}
+
 .check-label {
   min-height: 46px;
   padding: 0.78rem 0.95rem;
@@ -482,7 +486,7 @@
 }
 
 .global-settings-toggle {
-  margin-top: 14px;
+  margin-top: 8px;
 }
 
 .global-settings-body {

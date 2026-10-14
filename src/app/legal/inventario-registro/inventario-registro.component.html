@@ -222,7 +222,8 @@
                   *ngFor="let itemView of controlView.visibleItems; trackBy: trackRequirementById"
                   class="requirement-card"
                   [class.requirement-card-highlighted]="itemView.item.id === highlightedItemId"
-                  [attr.data-item-id]="itemView.item.id">
+                  [attr.data-item-id]="itemView.item.id"
+                  [attr.data-new-requirement]="itemView.item.id === null ? '' : null">
                   <div class="requirement-header">
                     <div>
                       <span class="requirement-index">Requisito {{ itemView.displayIndex }}</span>
@@ -299,7 +300,7 @@
                         (ngModelChange)="onVencimientoConfigChange(itemView.item)" />
                     </div>
 
-                    <div class="field-group vencimiento-toggle">
+                    <div class="field-group vencimiento-toggle plazo-toggle">
                       <span class="field-label">Plazo</span>
                       <label class="check-label" for="detSinPlazo{{ controlView.control.id }}_{{ itemView.itemIndex }}">
                         <input

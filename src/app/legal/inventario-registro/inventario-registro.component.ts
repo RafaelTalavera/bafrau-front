@@ -88,6 +88,8 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
 
   loading = true;
   private nextDraftControlId = -1;
+  private nextDraftItemSeq = -1;
+  private readonly draftItemSeq = new WeakMap<ItemControlDTO, number>();
   private readonly requestTimeoutMs = 15000;
   private originalControlsSnapshot = '';
   private pendingNavigationTarget: RegistroInventarioTarget | null = null;
@@ -198,7 +200,6 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       });
 
     const views: VisibleControlView[] = [];
-    let displayIndex = 0;
     for (const { control, controlIndex, item, itemIndex } of requirements) {
       // Only combine adjacent requirements: grouping all items by record would break the order.
       let view = views[views.length - 1];
@@ -206,7 +207,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
         view = { control, controlIndex, visibleItems: [] };
         views.push(view);
       }
-      view.visibleItems.push({ item, itemIndex, displayIndex: ++displayIndex });
+      view.visibleItems.push({ item, itemIndex, displayIndex: 0 });
     }
 
     // Keep new records together so their complete creation form remains available.
@@ -215,17 +216,65 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       const visibleItems = (control.items ?? [])
         .map((item, itemIndex) => ({ item, itemIndex }))
         .filter(({ item }) => this.matchesRequirementFilter(item))
-        .map(({ item, itemIndex }) => ({ item, itemIndex, displayIndex: ++displayIndex }));
+        .map(({ item, itemIndex }) => ({ item, itemIndex, displayIndex: 0 }));
       if (visibleItems.length > 0) {
         views.push({ control, controlIndex, visibleItems });
       }
     });
-    this.visibleControlViews = views;
+
+    this.visibleControlViews = this.ordenarVistasRequisitos(views);
   }
 
-  trackRequirementById(_: number, itemView: VisibleRequirementItem): number | null {
-    return itemView.item.id;
+  /**
+   * Los requisitos sin guardar se muestran al inicio del listado: se adelanta el
+   * registro que los contiene y, dentro de él, los nuevos van antes que los
+   * guardados. El resto de los registros conserva el orden por vencimiento.
+   * Al final se renumera "Requisito N" según el orden visible resultante.
+   */
+  private ordenarVistasRequisitos(views: VisibleControlView[]): VisibleControlView[] {
+    const registrosConNuevos = new Set(
+      views
+        .filter(view => this.tieneRequisitoNuevo(view))
+        .map(view => view.controlIndex)
+    );
+
+    let ordenadas = views;
+    if (registrosConNuevos.size > 0) {
+      const adelantadas = views.filter(view => registrosConNuevos.has(view.controlIndex));
+      const resto = views.filter(view => !registrosConNuevos.has(view.controlIndex));
+      // La vista que contiene el requisito recién agregado queda primera.
+      adelantadas.sort((a, b) => Number(this.tieneRequisitoNuevo(b)) - Number(this.tieneRequisitoNuevo(a)));
+      adelantadas.forEach(view => {
+        if (!this.tieneRequisitoNuevo(view)) return;
+        view.visibleItems = [
+          ...view.visibleItems.filter(itemView => itemView.item.id == null),
+          ...view.visibleItems.filter(itemView => itemView.item.id != null)
+        ];
+      });
+      ordenadas = [...adelantadas, ...resto];
+    }
+
+    let displayIndex = 0;
+    for (const view of ordenadas) {
+      for (const itemView of view.visibleItems) {
+        itemView.displayIndex = ++displayIndex;
+      }
+    }
+    return ordenadas;
   }
+
+  private tieneRequisitoNuevo(view: VisibleControlView): boolean {
+    return view.visibleItems.some(itemView => itemView.item.id == null);
+  }
+
+  // Función flecha: Angular invoca el trackBy desde el differ (this._trackByFn),
+  // por lo que con un método normal this apuntaría al differ y no al componente.
+  trackRequirementById = (_: number, itemView: VisibleRequirementItem): number | null => {
+    // Los requisitos sin guardar comparten id nulo; se les asigna una clave
+    // transitoria (negativa, sin colisión con ids reales) para que el ngFor
+    // pueda reordenarlos sin mezclar los formularios.
+    return itemView.item.id ?? this.draftItemSeq.get(itemView.item) ?? null;
+  };
 
   get currentRequirementFilterLabel(): string {
     if (this.requirementFilter === 'active') {
@@ -577,7 +626,7 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return;
     }
 
-    this.requirementFilter = 'closed';
+    this.requirementFilter = 'active';
     this.dueDateSortDirection = 'asc';
 
     const draftIndex = this.selectedControls.findIndex(control => !this.isPersistedControl(control));
@@ -603,7 +652,9 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       return;
     }
 
-    control.items.push({
+    // Se inserta al principio para que el requisito recién agregado sea el
+    // primero del listado (ver ordenarVistasRequisitos).
+    const nuevoItem: ItemControlDTO = {
       id: null,
       documentoId: 0,
       controlId: control.id,
@@ -620,10 +671,37 @@ export class InventarioRegistroComponent implements OnInit, CanComponentDeactiva
       juridiccion: '',
       provinciaCodigo: null,
       observacionesDocumento: '',
-      estado: false
-    });
+      estado: true
+    };
+    this.draftItemSeq.set(nuevoItem, this.nextDraftItemSeq--);
+    control.items.unshift(nuevoItem);
 
     this.refreshVisibleControlViews();
+    this.scrollToNewRequirement();
+  }
+
+  private scrollToNewRequirement(): void {
+    setTimeout(() => {
+      const target = document.querySelector('[data-new-requirement]') as HTMLElement | null;
+      if (!target) {
+        return;
+      }
+
+      const navHeight = (document.querySelector('app-nav') as HTMLElement | null)?.offsetHeight ?? 0;
+      const bounds = target.getBoundingClientRect();
+      if (bounds.top >= navHeight + 12 && bounds.bottom <= window.innerHeight) {
+        return;
+      }
+
+      target.scrollIntoView({ block: 'start', inline: 'nearest' });
+
+      const scroller = document.querySelector('.content-wrapper') as HTMLElement | null;
+      if (scroller) {
+        scroller.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
+      } else {
+        window.scrollBy({ top: -(navHeight + 12), left: 0, behavior: 'auto' });
+      }
+    }, 0);
   }
 
   private addNewControlDraft(): void {

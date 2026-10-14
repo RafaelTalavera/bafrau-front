@@ -37,6 +37,13 @@ Global layout rules for `nav`, `navbar`, `content-wrapper` and `footer` are docu
 Recent changes and functional notes for `registro-inventario` are documented in:
 
 - `docs/registro-inventario-cambios-ui-y-carga.md`
+- `docs/2026-10-14-registro-inventario-alta-y-orden-requisitos.md`
+
+## Desvíos
+
+Los cambios de edición y validación de seguimientos están documentados en:
+
+- `docs/2026-10-14-desvios-edicion-y-validacion-seguimiento.md`
 
 ## Unsaved Changes
 
