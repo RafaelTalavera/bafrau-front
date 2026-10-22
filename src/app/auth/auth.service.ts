@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 import { LocalStorageService } from './service/local-Storage-Service';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
+import { Router } from '@angular/router';
 
 
 @Injectable({
@@ -13,10 +14,12 @@ import { jwtDecode } from 'jwt-decode';
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth/authenticate`;
   private tokenKey = 'jwt_token';
+  private handlingAuthenticationFailure = false;
 
   constructor(
     private http: HttpClient,
-    private localStorageService: LocalStorageService
+    private localStorageService: LocalStorageService,
+    private router: Router
   ) {}
 
   login(username: string, password: string): Observable<any> {
@@ -26,6 +29,7 @@ export class AuthService {
         const token = response?.token ?? response?.jwt;
         if (token) {
           this.setToken(token);
+          this.handlingAuthenticationFailure = false;
         } else {
           console.error('Token no encontrado en la respuesta:', response);
         }
@@ -71,6 +75,13 @@ export class AuthService {
 
   logout(): void {
     this.localStorageService.removeItem(this.tokenKey);
+  }
+
+  handleAuthenticationFailure(): void {
+    if (this.handlingAuthenticationFailure) return;
+    this.handlingAuthenticationFailure = true;
+    this.logout();
+    void this.router.navigate(['/login']);
   }
 
   getUserRoles(): string[] {

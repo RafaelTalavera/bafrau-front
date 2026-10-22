@@ -125,17 +125,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
-              "node_modules/admin-lte/dist/js/adminlte.min.js",
-              "src/assets/plugins/jquery/jquery.min.js",
-              "src/assets/plugins/bootstrap/js/bootstrap.bundle.min.js",
-              "src/assets/plugins/toastr/toastr.min.js",
-              "src/assets/dist/js/adminlte.min.js",
-              "src/assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js",
-              "src/assets/pdist/js/demo.js"
-            ]
+            "scripts": []
           }
         }
       }

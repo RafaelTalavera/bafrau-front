@@ -44,6 +44,7 @@ Recent changes and functional notes for `registro-inventario` are documented in:
 Los cambios de edición y validación de seguimientos están documentados en:
 
 - `docs/2026-10-14-desvios-edicion-y-validacion-seguimiento.md`
+- `docs/2026-10-22-desvios-manejo-errores-alta.md`
 
 ## Unsaved Changes
 
