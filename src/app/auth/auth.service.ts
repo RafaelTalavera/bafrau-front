@@ -6,6 +6,7 @@ import { LocalStorageService } from './service/local-Storage-Service';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
 import { Router } from '@angular/router';
+import { NotificationService } from '../services/notification.service';
 
 
 @Injectable({
@@ -19,7 +20,8 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private localStorageService: LocalStorageService,
-    private router: Router
+    private router: Router,
+    private notifications: NotificationService
   ) {}
 
   login(username: string, password: string): Observable<any> {
@@ -77,10 +79,35 @@ export class AuthService {
     this.localStorageService.removeItem(this.tokenKey);
   }
 
-  handleAuthenticationFailure(): void {
+  handleAuthenticationFailure(code?: string): void {
     if (this.handlingAuthenticationFailure) return;
     this.handlingAuthenticationFailure = true;
     this.logout();
+
+    if (this.router.url === '/login') {
+      this.navigateToLogin();
+      return;
+    }
+
+    void this.notifications.sessionEnded(this.authenticationFailureMessage(code))
+      .then(() => this.navigateToLogin()).catch(() => this.navigateToLogin());
+  }
+
+  private authenticationFailureMessage(code?: string): string {
+    switch (code) {
+      case 'TOKEN_EXPIRED':
+        return 'Tu sesión venció. Iniciá sesión nuevamente para continuar.';
+      case 'TOKEN_INVALID':
+        return 'Tu sesión no es válida. Iniciá sesión nuevamente para continuar.';
+      case 'USER_INACTIVE_OR_NOT_FOUND':
+        return 'Tu usuario está inactivo o ya no está disponible. Volvé a iniciar sesión o contactá a un administrador.';
+      case 'AUTHENTICATION_REQUIRED':
+      default:
+        return 'Necesitás iniciar sesión nuevamente para continuar.';
+    }
+  }
+
+  private navigateToLogin(): void {
     void this.router.navigate(['/login']);
   }
 

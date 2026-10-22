@@ -6,11 +6,13 @@ import { OrganizacionService } from '../../organizacion/service/organizacion-ser
 import { DesvioDetalle } from '../models/desvio.model';
 import { DesviosService } from '../services/desvios.service';
 import { DesvioFormComponent } from './desvio-form.component';
+import { NotificationService } from '../../services/notification.service';
 
 describe('DesvioFormComponent', () => {
   let component: DesvioFormComponent;
   let service: jasmine.SpyObj<DesviosService>;
   let router: Router;
+  let notifications: jasmine.SpyObj<NotificationService>;
 
   const created: DesvioDetalle = {
     id: 7, numero: 10, organizacionId: 2, razonSocial: 'Empresa', fechaDeteccion: '2026-10-22',
@@ -22,6 +24,8 @@ describe('DesvioFormComponent', () => {
 
   beforeEach(() => {
     service = jasmine.createSpyObj<DesviosService>('DesviosService', ['crear', 'subirEvidencia']);
+    notifications = jasmine.createSpyObj<NotificationService>('NotificationService', ['error']);
+    notifications.error.and.resolveTo();
     const organizaciones = jasmine.createSpyObj<OrganizacionService>('OrganizacionService', ['getOrganizacionesRepresentacionTecnica']);
     organizaciones.getOrganizacionesRepresentacionTecnica.and.returnValue(of([]));
     TestBed.configureTestingModule({
@@ -29,6 +33,7 @@ describe('DesvioFormComponent', () => {
       providers: [
         { provide: DesviosService, useValue: service },
         { provide: OrganizacionService, useValue: organizaciones },
+        { provide: NotificationService, useValue: notifications },
         provideRouter([])
       ]
     });
@@ -90,6 +95,7 @@ describe('DesvioFormComponent', () => {
     component.guardar();
     expect(component.error).toBe('Conflicto informado');
     expect(component.correlationId).toBe('ref-123');
+    expect(notifications.error).toHaveBeenCalledWith('Conflicto al crear el desvío', 'Conflicto informado', 'ref-123');
   });
 
   it('usa el fallback final para una respuesta sin JSON', () => {

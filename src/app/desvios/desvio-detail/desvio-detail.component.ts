@@ -1,21 +1,25 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { forkJoin, of, switchMap } from 'rxjs';
 import { CONDICION_OPERACION_LABEL, DesvioDetalle, EstadoDesvio, ESTADO_LABEL, INDICE_GRAVEDAD_LABEL, porcentajeParaEstado, SeguimientoDesvio } from '../models/desvio.model';
 import { DesviosService } from '../services/desvios.service';
 import { fileSize, isImageEvidence, validateEvidenceFile } from '../utils/evidencia-file';
+import { correlationIdFrom, parseApiError } from '../../models/api-error-response';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({ selector: 'app-desvio-detail', standalone: true, imports: [CommonModule, ReactiveFormsModule, RouterModule], templateUrl: './desvio-detail.component.html', styleUrls: ['./desvio-detail.component.css', './evidencias.component.css'] })
 export class DesvioDetailComponent implements OnInit {
-  id!: number; desvio?: DesvioDetalle; files: File[] = []; saving = false; editSaving = false; detailSaving = false; error = ''; evidenciaError = ''; editing?: SeguimientoDesvio; editingDetail = false; readonly labels = ESTADO_LABEL;
+  id!: number; desvio?: DesvioDetalle; files: File[] = []; saving = false; editSaving = false; detailSaving = false; error = ''; editing?: SeguimientoDesvio; editingDetail = false; readonly labels = ESTADO_LABEL;
   readonly gravedadLabels = INDICE_GRAVEDAD_LABEL; readonly condicionLabels = CONDICION_OPERACION_LABEL;
   readonly estados: EstadoDesvio[] = ['PERMANECE', 'EN_PROCESO', 'PRIMERA_OBSERVACION', 'FINALIZADO'];
   form = this.fb.group({ fecha: [new Date().toISOString().slice(0,10), Validators.required], comentario: ['', Validators.required], estado: ['EN_PROCESO' as EstadoDesvio, Validators.required], porcentaje: [50, [Validators.required, Validators.min(0), Validators.max(100)]] });
   editForm = this.fb.group({ fecha: ['', Validators.required], comentario: ['', Validators.required], estado: ['EN_PROCESO' as EstadoDesvio, Validators.required], porcentaje: [0, [Validators.required, Validators.min(0), Validators.max(100)]] });
   detailForm = this.fb.group({ fechaDeteccion: ['', Validators.required], indiceGravedad: ['', Validators.required], condicionOperacion: ['', Validators.required], sitioEstablecimiento: ['', [Validators.required, Validators.maxLength(500)]], descripcion: ['', Validators.required], accionesInmediatas: this.fb.array([]), accionesCorrectivasSugeridas: this.fb.array([]), responsablesReferentes: [''] });
-  constructor(private route: ActivatedRoute, private fb: FormBuilder, private service: DesviosService) {}
+  constructor(private route: ActivatedRoute, private fb: FormBuilder, private service: DesviosService,
+    private router: Router, private notifications: NotificationService) {}
   private crearAccion(accion?: { descripcion: string; responsable?: string; fechaEjecucion?: string }) { return this.fb.group({ descripcion: [accion?.descripcion || '', Validators.required], responsable: [accion?.responsable || ''], fechaEjecucion: [accion?.fechaEjecucion || ''] }); }
   get accionesInmediatas(): FormArray { return this.detailForm.controls.accionesInmediatas; }
   get accionesCorrectivas(): FormArray { return this.detailForm.controls.accionesCorrectivasSugeridas; }
@@ -23,7 +27,12 @@ export class DesvioDetailComponent implements OnInit {
   quitarAccionDetalle(tipo: 'inmediata' | 'correctiva', indice: number): void { const acciones = tipo === 'inmediata' ? this.accionesInmediatas : this.accionesCorrectivas; if (acciones.length > 1) acciones.removeAt(indice); }
   ngOnInit(): void {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
-    this.evidenciaError = this.route.snapshot.queryParamMap.get('evidenciaError') || '';
+    const evidenciaError = this.route.snapshot.queryParamMap.get('evidenciaError');
+    if (evidenciaError) {
+      void this.notifications.warning('Desvío creado con observaciones', evidenciaError);
+      void this.router.navigate([], { relativeTo: this.route, queryParams: { evidenciaError: null },
+        queryParamsHandling: 'merge', replaceUrl: true });
+    }
     this.form.controls.estado.valueChanges.subscribe(estado => {
       if (estado) this.form.controls.porcentaje.setValue(porcentajeParaEstado(estado), { emitEvent: false });
     });
@@ -56,7 +65,7 @@ export class DesvioDetailComponent implements OnInit {
     this.saving = true; this.error = '';
     const values = this.form.getRawValue();
     const payload = { ...values, porcentaje: porcentajeParaEstado(values.estado as EstadoDesvio) };
-    this.service.agregarSeguimiento(this.id, payload).pipe(switchMap(s => this.files.length ? forkJoin(this.files.map(f => this.service.subirEvidencia(this.id, f, s.id))) : of([]))).subscribe({ next: () => { this.files=[]; this.form.patchValue({ comentario: '' }); this.saving=false; this.cargar(); }, error: err => { this.error = err?.error?.message || 'No se pudo guardar el seguimiento.'; this.saving=false; } });
+    this.service.agregarSeguimiento(this.id, payload).pipe(switchMap(s => this.files.length ? forkJoin(this.files.map(f => this.service.subirEvidencia(this.id, f, s.id))) : of([]))).subscribe({ next: () => { this.files=[]; this.form.patchValue({ comentario: '' }); this.saving=false; void this.notifications.success('Seguimiento guardado'); this.cargar(); }, error: (err: unknown) => { this.showOperationError(err, 'No se pudo guardar el seguimiento.'); this.saving=false; } });
   }
   iniciarEdicion(seguimiento: SeguimientoDesvio): void {
     this.error = '';
@@ -69,8 +78,8 @@ export class DesvioDetailComponent implements OnInit {
     if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
     this.editSaving = true; this.error = '';
     this.service.actualizarSeguimiento(this.id, this.editing.id, this.editForm.getRawValue()).subscribe({
-      next: () => { this.editSaving = false; this.cancelarEdicion(); this.cargar(); },
-      error: err => { this.error = err?.error?.message || 'No se pudo actualizar el seguimiento.'; this.editSaving = false; }
+      next: () => { this.editSaving = false; this.cancelarEdicion(); void this.notifications.success('Seguimiento actualizado'); this.cargar(); },
+      error: (err: unknown) => { this.showOperationError(err, 'No se pudo actualizar el seguimiento.'); this.editSaving = false; }
     });
   }
   iniciarEdicionDetalle(): void {
@@ -87,7 +96,15 @@ export class DesvioDetailComponent implements OnInit {
   guardarEdicionDetalle(): void {
     if (this.detailForm.invalid) { this.detailForm.markAllAsTouched(); return; }
     this.detailSaving = true; this.error = '';
-    this.service.actualizar(this.id, this.detailForm.getRawValue()).subscribe({ next: d => { this.desvio = d; this.detailSaving = false; this.cancelarEdicionDetalle(); }, error: err => { this.error = err?.error?.message || 'No se pudieron actualizar los datos del hallazgo.'; this.detailSaving = false; } });
+    this.service.actualizar(this.id, this.detailForm.getRawValue()).subscribe({ next: d => { this.desvio = d; this.detailSaving = false; this.cancelarEdicionDetalle(); void this.notifications.success('Hallazgo actualizado'); }, error: (err: unknown) => { this.showOperationError(err, 'No se pudieron actualizar los datos del hallazgo.'); this.detailSaving = false; } });
+  }
+  private showOperationError(error: unknown, fallback: string): void {
+    if (error instanceof HttpErrorResponse && error.status === 401) return;
+    const details = error instanceof HttpErrorResponse ? parseApiError(error.error) : null;
+    const message = details?.message ?? fallback;
+    const reference = error instanceof HttpErrorResponse ? correlationIdFrom(error, details) : null;
+    const title = error instanceof HttpErrorResponse && error.status === 403 ? 'Sin permisos' : 'No se pudo completar la operación';
+    void this.notifications.error(title, message, reference);
   }
   porcentaje(estado: EstadoDesvio): number { return porcentajeParaEstado(estado); }
   estadoClass(e: EstadoDesvio): string { return e === 'FINALIZADO' ? 'success' : e === 'PERMANECE' ? 'danger' : e === 'EN_PROCESO' ? 'warning' : 'info'; }

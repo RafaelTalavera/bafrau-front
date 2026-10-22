@@ -1,7 +1,7 @@
 <div class="content-wrapper desvio-page">
   <section class="content p-3 p-md-4"><div class="mx-auto form-shell">
     <header class="form-page-header"><div><span class="page-eyebrow">Gestión de desvíos</span><h2>Nuevo desvío</h2><p>Registrá el hallazgo, las acciones previstas y sus responsables.</p></div><a routerLink="/desvios" class="btn btn-light back-button"><i class="fas fa-arrow-left"></i> Volver al listado</a></header>
-    <div #errorSummary class="alert alert-danger error-summary" *ngIf="error" role="alert" aria-live="assertive" tabindex="-1">
+    <div #errorSummary class="alert alert-danger error-summary" *ngIf="error && inlineError" role="alert" aria-live="assertive" tabindex="-1">
       <strong>{{error}}</strong>
       <ul *ngIf="fieldErrorEntries.length" class="mb-0 mt-2">
         <li *ngFor="let fieldError of fieldErrorEntries">{{fieldError[1]}}</li>

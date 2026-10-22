@@ -43,11 +43,30 @@ Cuando existe `correlationId`, ya sea en el cuerpo o en el header
 ## Autenticación y autorización
 
 Los errores `401` se delegan al interceptor HTTP. Este invoca el flujo
-idempotente `AuthService.handleAuthenticationFailure()`, que elimina la sesión y
-navega al login una sola vez aunque fallen varias solicitudes concurrentes.
+idempotente `AuthService.handleAuthenticationFailure()`, que elimina la sesión,
+muestra una única alerta SweetAlert2 y navega al login cuando el usuario la
+confirma. El texto se selecciona por `code` para distinguir token vencido,
+token inválido, autenticación requerida y usuario inactivo. Aunque fallen varias
+solicitudes concurrentes, no se duplican la alerta ni la redirección.
+
+Las respuestas `401` del propio endpoint de login quedan excluidas de este
+flujo para que unas credenciales incorrectas no se presenten como una sesión
+vencida.
 
 Los errores `403` solo informan la falta de permisos; no eliminan una sesión
 válida.
+
+## Notificaciones
+
+`NotificationService` centraliza la configuración de SweetAlert2. Los errores
+operativos de escritura, conflictos, falta de permisos y fallos del servicio se
+muestran como modales. Los resultados exitosos de seguimientos y edición del
+hallazgo usan toasts breves.
+
+Las validaciones asociadas a controles, los archivos rechazados y los errores
+persistentes al cargar una pantalla permanecen inline para conservar el contexto
+y la accesibilidad. Un `401` nunca genera una segunda alerta desde el componente:
+queda exclusivamente a cargo del flujo central de sesión.
 
 ## Pruebas
 
